@@ -1,0 +1,193 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Prevent iOS bounce scroll on the whole app */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Safe area padding for notched phones */
+body {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Smooth scrolling */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Dark Mode ───────────────────────────────────────────────────────────────
+   Remaps the app's fixed Tailwind color classes to dark equivalents.
+   No component changes needed — we override at the CSS layer.
+   Strategy:
+     Page background:  bg-gray-50  → #111827  (gray-900)
+     Card surface:     bg-white    → #1f2937  (gray-800)
+     Subtle surface:   bg-gray-100 → #374151  (gray-700)
+     Input surface:    bg-gray-50  → #1f2937
+     Primary text:     text-gray-800/900 → #f9fafb
+     Secondary text:   text-gray-600/700 → #d1d5db
+     Muted text:       text-gray-400/500 → #9ca3af
+     Borders:          border-gray-200/100 → rgba(255,255,255,0.1)
+   Accent colours (teal, amber, red, blue, green) stay the same —
+   they already read well on dark backgrounds.
+────────────────────────────────────────────────────────────────────────────── */
+
+html.dark body {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+/* Page background */
+html.dark .bg-gray-50 {
+  background-color: #1f2937 !important;
+}
+
+/* Card / panel surfaces */
+html.dark .bg-white {
+  background-color: #1f2937 !important;
+}
+
+/* Input / subtle backgrounds */
+html.dark .bg-gray-100 {
+  background-color: #374151 !important;
+}
+
+/* Slightly darker inset areas (e.g. expanded meal cards) */
+html.dark .bg-gray-50:not(body) {
+  background-color: #111827 !important;
+}
+
+/* Borders */
+html.dark .border-gray-200 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+html.dark .border-gray-100 {
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+html.dark .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Primary text */
+html.dark .text-gray-900 { color: #f9fafb !important; }
+html.dark .text-gray-800 { color: #f3f4f6 !important; }
+html.dark .text-gray-700 { color: #e5e7eb !important; }
+
+/* Secondary text */
+html.dark .text-gray-600 { color: #d1d5db !important; }
+html.dark .text-gray-500 { color: #9ca3af !important; }
+html.dark .text-gray-400 { color: #6b7280 !important; }
+
+/* Input fields */
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #374151 !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #f3f4f6 !important;
+}
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Focus ring on inputs */
+html.dark input:focus,
+html.dark textarea:focus,
+html.dark select:focus {
+  border-color: #0d9488 !important;
+  outline: none;
+}
+
+/* Shadows — lighten slightly so cards are visible */
+html.dark .shadow-sm {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+}
+html.dark .shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5) !important;
+}
+html.dark .shadow-2xl {
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Bottom nav */
+html.dark nav.fixed {
+  background-color: #1f2937 !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Bottom nav inactive text */
+html.dark nav.fixed .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+/* Dividers */
+html.dark .divide-gray-100 > * + * {
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Scrollbars (Webkit) */
+html.dark ::-webkit-scrollbar {
+  width: 4px;
+}
+html.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+html.dark ::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 2px;
+}
+
+/* ── Dark mode overrides for specific semantic surfaces ───────────────────── */
+
+/* Nudge / info cards — keep colored backgrounds but darken them */
+html.dark .bg-teal-50   { background-color: rgba(13, 148, 136, 0.15) !important; }
+html.dark .bg-amber-50  { background-color: rgba(245, 158, 11, 0.12) !important; }
+html.dark .bg-red-50    { background-color: rgba(239, 68, 68, 0.12) !important; }
+html.dark .bg-blue-50   { background-color: rgba(59, 130, 246, 0.12) !important; }
+html.dark .bg-green-50  { background-color: rgba(34, 197, 94, 0.12) !important; }
+html.dark .bg-purple-50 { background-color: rgba(147, 51, 234, 0.12) !important; }
+html.dark .bg-rose-50   { background-color: rgba(244, 63, 94, 0.12) !important; }
+html.dark .bg-orange-50 { background-color: rgba(249, 115, 22, 0.12) !important; }
+
+/* Colored borders in dark mode */
+html.dark .border-teal-200   { border-color: rgba(13, 148, 136, 0.35) !important; }
+html.dark .border-amber-200  { border-color: rgba(245, 158, 11, 0.35) !important; }
+html.dark .border-red-200    { border-color: rgba(239, 68, 68, 0.35) !important; }
+html.dark .border-blue-200   { border-color: rgba(59, 130, 246, 0.35) !important; }
+html.dark .border-green-200  { border-color: rgba(34, 197, 94, 0.35) !important; }
+html.dark .border-purple-200 { border-color: rgba(147, 51, 234, 0.35) !important; }
+html.dark .border-rose-200   { border-color: rgba(244, 63, 94, 0.35) !important; }
+
+/* Colored text — boost slightly for readability on dark bg */
+html.dark .text-teal-800   { color: #5eead4 !important; }
+html.dark .text-teal-700   { color: #2dd4bf !important; }
+html.dark .text-teal-600   { color: #14b8a6 !important; }
+html.dark .text-amber-800  { color: #fcd34d !important; }
+html.dark .text-amber-700  { color: #fbbf24 !important; }
+html.dark .text-amber-600  { color: #f59e0b !important; }
+html.dark .text-red-800    { color: #fca5a5 !important; }
+html.dark .text-red-700    { color: #f87171 !important; }
+html.dark .text-red-600    { color: #ef4444 !important; }
+html.dark .text-blue-800   { color: #93c5fd !important; }
+html.dark .text-blue-700   { color: #60a5fa !important; }
+html.dark .text-green-700  { color: #4ade80 !important; }
+html.dark .text-green-600  { color: #22c55e !important; }
+html.dark .text-purple-700 { color: #c084fc !important; }
+html.dark .text-rose-800   { color: #fda4af !important; }
+html.dark .text-rose-700   { color: #fb7185 !important; }
+html.dark .text-rose-600   { color: #f43f5e !important; }
+
+/* Progress bar tracks */
+html.dark .bg-gray-200 {
+  background-color: #374151 !important;
+}
+
+/* Gradient headers — keep them, they look great in dark mode already */
+/* gradient from-gray-900 to-teal-800 is already dark */
+
+/* Modals / overlays */
+html.dark .bg-black\/40  { background-color: rgba(0, 0, 0, 0.6) !important; }
+html.dark .bg-black\/50  { background-color: rgba(0, 0, 0, 0.7) !important; }

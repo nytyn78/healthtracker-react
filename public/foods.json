@@ -1,0 +1,7998 @@
+[
+  {
+    "name": "Aam Panna (250ml)",
+    "cal": 95,
+    "protein": 0.5,
+    "carbs": 24,
+    "fat": 0.1,
+    "fibre": 1,
+    "sodium": 180,
+    "gi": 60,
+    "category": "Beverages",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Almond Milk unsweetened (250ml)",
+    "cal": 38,
+    "protein": 1,
+    "carbs": 1.5,
+    "fat": 3,
+    "fibre": 0.5,
+    "sodium": 150,
+    "gi": 25,
+    "category": "Beverages",
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Ashwagandha Milk (250ml)",
+    "cal": 155,
+    "protein": 7.5,
+    "carbs": 14,
+    "fat": 6.5,
+    "fibre": 0,
+    "sodium": 98,
+    "gi": 28,
+    "category": "Beverages",
+    "tags": [
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Badam Milk (250ml)",
+    "cal": 175,
+    "protein": 8,
+    "carbs": 18,
+    "fat": 8,
+    "fibre": 0.5,
+    "sodium": 95,
+    "gi": 30,
+    "category": "Beverages",
+    "tags": [
+      "high-protein",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Black Coffee",
+    "cal": 2,
+    "protein": 0.3,
+    "carbs": 0,
+    "fat": 0,
+    "fibre": 0,
+    "sodium": 2,
+    "gi": 0,
+    "category": "Beverages",
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Black coffee (1 cup, no sugar)",
+    "protein": 0.1,
+    "carbs": 0,
+    "fat": 0,
+    "cal": 2,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 2,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Black coffee (1 mug, no sugar)",
+    "protein": 0.3,
+    "carbs": 0.0,
+    "fat": 0.0,
+    "cal": 2.0,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 3,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Black coffee with milk, no sugar (1 cup)",
+    "protein": 1.5,
+    "carbs": 2,
+    "fat": 1,
+    "cal": 22,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 15,
+    "gi": 30,
+    "tags": []
+  },
+  {
+    "name": "Buttermilk / Chaas (250ml)",
+    "protein": 4.0,
+    "carbs": 6.0,
+    "fat": 2.0,
+    "cal": 58.0,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 120,
+    "gi": 32,
+    "tags": []
+  },
+  {
+    "name": "Buttermilk Masala (250ml)",
+    "cal": 55,
+    "protein": 3.5,
+    "carbs": 5.5,
+    "fat": 1.5,
+    "fibre": 0,
+    "sodium": 580,
+    "gi": 35,
+    "category": "Beverages",
+    "tags": [
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Buttermilk plain chaas (1 glass)",
+    "protein": 2,
+    "carbs": 3,
+    "fat": 1,
+    "cal": 29,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 80,
+    "gi": 30,
+    "tags": []
+  },
+  {
+    "name": "Chai with full fat milk (150ml, no sugar)",
+    "protein": 2.5,
+    "carbs": 5.5,
+    "fat": 3.0,
+    "cal": 58.0,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 30,
+    "gi": 35,
+    "tags": []
+  },
+  {
+    "name": "Chai with milk (250ml)",
+    "cal": 80,
+    "protein": 3.5,
+    "carbs": 12,
+    "fat": 2.5,
+    "fibre": 0,
+    "sodium": 60,
+    "gi": 55,
+    "category": "Beverages",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Chai with milk + 1 tsp sugar",
+    "protein": 2.5,
+    "carbs": 9.5,
+    "fat": 3.0,
+    "cal": 74.0,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 30,
+    "gi": 55,
+    "tags": []
+  },
+  {
+    "name": "Chai with milk and sugar (1 cup)",
+    "protein": 2,
+    "carbs": 10,
+    "fat": 2,
+    "cal": 65,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 28,
+    "gi": 52,
+    "tags": []
+  },
+  {
+    "name": "Chai with milk, no sugar (1 cup)",
+    "protein": 2,
+    "carbs": 3,
+    "fat": 2,
+    "cal": 37,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 28,
+    "gi": 35,
+    "tags": []
+  },
+  {
+    "name": "Chai without sugar (250ml)",
+    "cal": 42,
+    "protein": 3,
+    "carbs": 5,
+    "fat": 1.5,
+    "fibre": 0,
+    "sodium": 55,
+    "gi": 30,
+    "category": "Beverages",
+    "tags": [
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Coconut Water (250ml)",
+    "cal": 48,
+    "protein": 0.7,
+    "carbs": 11,
+    "fat": 0.4,
+    "fibre": 1,
+    "sodium": 252,
+    "gi": 54,
+    "category": "Beverages",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Coconut water (1 glass, 250ml)",
+    "protein": 0.5,
+    "carbs": 9,
+    "fat": 0,
+    "cal": 46,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 252,
+    "gi": 55,
+    "tags": []
+  },
+  {
+    "name": "Coffee with milk (150ml)",
+    "protein": 2.0,
+    "carbs": 5.0,
+    "fat": 2.5,
+    "cal": 49.0,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 25,
+    "gi": 35,
+    "tags": []
+  },
+  {
+    "name": "Coffee with milk (250ml)",
+    "cal": 90,
+    "protein": 4,
+    "carbs": 10,
+    "fat": 3,
+    "fibre": 0,
+    "sodium": 75,
+    "gi": 40,
+    "category": "Beverages",
+    "tags": []
+  },
+  {
+    "name": "Filter Coffee (250ml)",
+    "cal": 65,
+    "protein": 2.5,
+    "carbs": 8,
+    "fat": 2.5,
+    "fibre": 0,
+    "sodium": 55,
+    "gi": 30,
+    "category": "Beverages",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Fresh Orange Juice (250ml)",
+    "cal": 110,
+    "protein": 1.5,
+    "carbs": 26,
+    "fat": 0.3,
+    "fibre": 0.5,
+    "sodium": 2,
+    "gi": 52,
+    "category": "Beverages",
+    "tags": []
+  },
+  {
+    "name": "Fresh Pomegranate Juice (250ml)",
+    "cal": 125,
+    "protein": 1.5,
+    "carbs": 30,
+    "fat": 0.5,
+    "fibre": 0.5,
+    "sodium": 5,
+    "gi": 35,
+    "category": "Beverages",
+    "tags": [
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Green tea (1 cup, no sugar)",
+    "protein": 0,
+    "carbs": 0,
+    "fat": 0,
+    "cal": 2,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 2,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Jaljeera (250ml)",
+    "cal": 28,
+    "protein": 0.5,
+    "carbs": 6.5,
+    "fat": 0.2,
+    "fibre": 0.5,
+    "sodium": 380,
+    "gi": 20,
+    "category": "Beverages",
+    "tags": [
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Kesar Milk (250ml)",
+    "cal": 168,
+    "protein": 8.5,
+    "carbs": 18,
+    "fat": 7,
+    "fibre": 0,
+    "sodium": 108,
+    "gi": 32,
+    "category": "Beverages",
+    "tags": [
+      "high-protein",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Lemon water (1 glass, no sugar)",
+    "protein": 0,
+    "carbs": 2,
+    "fat": 0,
+    "cal": 8,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 2,
+    "gi": 20,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Lemon water (250ml, no sugar)",
+    "protein": 0.0,
+    "carbs": 1.0,
+    "fat": 0.0,
+    "cal": 5.0,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 2,
+    "gi": 20,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Mango Lassi (250ml)",
+    "cal": 185,
+    "protein": 5,
+    "carbs": 32,
+    "fat": 5,
+    "fibre": 0.5,
+    "sodium": 82,
+    "gi": 58,
+    "category": "Beverages",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Masala Chai street-style (250ml)",
+    "cal": 95,
+    "protein": 3,
+    "carbs": 15,
+    "fat": 3,
+    "fibre": 0,
+    "sodium": 45,
+    "gi": 55,
+    "category": "Beverages",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Nimbu Pani (no sugar, 250ml)",
+    "cal": 12,
+    "protein": 0.2,
+    "carbs": 3.5,
+    "fat": 0,
+    "fibre": 0.2,
+    "sodium": 240,
+    "gi": 20,
+    "category": "Beverages",
+    "tags": [
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Nimbu Pani (sugar, 250ml)",
+    "cal": 75,
+    "protein": 0.2,
+    "carbs": 20,
+    "fat": 0,
+    "fibre": 0.2,
+    "sodium": 240,
+    "gi": 65,
+    "category": "Beverages",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Nimbu pani, no sugar (300ml)",
+    "protein": 0.0,
+    "carbs": 3.0,
+    "fat": 0.0,
+    "cal": 13.0,
+    "category": "Beverages",
+    "fibre": 0,
+    "sodium": 3,
+    "gi": 20,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Oat Milk (250ml)",
+    "cal": 95,
+    "protein": 2.5,
+    "carbs": 16,
+    "fat": 2.5,
+    "fibre": 1.5,
+    "sodium": 95,
+    "gi": 55,
+    "category": "Beverages",
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Ragi Kanji (250ml)",
+    "cal": 115,
+    "protein": 4,
+    "carbs": 22,
+    "fat": 1,
+    "fibre": 2.5,
+    "sodium": 45,
+    "gi": 65,
+    "category": "Beverages",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Sattu Drink (250ml)",
+    "cal": 158,
+    "protein": 8.5,
+    "carbs": 26,
+    "fat": 2,
+    "fibre": 3,
+    "sodium": 280,
+    "gi": 35,
+    "category": "Beverages",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Sugarcane Juice (250ml)",
+    "cal": 115,
+    "protein": 0.3,
+    "carbs": 28,
+    "fat": 0.1,
+    "fibre": 0.5,
+    "sodium": 18,
+    "gi": 70,
+    "category": "Beverages",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Thandai (250ml)",
+    "cal": 195,
+    "protein": 5,
+    "carbs": 28,
+    "fat": 8,
+    "fibre": 0.5,
+    "sodium": 85,
+    "gi": 55,
+    "category": "Beverages",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Turmeric Milk (250ml)",
+    "cal": 148,
+    "protein": 7.5,
+    "carbs": 14,
+    "fat": 6.5,
+    "fibre": 0,
+    "sodium": 95,
+    "gi": 30,
+    "category": "Beverages",
+    "tags": [
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Aloo Paratha",
+    "cal": 168,
+    "protein": 4,
+    "carbs": 26,
+    "fat": 6,
+    "fibre": 2,
+    "sodium": 280,
+    "gi": 60,
+    "category": "Breads",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Aloo paratha (1, ~120g)",
+    "protein": 5.0,
+    "carbs": 42.0,
+    "fat": 10.0,
+    "cal": 275.0,
+    "category": "Breads",
+    "fibre": 3.0,
+    "sodium": 320,
+    "gi": 72,
+    "tags": []
+  },
+  {
+    "name": "Amritsari Kulcha",
+    "cal": 248,
+    "protein": 6.5,
+    "carbs": 38,
+    "fat": 8,
+    "fibre": 2,
+    "sodium": 380,
+    "gi": 62,
+    "category": "Breads",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Bhatura",
+    "cal": 215,
+    "protein": 5,
+    "carbs": 32,
+    "fat": 8,
+    "fibre": 1.2,
+    "sodium": 320,
+    "gi": 70,
+    "category": "Breads",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Bhatura (1)",
+    "protein": 5.0,
+    "carbs": 40.0,
+    "fat": 12.0,
+    "cal": 285.0,
+    "category": "Breads",
+    "fibre": 1.5,
+    "sodium": 280,
+    "gi": 78,
+    "tags": []
+  },
+  {
+    "name": "Luchi",
+    "cal": 195,
+    "protein": 4.5,
+    "carbs": 28,
+    "fat": 8,
+    "fibre": 1,
+    "sodium": 185,
+    "gi": 68,
+    "category": "Breads",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Makki Di Roti",
+    "cal": 178,
+    "protein": 4,
+    "carbs": 35,
+    "fat": 2.5,
+    "fibre": 4.5,
+    "sodium": 38,
+    "gi": 65,
+    "category": "Breads",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Methi Paratha",
+    "cal": 148,
+    "protein": 3.5,
+    "carbs": 20,
+    "fat": 6,
+    "fibre": 2.5,
+    "sodium": 240,
+    "gi": 52,
+    "category": "Breads",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Missi roti (1, ~50g)",
+    "protein": 5.0,
+    "carbs": 22.0,
+    "fat": 3.0,
+    "cal": 135.0,
+    "category": "Breads",
+    "fibre": 3.5,
+    "sodium": 120,
+    "gi": 58,
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Naan",
+    "cal": 262,
+    "protein": 8,
+    "carbs": 45,
+    "fat": 5,
+    "fibre": 2,
+    "sodium": 480,
+    "gi": 71,
+    "category": "Breads",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Naan butter (1)",
+    "protein": 7.0,
+    "carbs": 45.0,
+    "fat": 10.0,
+    "cal": 298.0,
+    "category": "Breads",
+    "fibre": 1.5,
+    "sodium": 380,
+    "gi": 71,
+    "tags": []
+  },
+  {
+    "name": "Naan plain (1, ~90g)",
+    "protein": 7.0,
+    "carbs": 45.0,
+    "fat": 4.0,
+    "cal": 242.0,
+    "category": "Breads",
+    "fibre": 1.5,
+    "sodium": 340,
+    "gi": 71,
+    "tags": []
+  },
+  {
+    "name": "Paratha (plain)",
+    "cal": 126,
+    "protein": 3,
+    "carbs": 18,
+    "fat": 5,
+    "fibre": 1.5,
+    "sodium": 200,
+    "gi": 58,
+    "category": "Breads",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Paratha plain (1, ~70g)",
+    "protein": 4.0,
+    "carbs": 30.0,
+    "fat": 8.0,
+    "cal": 208.0,
+    "category": "Breads",
+    "fibre": 2.5,
+    "sodium": 180,
+    "gi": 62,
+    "tags": []
+  },
+  {
+    "name": "Paratha with butter (1)",
+    "protein": 4.0,
+    "carbs": 30.0,
+    "fat": 13.0,
+    "cal": 253.0,
+    "category": "Breads",
+    "fibre": 2.5,
+    "sodium": 210,
+    "gi": 62,
+    "tags": []
+  },
+  {
+    "name": "Phulka (thin roti)",
+    "cal": 65,
+    "protein": 2.3,
+    "carbs": 13,
+    "fat": 0.7,
+    "fibre": 1.8,
+    "sodium": 55,
+    "gi": 62,
+    "category": "Breads",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Puran Poli",
+    "cal": 278,
+    "protein": 6,
+    "carbs": 50,
+    "fat": 7,
+    "fibre": 3,
+    "sodium": 180,
+    "gi": 62,
+    "category": "Breads",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Puri",
+    "cal": 160,
+    "protein": 3,
+    "carbs": 20,
+    "fat": 8,
+    "fibre": 0.8,
+    "sodium": 180,
+    "gi": 70,
+    "category": "Breads",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Puri (1, ~35g)",
+    "protein": 2.0,
+    "carbs": 16.0,
+    "fat": 7.0,
+    "cal": 135.0,
+    "category": "Breads",
+    "fibre": 1.0,
+    "sodium": 100,
+    "gi": 70,
+    "tags": []
+  },
+  {
+    "name": "Ragi Roti",
+    "cal": 145,
+    "protein": 3.5,
+    "carbs": 27,
+    "fat": 1.8,
+    "fibre": 3.8,
+    "sodium": 45,
+    "gi": 68,
+    "category": "Breads",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Roti (wheat)",
+    "cal": 71,
+    "protein": 2.5,
+    "carbs": 14,
+    "fat": 0.9,
+    "fibre": 1.9,
+    "sodium": 65,
+    "gi": 62,
+    "category": "Breads",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Roti / Chapati plain (1, ~35g)",
+    "protein": 3.0,
+    "carbs": 18.0,
+    "fat": 1.0,
+    "cal": 93.0,
+    "category": "Breads",
+    "fibre": 2.0,
+    "sodium": 80,
+    "gi": 62,
+    "tags": []
+  },
+  {
+    "name": "Roti whole wheat (1, ~35g)",
+    "protein": 3.0,
+    "carbs": 17.0,
+    "fat": 1.0,
+    "cal": 89.0,
+    "category": "Breads",
+    "fibre": 2.5,
+    "sodium": 80,
+    "gi": 54,
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Roti with ghee (1)",
+    "protein": 3.0,
+    "carbs": 18.0,
+    "fat": 6.0,
+    "cal": 138.0,
+    "category": "Breads",
+    "fibre": 2.0,
+    "sodium": 80,
+    "gi": 58,
+    "tags": []
+  },
+  {
+    "name": "Rotlo (bajra roti)",
+    "cal": 188,
+    "protein": 4.5,
+    "carbs": 38,
+    "fat": 3,
+    "fibre": 6,
+    "sodium": 40,
+    "gi": 55,
+    "category": "Breads",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Tandoori Roti",
+    "cal": 116,
+    "protein": 4,
+    "carbs": 22,
+    "fat": 2,
+    "fibre": 2.5,
+    "sodium": 280,
+    "gi": 62,
+    "category": "Breads",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Thalipeeth",
+    "cal": 188,
+    "protein": 6,
+    "carbs": 28,
+    "fat": 6,
+    "fibre": 4,
+    "sodium": 280,
+    "gi": 50,
+    "category": "Breads",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Thepla",
+    "cal": 142,
+    "protein": 4,
+    "carbs": 19,
+    "fat": 6,
+    "fibre": 2.5,
+    "sodium": 280,
+    "gi": 48,
+    "category": "Breads",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Thepla (methi)",
+    "cal": 148,
+    "protein": 4.2,
+    "carbs": 20,
+    "fat": 5.8,
+    "fibre": 2.8,
+    "sodium": 260,
+    "gi": 48,
+    "category": "Breads",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Brown Bread (1 slice)",
+    "cal": 65,
+    "protein": 2.5,
+    "carbs": 12,
+    "fat": 0.9,
+    "fibre": 2.2,
+    "sodium": 125,
+    "gi": 65,
+    "category": "Breakfast",
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Cornflakes (plain)",
+    "cal": 357,
+    "protein": 7,
+    "carbs": 84,
+    "fat": 0.4,
+    "fibre": 1.2,
+    "sodium": 700,
+    "gi": 81,
+    "category": "Breakfast",
+    "tags": []
+  },
+  {
+    "name": "Daliya (wheat porridge)",
+    "cal": 130,
+    "protein": 4.5,
+    "carbs": 26,
+    "fat": 0.8,
+    "fibre": 4,
+    "sodium": 120,
+    "gi": 40,
+    "category": "Breakfast",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Handvo",
+    "cal": 178,
+    "protein": 7,
+    "carbs": 22,
+    "fat": 7.5,
+    "fibre": 2.5,
+    "sodium": 460,
+    "gi": 52,
+    "category": "Breakfast",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Muesli",
+    "cal": 370,
+    "protein": 10,
+    "carbs": 66,
+    "fat": 6,
+    "fibre": 7,
+    "sodium": 200,
+    "gi": 49,
+    "category": "Breakfast",
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Oats (cooked)",
+    "cal": 71,
+    "protein": 2.5,
+    "carbs": 12,
+    "fat": 1.4,
+    "fibre": 1.8,
+    "sodium": 49,
+    "gi": 55,
+    "category": "Breakfast",
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Oats Upma",
+    "cal": 155,
+    "protein": 5,
+    "carbs": 25,
+    "fat": 5,
+    "fibre": 3.5,
+    "sodium": 280,
+    "gi": 55,
+    "category": "Breakfast",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Poha",
+    "cal": 158,
+    "protein": 3.5,
+    "carbs": 34,
+    "fat": 1.5,
+    "fibre": 2,
+    "sodium": 280,
+    "gi": 70,
+    "category": "Breakfast",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Sabudana Khichdi",
+    "cal": 260,
+    "protein": 3,
+    "carbs": 55,
+    "fat": 5.5,
+    "fibre": 1.5,
+    "sodium": 240,
+    "gi": 85,
+    "category": "Breakfast",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Upma",
+    "cal": 172,
+    "protein": 4,
+    "carbs": 28,
+    "fat": 6,
+    "fibre": 2,
+    "sodium": 340,
+    "gi": 65,
+    "category": "Breakfast",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "White Bread (1 slice)",
+    "cal": 79,
+    "protein": 2.7,
+    "carbs": 15,
+    "fat": 0.9,
+    "fibre": 0.6,
+    "sodium": 148,
+    "gi": 75,
+    "category": "Breakfast",
+    "tags": []
+  },
+  {
+    "name": "Whole Wheat Bread (1 slice)",
+    "cal": 69,
+    "protein": 2.8,
+    "carbs": 13,
+    "fat": 0.9,
+    "fibre": 1.9,
+    "sodium": 132,
+    "gi": 71,
+    "category": "Breakfast",
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Amul Dahi (100g)",
+    "cal": 62,
+    "protein": 3.5,
+    "carbs": 4.5,
+    "fat": 3,
+    "fibre": 0,
+    "sodium": 42,
+    "gi": 34,
+    "category": "Dairy",
+    "tags": [
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Amul Gold Milk (250ml)",
+    "cal": 163,
+    "protein": 8.5,
+    "carbs": 12,
+    "fat": 9,
+    "fibre": 0,
+    "sodium": 108,
+    "gi": 31,
+    "category": "Dairy",
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Amul Taaza Milk (250ml)",
+    "cal": 115,
+    "protein": 8,
+    "carbs": 12,
+    "fat": 4.5,
+    "fibre": 0,
+    "sodium": 105,
+    "gi": 30,
+    "category": "Dairy",
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Amul cheese block (30g)",
+    "protein": 5.4,
+    "carbs": 3.0,
+    "fat": 8.1,
+    "cal": 96.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 195,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Amul cheese slice (1 / 20g)",
+    "protein": 3.6,
+    "carbs": 2.0,
+    "fat": 5.4,
+    "cal": 64.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 200,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Butter (1 tsp, 5g)",
+    "cal": 36,
+    "protein": 0.04,
+    "carbs": 0,
+    "fat": 4,
+    "fibre": 0,
+    "sodium": 33,
+    "gi": 0,
+    "category": "Dairy",
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Chaas / Buttermilk (250ml)",
+    "cal": 55,
+    "protein": 3.5,
+    "carbs": 5.5,
+    "fat": 1.5,
+    "fibre": 0,
+    "sodium": 130,
+    "gi": 35,
+    "category": "Dairy",
+    "tags": [
+      "low-gi",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Cheddar cheese (30g)",
+    "protein": 7.5,
+    "carbs": 0.2,
+    "fat": 10.0,
+    "cal": 118.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 170,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Cream cheese (30g)",
+    "protein": 2.0,
+    "carbs": 1.3,
+    "fat": 9.8,
+    "cal": 99.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 90,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Curd / Dahi (100g)",
+    "cal": 98,
+    "protein": 3.5,
+    "carbs": 5,
+    "fat": 6.5,
+    "fibre": 0,
+    "sodium": 40,
+    "gi": 35,
+    "category": "Dairy",
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Curd / Dahi (200g bowl)",
+    "protein": 6.2,
+    "carbs": 9.4,
+    "fat": 8.0,
+    "cal": 132.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 80,
+    "gi": 36,
+    "tags": []
+  },
+  {
+    "name": "Curd / Dahi, full fat (100g)",
+    "protein": 3.1,
+    "carbs": 4.7,
+    "fat": 4.0,
+    "cal": 66.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 40,
+    "gi": 36,
+    "tags": []
+  },
+  {
+    "name": "Ghee (1 tsp, 5g)",
+    "cal": 45,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 5,
+    "fibre": 0,
+    "sodium": 0,
+    "gi": 0,
+    "category": "Dairy",
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Greek Yogurt (100g)",
+    "cal": 97,
+    "protein": 10,
+    "carbs": 4,
+    "fat": 5,
+    "fibre": 0,
+    "sodium": 36,
+    "gi": 11,
+    "category": "Dairy",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Khoya / Mawa (50g)",
+    "protein": 8.0,
+    "carbs": 11.0,
+    "fat": 11.0,
+    "cal": 174.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 50,
+    "gi": 55,
+    "tags": []
+  },
+  {
+    "name": "Lassi (salted, 250ml)",
+    "cal": 100,
+    "protein": 5.5,
+    "carbs": 9,
+    "fat": 4.5,
+    "fibre": 0,
+    "sodium": 580,
+    "gi": 35,
+    "category": "Dairy",
+    "tags": [
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Lassi (sweet, 250ml)",
+    "cal": 165,
+    "protein": 6.5,
+    "carbs": 28,
+    "fat": 4.5,
+    "fibre": 0,
+    "sodium": 95,
+    "gi": 52,
+    "category": "Dairy",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Lassi, plain salted (300ml)",
+    "protein": 9.0,
+    "carbs": 14.0,
+    "fat": 6.0,
+    "cal": 148.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 220,
+    "gi": 38,
+    "tags": []
+  },
+  {
+    "name": "Low fat Curd (100g)",
+    "cal": 62,
+    "protein": 4.5,
+    "carbs": 5.5,
+    "fat": 2,
+    "fibre": 0,
+    "sodium": 42,
+    "gi": 33,
+    "category": "Dairy",
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Milk (full fat, 250ml)",
+    "cal": 150,
+    "protein": 8,
+    "carbs": 12,
+    "fat": 8,
+    "fibre": 0,
+    "sodium": 105,
+    "gi": 31,
+    "category": "Dairy",
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Milk (toned, 250ml)",
+    "cal": 110,
+    "protein": 8.5,
+    "carbs": 12,
+    "fat": 3.5,
+    "fibre": 0,
+    "sodium": 105,
+    "gi": 30,
+    "category": "Dairy",
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Milk, full fat (200ml)",
+    "protein": 6.4,
+    "carbs": 9.6,
+    "fat": 7.0,
+    "cal": 130.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 96,
+    "gi": 31,
+    "tags": []
+  },
+  {
+    "name": "Milk, toned (200ml)",
+    "protein": 6.4,
+    "carbs": 9.6,
+    "fat": 3.2,
+    "cal": 90.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 96,
+    "gi": 31,
+    "tags": []
+  },
+  {
+    "name": "Mozzarella (30g)",
+    "protein": 6.7,
+    "carbs": 0.6,
+    "fat": 6.0,
+    "cal": 85.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 140,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Paneer (100g)",
+    "cal": 265,
+    "protein": 18,
+    "carbs": 3.4,
+    "fat": 21,
+    "fibre": 0,
+    "sodium": 40,
+    "gi": 27,
+    "category": "Dairy",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Paneer bhurji (100g, 1 tsp ghee)",
+    "protein": 18.0,
+    "carbs": 3.0,
+    "fat": 26.0,
+    "cal": 318.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 60,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Paneer raw (100g)",
+    "protein": 18,
+    "carbs": 1.2,
+    "fat": 20,
+    "cal": 265,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 20,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Paneer raw (50g)",
+    "protein": 9,
+    "carbs": 0.6,
+    "fat": 10,
+    "cal": 133,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 10,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Paneer tikka grilled (150g)",
+    "protein": 27.0,
+    "carbs": 5.0,
+    "fat": 22.0,
+    "cal": 323.0,
+    "category": "Dairy",
+    "fibre": 1.0,
+    "sodium": 340,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Paneer, full fat (100g)",
+    "protein": 18.0,
+    "carbs": 1.2,
+    "fat": 21.0,
+    "cal": 265.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 20,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Paneer, full fat (120g)",
+    "protein": 22.0,
+    "carbs": 1.4,
+    "fat": 25.0,
+    "cal": 318.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 24,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Paneer, full fat (150g)",
+    "protein": 27.0,
+    "carbs": 1.8,
+    "fat": 31.0,
+    "cal": 398.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 30,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Paneer, full fat (50g)",
+    "protein": 9.0,
+    "carbs": 0.6,
+    "fat": 10.0,
+    "cal": 133.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 10,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Paneer, full fat (80g)",
+    "protein": 15.0,
+    "carbs": 1.0,
+    "fat": 17.0,
+    "cal": 213.0,
+    "category": "Dairy",
+    "fibre": 0,
+    "sodium": 16,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Raita (100g)",
+    "protein": 2.5,
+    "carbs": 5.0,
+    "fat": 2.5,
+    "cal": 52.0,
+    "category": "Dairy",
+    "fibre": 0.5,
+    "sodium": 200,
+    "gi": 35,
+    "tags": []
+  },
+  {
+    "name": "Soya Milk (200ml)",
+    "cal": 80,
+    "protein": 7,
+    "carbs": 8,
+    "fat": 3.5,
+    "fibre": 0.5,
+    "sodium": 100,
+    "gi": 30,
+    "category": "Dairy",
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Chana / Chole, cooked (150g)",
+    "protein": 10.0,
+    "carbs": 26.0,
+    "fat": 2.0,
+    "cal": 162.0,
+    "category": "Dal & Lentils",
+    "fibre": 8.0,
+    "sodium": 10,
+    "gi": 33,
+    "tags": [
+      "high-fibre",
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Chana Dal",
+    "cal": 164,
+    "protein": 9,
+    "carbs": 27,
+    "fat": 2,
+    "fibre": 5,
+    "sodium": 24,
+    "gi": 11,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Chana dal tadka (150g, 1 tsp ghee)",
+    "protein": 12.0,
+    "carbs": 27.0,
+    "fat": 6.5,
+    "cal": 211.0,
+    "category": "Dal & Lentils",
+    "fibre": 7.0,
+    "sodium": 220,
+    "gi": 38,
+    "tags": [
+      "high-fibre",
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Chana dal, boiled (150g cooked)",
+    "protein": 12.0,
+    "carbs": 27.0,
+    "fat": 1.5,
+    "cal": 167.0,
+    "category": "Dal & Lentils",
+    "fibre": 7.0,
+    "sodium": 10,
+    "gi": 36,
+    "tags": [
+      "high-fibre",
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Chole (cooked)",
+    "cal": 164,
+    "protein": 9,
+    "carbs": 27,
+    "fat": 2.6,
+    "fibre": 8,
+    "sodium": 380,
+    "gi": 28,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Chole Masala home-style (100g)",
+    "cal": 145,
+    "protein": 8,
+    "carbs": 22,
+    "fat": 4,
+    "fibre": 7,
+    "sodium": 380,
+    "gi": 28,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Chole masala, home-style (200g)",
+    "protein": 12.0,
+    "carbs": 32.0,
+    "fat": 10.0,
+    "cal": 260.0,
+    "category": "Dal & Lentils",
+    "fibre": 9.0,
+    "sodium": 680,
+    "gi": 35,
+    "tags": [
+      "high-fibre",
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Dal Dhokli",
+    "cal": 155,
+    "protein": 6,
+    "carbs": 24,
+    "fat": 4,
+    "fibre": 3,
+    "sodium": 440,
+    "gi": 45,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Dal Fry",
+    "cal": 145,
+    "protein": 8,
+    "carbs": 19,
+    "fat": 4,
+    "fibre": 4,
+    "sodium": 350,
+    "gi": 32,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Dal Makhani",
+    "cal": 198,
+    "protein": 9,
+    "carbs": 22,
+    "fat": 8,
+    "fibre": 5,
+    "sodium": 480,
+    "gi": 35,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Dal Tadka",
+    "cal": 130,
+    "protein": 7,
+    "carbs": 18,
+    "fat": 3,
+    "fibre": 4,
+    "sodium": 320,
+    "gi": 32,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Dal fry restaurant (200g)",
+    "protein": 10.0,
+    "carbs": 24.0,
+    "fat": 12.0,
+    "cal": 240.0,
+    "category": "Dal & Lentils",
+    "fibre": 6.0,
+    "sodium": 720,
+    "gi": 42,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Dal makhani, home-style (250g)",
+    "protein": 12.0,
+    "carbs": 28.0,
+    "fat": 18.0,
+    "cal": 320.0,
+    "category": "Dal & Lentils",
+    "fibre": 7.0,
+    "sodium": 780,
+    "gi": 40,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Kala Chana (cooked)",
+    "cal": 164,
+    "protein": 9,
+    "carbs": 27,
+    "fat": 2.5,
+    "fibre": 8,
+    "sodium": 240,
+    "gi": 28,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Langarwali Dal",
+    "cal": 132,
+    "protein": 7.5,
+    "carbs": 20,
+    "fat": 3,
+    "fibre": 4,
+    "sodium": 320,
+    "gi": 30,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Lobia / Black-eyed peas (150g)",
+    "protein": 8.0,
+    "carbs": 24.0,
+    "fat": 0.5,
+    "cal": 135.0,
+    "category": "Dal & Lentils",
+    "fibre": 7.0,
+    "sodium": 8,
+    "gi": 42,
+    "tags": [
+      "high-fibre",
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Masoor Dal",
+    "cal": 116,
+    "protein": 9,
+    "carbs": 20,
+    "fat": 0.4,
+    "fibre": 4,
+    "sodium": 14,
+    "gi": 31,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Masoor dal tadka (150g, 1 tsp ghee)",
+    "protein": 12.0,
+    "carbs": 24.0,
+    "fat": 5.6,
+    "cal": 193.0,
+    "category": "Dal & Lentils",
+    "fibre": 5.5,
+    "sodium": 240,
+    "gi": 44,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Masoor dal, boiled (150g cooked)",
+    "protein": 12.0,
+    "carbs": 24.0,
+    "fat": 0.6,
+    "cal": 148.0,
+    "category": "Dal & Lentils",
+    "fibre": 5.5,
+    "sodium": 8,
+    "gi": 32,
+    "tags": [
+      "high-fibre",
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Moong Dal (cooked)",
+    "cal": 105,
+    "protein": 7,
+    "carbs": 18,
+    "fat": 0.4,
+    "fibre": 3,
+    "sodium": 12,
+    "gi": 31,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Moong Dal Khichdi",
+    "cal": 155,
+    "protein": 7,
+    "carbs": 28,
+    "fat": 2,
+    "fibre": 3,
+    "sodium": 280,
+    "gi": 51,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Moong dal tadka (150g, 1 tsp ghee)",
+    "protein": 10.0,
+    "carbs": 22.0,
+    "fat": 5.6,
+    "cal": 181.0,
+    "category": "Dal & Lentils",
+    "fibre": 4.5,
+    "sodium": 230,
+    "gi": 38,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Moong dal, boiled (100g cooked)",
+    "protein": 7.0,
+    "carbs": 15.0,
+    "fat": 0.4,
+    "cal": 91.0,
+    "category": "Dal & Lentils",
+    "fibre": 3.0,
+    "sodium": 6,
+    "gi": 32,
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Moong dal, boiled (150g cooked)",
+    "protein": 10.0,
+    "carbs": 22.0,
+    "fat": 0.6,
+    "cal": 136.0,
+    "category": "Dal & Lentils",
+    "fibre": 4.5,
+    "sodium": 9,
+    "gi": 32,
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Moong whole, sprouted (100g)",
+    "protein": 9.0,
+    "carbs": 20.0,
+    "fat": 0.5,
+    "cal": 121.0,
+    "category": "Dal & Lentils",
+    "fibre": 4.0,
+    "sodium": 15,
+    "gi": 32,
+    "tags": [
+      "high-fibre",
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Rajma (cooked)",
+    "cal": 144,
+    "protein": 9,
+    "carbs": 24,
+    "fat": 0.5,
+    "fibre": 7,
+    "sodium": 240,
+    "gi": 29,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Rajma chawal (300g portion)",
+    "protein": 14.0,
+    "carbs": 58.0,
+    "fat": 5.0,
+    "cal": 332.0,
+    "category": "Dal & Lentils",
+    "fibre": 10.0,
+    "sodium": 380,
+    "gi": 52,
+    "tags": [
+      "high-fibre",
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Rajma, cooked (150g)",
+    "protein": 10.0,
+    "carbs": 24.0,
+    "fat": 0.5,
+    "cal": 143.0,
+    "category": "Dal & Lentils",
+    "fibre": 9.0,
+    "sodium": 8,
+    "gi": 29,
+    "tags": [
+      "high-fibre",
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Toor / Arhar dal tadka (150g)",
+    "protein": 10.0,
+    "carbs": 23.0,
+    "fat": 6.5,
+    "cal": 193.0,
+    "category": "Dal & Lentils",
+    "fibre": 6.0,
+    "sodium": 240,
+    "gi": 40,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Toor Dal (cooked)",
+    "cal": 116,
+    "protein": 7,
+    "carbs": 20,
+    "fat": 0.5,
+    "fibre": 3,
+    "sodium": 14,
+    "gi": 32,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Urad Dal",
+    "cal": 347,
+    "protein": 24,
+    "carbs": 59,
+    "fat": 1.4,
+    "fibre": 18,
+    "sodium": 38,
+    "gi": 43,
+    "category": "Dal & Lentils",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Urad dal (100g cooked)",
+    "protein": 8.0,
+    "carbs": 14.0,
+    "fat": 0.5,
+    "cal": 93.0,
+    "category": "Dal & Lentils",
+    "fibre": 4.0,
+    "sodium": 6,
+    "gi": 38,
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Boiled Egg (1)",
+    "cal": 78,
+    "protein": 6,
+    "carbs": 0.6,
+    "fat": 5.3,
+    "fibre": 0,
+    "sodium": 62,
+    "gi": 0,
+    "category": "Eggs",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Boiled egg (1 whole)",
+    "protein": 6.3,
+    "carbs": 0.5,
+    "fat": 5,
+    "cal": 72,
+    "category": "Eggs",
+    "fibre": 0,
+    "sodium": 62,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Egg Bhurji (2 eggs)",
+    "cal": 215,
+    "protein": 14,
+    "carbs": 4,
+    "fat": 15,
+    "fibre": 0.5,
+    "sodium": 420,
+    "gi": 5,
+    "category": "Eggs",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Egg Curry",
+    "cal": 185,
+    "protein": 13,
+    "carbs": 6,
+    "fat": 12,
+    "fibre": 1,
+    "sodium": 520,
+    "gi": 15,
+    "category": "Eggs",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Egg Omelette (2 eggs)",
+    "cal": 185,
+    "protein": 13,
+    "carbs": 1,
+    "fat": 14,
+    "fibre": 0,
+    "sodium": 360,
+    "gi": 0,
+    "category": "Eggs",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Egg Roast Kerala",
+    "cal": 195,
+    "protein": 13,
+    "carbs": 5,
+    "fat": 14,
+    "fibre": 1,
+    "sodium": 480,
+    "gi": 10,
+    "category": "Eggs",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Egg bhurji (2 eggs, 1 tsp ghee)",
+    "protein": 13.0,
+    "carbs": 2.0,
+    "fat": 16.0,
+    "cal": 200.0,
+    "category": "Eggs",
+    "fibre": 0.5,
+    "sodium": 180,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Egg bhurji (3 eggs, 1 tsp ghee)",
+    "protein": 20.0,
+    "carbs": 3.0,
+    "fat": 22.0,
+    "cal": 282.0,
+    "category": "Eggs",
+    "fibre": 0.5,
+    "sodium": 260,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Egg curry (2 eggs, gravy)",
+    "protein": 14.0,
+    "carbs": 8.0,
+    "fat": 18.0,
+    "cal": 246.0,
+    "category": "Eggs",
+    "fibre": 1.0,
+    "sodium": 420,
+    "gi": 18,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Egg white (1)",
+    "protein": 3.6,
+    "carbs": 0.2,
+    "fat": 0.0,
+    "cal": 17.0,
+    "category": "Eggs",
+    "fibre": 0,
+    "sodium": 54,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Egg white omelette (3 whites)",
+    "protein": 11,
+    "carbs": 1,
+    "fat": 0.5,
+    "cal": 52,
+    "category": "Eggs",
+    "fibre": 0,
+    "sodium": 162,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Egg yolk (1)",
+    "protein": 2.7,
+    "carbs": 0.3,
+    "fat": 5.8,
+    "cal": 61.0,
+    "category": "Eggs",
+    "fibre": 0,
+    "sodium": 8,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Fried egg in ghee (1 egg)",
+    "protein": 6.3,
+    "carbs": 0.5,
+    "fat": 11.0,
+    "cal": 123.0,
+    "category": "Eggs",
+    "fibre": 0,
+    "sodium": 62,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Masala Omelette (2 eggs)",
+    "cal": 220,
+    "protein": 14,
+    "carbs": 4,
+    "fat": 16,
+    "fibre": 0.5,
+    "sodium": 480,
+    "gi": 5,
+    "category": "Eggs",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Omelette masala (2 eggs)",
+    "protein": 13.0,
+    "carbs": 4.0,
+    "fat": 16.0,
+    "cal": 205.0,
+    "category": "Eggs",
+    "fibre": 0.5,
+    "sodium": 200,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Omelette plain in ghee (2 eggs)",
+    "protein": 13.0,
+    "carbs": 1.0,
+    "fat": 18.0,
+    "cal": 215.0,
+    "category": "Eggs",
+    "fibre": 0,
+    "sodium": 130,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Scrambled Eggs (2 eggs)",
+    "cal": 200,
+    "protein": 13,
+    "carbs": 2,
+    "fat": 15,
+    "fibre": 0,
+    "sodium": 340,
+    "gi": 0,
+    "category": "Eggs",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Scrambled eggs (2 eggs with butter)",
+    "protein": 13,
+    "carbs": 1,
+    "fat": 14,
+    "cal": 182,
+    "category": "Eggs",
+    "fibre": 0,
+    "sodium": 150,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Scrambled eggs in butter (2 eggs)",
+    "protein": 13.0,
+    "carbs": 1.0,
+    "fat": 16.0,
+    "cal": 200.0,
+    "category": "Eggs",
+    "fibre": 0,
+    "sodium": 150,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Whole egg (1, ~55g)",
+    "protein": 6.3,
+    "carbs": 0.5,
+    "fat": 5.8,
+    "cal": 78.0,
+    "category": "Eggs",
+    "fibre": 0,
+    "sodium": 62,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Apple",
+    "cal": 52,
+    "protein": 0.3,
+    "carbs": 14,
+    "fat": 0.2,
+    "fibre": 2.4,
+    "sodium": 1,
+    "gi": 36,
+    "category": "Fruits",
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Apple (1 medium, 150g)",
+    "protein": 0.4,
+    "carbs": 20.0,
+    "fat": 0.3,
+    "cal": 84.0,
+    "category": "Fruits",
+    "fibre": 3.5,
+    "sodium": 2,
+    "gi": 38,
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Banana",
+    "cal": 89,
+    "protein": 1.1,
+    "carbs": 23,
+    "fat": 0.3,
+    "fibre": 2.6,
+    "sodium": 1,
+    "gi": 51,
+    "category": "Fruits",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Banana (1 medium, 120g)",
+    "protein": 1.2,
+    "carbs": 27.0,
+    "fat": 0.3,
+    "cal": 109.0,
+    "category": "Fruits",
+    "fibre": 2.6,
+    "sodium": 1,
+    "gi": 51,
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Chikoo / Sapodilla",
+    "cal": 83,
+    "protein": 0.4,
+    "carbs": 20,
+    "fat": 1.1,
+    "fibre": 5.3,
+    "sodium": 12,
+    "gi": 55,
+    "category": "Fruits",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Coconut (fresh, 100g)",
+    "cal": 354,
+    "protein": 3.3,
+    "carbs": 15,
+    "fat": 33,
+    "fibre": 9,
+    "sodium": 20,
+    "gi": 45,
+    "category": "Fruits",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Grapes (100g)",
+    "protein": 0.6,
+    "carbs": 18.0,
+    "fat": 0.4,
+    "cal": 78.0,
+    "category": "Fruits",
+    "fibre": 0.9,
+    "sodium": 2,
+    "gi": 59,
+    "tags": []
+  },
+  {
+    "name": "Grapes (green)",
+    "cal": 67,
+    "protein": 0.7,
+    "carbs": 17,
+    "fat": 0.4,
+    "fibre": 0.9,
+    "sodium": 2,
+    "gi": 53,
+    "category": "Fruits",
+    "tags": []
+  },
+  {
+    "name": "Guava",
+    "cal": 68,
+    "protein": 2.6,
+    "carbs": 14,
+    "fat": 1,
+    "fibre": 5.4,
+    "sodium": 2,
+    "gi": 12,
+    "category": "Fruits",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Guava (100g)",
+    "protein": 2.6,
+    "carbs": 14.0,
+    "fat": 0.4,
+    "cal": 68.0,
+    "category": "Fruits",
+    "fibre": 5.4,
+    "sodium": 2,
+    "gi": 27,
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Jamun",
+    "cal": 62,
+    "protein": 0.7,
+    "carbs": 14,
+    "fat": 0.3,
+    "fibre": 0.6,
+    "sodium": 26,
+    "gi": 25,
+    "category": "Fruits",
+    "tags": [
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Mango (100g)",
+    "protein": 0.6,
+    "carbs": 17.0,
+    "fat": 0.4,
+    "cal": 74.0,
+    "category": "Fruits",
+    "fibre": 1.6,
+    "sodium": 2,
+    "gi": 56,
+    "tags": []
+  },
+  {
+    "name": "Mango (Alphonso)",
+    "cal": 70,
+    "protein": 0.6,
+    "carbs": 17,
+    "fat": 0.3,
+    "fibre": 1.8,
+    "sodium": 2,
+    "gi": 51,
+    "category": "Fruits",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Orange",
+    "cal": 47,
+    "protein": 0.9,
+    "carbs": 12,
+    "fat": 0.1,
+    "fibre": 2.4,
+    "sodium": 0,
+    "gi": 43,
+    "category": "Fruits",
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Orange (1 medium, 150g)",
+    "protein": 1.0,
+    "carbs": 18.0,
+    "fat": 0.2,
+    "cal": 77.0,
+    "category": "Fruits",
+    "fibre": 3.1,
+    "sodium": 1,
+    "gi": 43,
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Papaya",
+    "cal": 43,
+    "protein": 0.5,
+    "carbs": 11,
+    "fat": 0.1,
+    "fibre": 1.7,
+    "sodium": 8,
+    "gi": 60,
+    "category": "Fruits",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Papaya (150g)",
+    "protein": 0.6,
+    "carbs": 12.0,
+    "fat": 0.1,
+    "cal": 52.0,
+    "category": "Fruits",
+    "fibre": 2.5,
+    "sodium": 8,
+    "gi": 59,
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Pear",
+    "cal": 57,
+    "protein": 0.4,
+    "carbs": 15,
+    "fat": 0.1,
+    "fibre": 3.1,
+    "sodium": 1,
+    "gi": 38,
+    "category": "Fruits",
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Pomegranate",
+    "cal": 83,
+    "protein": 1.7,
+    "carbs": 19,
+    "fat": 1.2,
+    "fibre": 4,
+    "sodium": 3,
+    "gi": 35,
+    "category": "Fruits",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Pomegranate (100g)",
+    "protein": 1.7,
+    "carbs": 19.0,
+    "fat": 1.2,
+    "cal": 83.0,
+    "category": "Fruits",
+    "fibre": 4.0,
+    "sodium": 3,
+    "gi": 53,
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Strawberries (100g)",
+    "protein": 0.8,
+    "carbs": 8.0,
+    "fat": 0.3,
+    "cal": 36.0,
+    "category": "Fruits",
+    "fibre": 2.0,
+    "sodium": 1,
+    "gi": 40,
+    "tags": [
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Strawberry",
+    "cal": 32,
+    "protein": 0.7,
+    "carbs": 7.7,
+    "fat": 0.3,
+    "fibre": 2,
+    "sodium": 1,
+    "gi": 40,
+    "category": "Fruits",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Watermelon",
+    "cal": 30,
+    "protein": 0.6,
+    "carbs": 7.6,
+    "fat": 0.15,
+    "fibre": 0.4,
+    "sodium": 1,
+    "gi": 76,
+    "category": "Fruits",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Watermelon (200g)",
+    "protein": 1.0,
+    "carbs": 14.0,
+    "fat": 0.2,
+    "cal": 60.0,
+    "category": "Fruits",
+    "fibre": 0.8,
+    "sodium": 2,
+    "gi": 72,
+    "tags": []
+  },
+  {
+    "name": "Bajra / Pearl Millet (100g)",
+    "cal": 361,
+    "protein": 12,
+    "carbs": 68,
+    "fat": 5,
+    "fibre": 9,
+    "sodium": 5,
+    "gi": 55,
+    "category": "Grains & Millets",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Cooked basmati rice (150g)",
+    "protein": 3.5,
+    "carbs": 35.0,
+    "fat": 0.3,
+    "cal": 158.0,
+    "category": "Grains & Millets",
+    "fibre": 0.6,
+    "sodium": 2,
+    "gi": 58,
+    "tags": []
+  },
+  {
+    "name": "Cooked brown rice (150g)",
+    "protein": 3.5,
+    "carbs": 33.0,
+    "fat": 1.0,
+    "cal": 162.0,
+    "category": "Grains & Millets",
+    "fibre": 2.0,
+    "sodium": 4,
+    "gi": 50,
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Cooked white rice (100g)",
+    "protein": 2.7,
+    "carbs": 24.0,
+    "fat": 0.4,
+    "cal": 110.0,
+    "category": "Grains & Millets",
+    "fibre": 0.4,
+    "sodium": 2,
+    "gi": 72,
+    "tags": []
+  },
+  {
+    "name": "Cooked white rice (150g)",
+    "protein": 4.0,
+    "carbs": 36.0,
+    "fat": 0.6,
+    "cal": 165.0,
+    "category": "Grains & Millets",
+    "fibre": 0.6,
+    "sodium": 3,
+    "gi": 72,
+    "tags": []
+  },
+  {
+    "name": "Cooked white rice (200g)",
+    "protein": 5.4,
+    "carbs": 48.0,
+    "fat": 0.8,
+    "cal": 220.0,
+    "category": "Grains & Millets",
+    "fibre": 0.8,
+    "sodium": 4,
+    "gi": 72,
+    "tags": []
+  },
+  {
+    "name": "Dosa masala (1 large)",
+    "protein": 6.0,
+    "carbs": 38.0,
+    "fat": 8.0,
+    "cal": 245.0,
+    "category": "Grains & Millets",
+    "fibre": 2.5,
+    "sodium": 320,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Dosa plain (1 large)",
+    "protein": 4.0,
+    "carbs": 28.0,
+    "fat": 3.0,
+    "cal": 155.0,
+    "category": "Grains & Millets",
+    "fibre": 1.5,
+    "sodium": 180,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Idli (1, ~40g)",
+    "protein": 2.0,
+    "carbs": 9.0,
+    "fat": 0.2,
+    "cal": 46.0,
+    "category": "Grains & Millets",
+    "fibre": 0.5,
+    "sodium": 85,
+    "gi": 69,
+    "tags": []
+  },
+  {
+    "name": "Jeera rice (150g, 1 tsp ghee)",
+    "protein": 3.5,
+    "carbs": 36.0,
+    "fat": 5.3,
+    "cal": 203.0,
+    "category": "Grains & Millets",
+    "fibre": 0.6,
+    "sodium": 180,
+    "gi": 60,
+    "tags": []
+  },
+  {
+    "name": "Jowar / Sorghum (100g)",
+    "cal": 349,
+    "protein": 11,
+    "carbs": 72,
+    "fat": 2,
+    "fibre": 6,
+    "sodium": 2,
+    "gi": 52,
+    "category": "Grains & Millets",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Khichdi with ghee (200g)",
+    "protein": 8.0,
+    "carbs": 36.0,
+    "fat": 9.0,
+    "cal": 257.0,
+    "category": "Grains & Millets",
+    "fibre": 3.5,
+    "sodium": 220,
+    "gi": 50,
+    "tags": []
+  },
+  {
+    "name": "Khichdi, plain (200g)",
+    "protein": 8.0,
+    "carbs": 36.0,
+    "fat": 4.0,
+    "cal": 212.0,
+    "category": "Grains & Millets",
+    "fibre": 3.5,
+    "sodium": 120,
+    "gi": 48,
+    "tags": []
+  },
+  {
+    "name": "Oats rolled dry (40g)",
+    "protein": 5.0,
+    "carbs": 26.0,
+    "fat": 3.0,
+    "cal": 151.0,
+    "category": "Grains & Millets",
+    "fibre": 4.0,
+    "sodium": 4,
+    "gi": 55,
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Poha (150g)",
+    "protein": 3.0,
+    "carbs": 34.0,
+    "fat": 4.0,
+    "cal": 180.0,
+    "category": "Grains & Millets",
+    "fibre": 1.5,
+    "sodium": 240,
+    "gi": 70,
+    "tags": []
+  },
+  {
+    "name": "Quinoa (100g cooked)",
+    "cal": 120,
+    "protein": 4.4,
+    "carbs": 21,
+    "fat": 1.9,
+    "fibre": 2.8,
+    "sodium": 7,
+    "gi": 53,
+    "category": "Grains & Millets",
+    "tags": [
+      "high-protein",
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Quinoa cooked (100g)",
+    "protein": 4.0,
+    "carbs": 18.0,
+    "fat": 2.0,
+    "cal": 106.0,
+    "category": "Grains & Millets",
+    "fibre": 2.8,
+    "sodium": 7,
+    "gi": 53,
+    "tags": [
+      "high-fibre",
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Ragi / Finger Millet (100g)",
+    "cal": 328,
+    "protein": 7.7,
+    "carbs": 66,
+    "fat": 1.5,
+    "fibre": 3.6,
+    "sodium": 11,
+    "gi": 68,
+    "category": "Grains & Millets",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Rajgira / Amaranth (100g)",
+    "cal": 371,
+    "protein": 14,
+    "carbs": 65,
+    "fat": 7,
+    "fibre": 7,
+    "sodium": 4,
+    "gi": 25,
+    "category": "Grains & Millets",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Upma (150g)",
+    "protein": 4.0,
+    "carbs": 28.0,
+    "fat": 6.0,
+    "cal": 178.0,
+    "category": "Grains & Millets",
+    "fibre": 1.5,
+    "sodium": 280,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Uttapam (1, ~100g)",
+    "protein": 5.0,
+    "carbs": 25.0,
+    "fat": 4.0,
+    "cal": 152.0,
+    "category": "Grains & Millets",
+    "fibre": 1.5,
+    "sodium": 200,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Whole Wheat Pasta (100g cooked)",
+    "cal": 131,
+    "protein": 5.5,
+    "carbs": 26,
+    "fat": 0.7,
+    "fibre": 3.8,
+    "sodium": 5,
+    "gi": 37,
+    "category": "Grains & Millets",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Amritsari Fish",
+    "cal": 218,
+    "protein": 22,
+    "carbs": 8,
+    "fat": 11,
+    "fibre": 0.5,
+    "sodium": 520,
+    "gi": 15,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Butter Chicken",
+    "cal": 235,
+    "protein": 21,
+    "carbs": 10,
+    "fat": 12,
+    "fibre": 1.5,
+    "sodium": 680,
+    "gi": 20,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Chicken Breast grilled (100g)",
+    "cal": 165,
+    "protein": 31,
+    "carbs": 0,
+    "fat": 3.6,
+    "fibre": 0,
+    "sodium": 74,
+    "gi": 0,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Chicken Chettinad",
+    "cal": 248,
+    "protein": 24,
+    "carbs": 5,
+    "fat": 15,
+    "fibre": 1.5,
+    "sodium": 620,
+    "gi": 10,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Chicken Curry",
+    "cal": 185,
+    "protein": 22,
+    "carbs": 6,
+    "fat": 8,
+    "fibre": 1,
+    "sodium": 580,
+    "gi": 15,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Chicken Tikka (100g)",
+    "cal": 165,
+    "protein": 26,
+    "carbs": 3,
+    "fat": 5.5,
+    "fibre": 0.5,
+    "sodium": 480,
+    "gi": 10,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Chicken breast, grilled (100g)",
+    "protein": 31.0,
+    "carbs": 0.0,
+    "fat": 3.6,
+    "cal": 165.0,
+    "category": "Non-Veg",
+    "fibre": 0,
+    "sodium": 74,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Chicken breast, grilled (150g)",
+    "protein": 47.0,
+    "carbs": 0.0,
+    "fat": 5.4,
+    "cal": 248.0,
+    "category": "Non-Veg",
+    "fibre": 0,
+    "sodium": 110,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Chicken curry, home (200g)",
+    "protein": 28.0,
+    "carbs": 6.0,
+    "fat": 18.0,
+    "cal": 296.0,
+    "category": "Non-Veg",
+    "fibre": 1.0,
+    "sodium": 480,
+    "gi": 20,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Chicken curry, restaurant (250g)",
+    "protein": 32.0,
+    "carbs": 8.0,
+    "fat": 22.0,
+    "cal": 360.0,
+    "category": "Non-Veg",
+    "fibre": 1.0,
+    "sodium": 680,
+    "gi": 20,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Chingri Malai Curry",
+    "cal": 188,
+    "protein": 18,
+    "carbs": 6,
+    "fat": 10.5,
+    "fibre": 0.5,
+    "sodium": 560,
+    "gi": 12,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Fish Curry",
+    "cal": 140,
+    "protein": 18,
+    "carbs": 4,
+    "fat": 6,
+    "fibre": 0.5,
+    "sodium": 520,
+    "gi": 10,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Fish Fry (100g)",
+    "cal": 180,
+    "protein": 20,
+    "carbs": 5,
+    "fat": 8.5,
+    "fibre": 0.5,
+    "sodium": 480,
+    "gi": 10,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Fish, grilled (100g)",
+    "protein": 22.0,
+    "carbs": 0.0,
+    "fat": 5.0,
+    "cal": 133.0,
+    "category": "Non-Veg",
+    "fibre": 0,
+    "sodium": 80,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Hilsa Fish Curry",
+    "cal": 198,
+    "protein": 20,
+    "carbs": 4,
+    "fat": 11,
+    "fibre": 0.5,
+    "sodium": 520,
+    "gi": 10,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Keema (mince curry)",
+    "cal": 220,
+    "protein": 20,
+    "carbs": 5,
+    "fat": 13,
+    "fibre": 1,
+    "sodium": 580,
+    "gi": 15,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Kerala Fish Curry",
+    "cal": 165,
+    "protein": 18,
+    "carbs": 5,
+    "fat": 8,
+    "fibre": 1,
+    "sodium": 560,
+    "gi": 10,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Kolhapuri Chicken",
+    "cal": 238,
+    "protein": 24,
+    "carbs": 6,
+    "fat": 13,
+    "fibre": 1.5,
+    "sodium": 640,
+    "gi": 12,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Kosha Mangsho",
+    "cal": 245,
+    "protein": 22,
+    "carbs": 6,
+    "fat": 15,
+    "fibre": 1,
+    "sodium": 580,
+    "gi": 12,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Laal Maas",
+    "cal": 228,
+    "protein": 22,
+    "carbs": 5,
+    "fat": 14,
+    "fibre": 1,
+    "sodium": 620,
+    "gi": 12,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Macher Jhol",
+    "cal": 155,
+    "protein": 18,
+    "carbs": 5,
+    "fat": 7,
+    "fibre": 0.5,
+    "sodium": 480,
+    "gi": 12,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Mutton Curry",
+    "cal": 218,
+    "protein": 20,
+    "carbs": 4,
+    "fat": 13,
+    "fibre": 0.5,
+    "sodium": 620,
+    "gi": 10,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Mutton curry (200g)",
+    "protein": 26.0,
+    "carbs": 4.0,
+    "fat": 22.0,
+    "cal": 318.0,
+    "category": "Non-Veg",
+    "fibre": 1.0,
+    "sodium": 520,
+    "gi": 15,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Prawn Ghee Roast",
+    "cal": 228,
+    "protein": 20,
+    "carbs": 6,
+    "fat": 13,
+    "fibre": 1,
+    "sodium": 580,
+    "gi": 10,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Prawn Masala",
+    "cal": 120,
+    "protein": 18,
+    "carbs": 4,
+    "fat": 4,
+    "fibre": 0.5,
+    "sodium": 560,
+    "gi": 10,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Shorshe Ilish",
+    "cal": 210,
+    "protein": 21,
+    "carbs": 3,
+    "fat": 13,
+    "fibre": 0.5,
+    "sodium": 540,
+    "gi": 8,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Tandoori Chicken (100g)",
+    "cal": 155,
+    "protein": 25,
+    "carbs": 3.5,
+    "fat": 4.5,
+    "fibre": 0.5,
+    "sodium": 520,
+    "gi": 10,
+    "category": "Non-Veg",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Tandoori chicken (200g)",
+    "protein": 38.0,
+    "carbs": 3.0,
+    "fat": 8.0,
+    "cal": 240,
+    "category": "Non-Veg",
+    "fibre": 0.5,
+    "sodium": 540,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Aashirvaad Multigrain Atta (100g)",
+    "cal": 328,
+    "protein": 11.5,
+    "carbs": 67,
+    "fat": 1.5,
+    "fibre": 13,
+    "sodium": 3,
+    "gi": 58,
+    "category": "Packaged",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Amul Butter (10g)",
+    "cal": 72,
+    "protein": 0.1,
+    "carbs": 0.1,
+    "fat": 8,
+    "fibre": 0,
+    "sodium": 66,
+    "gi": 0,
+    "category": "Packaged",
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Amul Dark Chocolate (25g)",
+    "cal": 130,
+    "protein": 2,
+    "carbs": 14,
+    "fat": 8,
+    "fibre": 1.5,
+    "sodium": 12,
+    "gi": 25,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "Amul Mozzarella (25g)",
+    "cal": 72,
+    "protein": 5,
+    "carbs": 0.6,
+    "fat": 5.5,
+    "fibre": 0,
+    "sodium": 185,
+    "gi": 0,
+    "category": "Packaged",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Amul Paneer (100g)",
+    "cal": 265,
+    "protein": 18,
+    "carbs": 3.4,
+    "fat": 21,
+    "fibre": 0,
+    "sodium": 40,
+    "gi": 27,
+    "category": "Packaged",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Amul Processed Cheese (25g slice)",
+    "cal": 76,
+    "protein": 4.5,
+    "carbs": 1.3,
+    "fat": 6,
+    "fibre": 0,
+    "sodium": 290,
+    "gi": 0,
+    "category": "Packaged",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Boost (2 tsp in 200ml milk)",
+    "cal": 155,
+    "protein": 6.5,
+    "carbs": 25,
+    "fat": 3.5,
+    "fibre": 0,
+    "sodium": 80,
+    "gi": 58,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "Bournvita (2 tsp in 200ml milk)",
+    "cal": 158,
+    "protein": 6.5,
+    "carbs": 25,
+    "fat": 3.5,
+    "fibre": 0,
+    "sodium": 82,
+    "gi": 55,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "Britannia 50-50 (2 biscuits)",
+    "cal": 72,
+    "protein": 1.2,
+    "carbs": 10,
+    "fat": 3,
+    "fibre": 0.3,
+    "sodium": 95,
+    "gi": 70,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "Britannia Good Day (2 biscuits)",
+    "cal": 98,
+    "protein": 1.5,
+    "carbs": 13,
+    "fat": 4.5,
+    "fibre": 0.4,
+    "sodium": 85,
+    "gi": 72,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "Britannia Marie Biscuit (1 piece)",
+    "cal": 30,
+    "protein": 0.6,
+    "carbs": 5.5,
+    "fat": 0.8,
+    "fibre": 0.2,
+    "sodium": 30,
+    "gi": 70,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "Britannia NutriChoice (2 biscuits)",
+    "cal": 92,
+    "protein": 1.8,
+    "carbs": 13,
+    "fat": 4,
+    "fibre": 1.5,
+    "sodium": 115,
+    "gi": 62,
+    "category": "Packaged",
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Complan (2 tbsp in 200ml milk)",
+    "cal": 185,
+    "protein": 8,
+    "carbs": 28,
+    "fat": 5,
+    "fibre": 0,
+    "sodium": 145,
+    "gi": 52,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "Cornitos Nachos (30g)",
+    "cal": 148,
+    "protein": 2,
+    "carbs": 19,
+    "fat": 7.5,
+    "fibre": 1,
+    "sodium": 260,
+    "gi": 72,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "Ensure (200ml prepared)",
+    "cal": 220,
+    "protein": 10,
+    "carbs": 32,
+    "fat": 6.5,
+    "fibre": 0,
+    "sodium": 200,
+    "gi": 50,
+    "category": "Packaged",
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Fortune Chakki Atta (100g)",
+    "cal": 341,
+    "protein": 12,
+    "carbs": 71,
+    "fat": 1.7,
+    "fibre": 12,
+    "sodium": 2,
+    "gi": 62,
+    "category": "Packaged",
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Haldirams Aloo Bhujia (30g)",
+    "cal": 150,
+    "protein": 3,
+    "carbs": 18,
+    "fat": 8,
+    "fibre": 1,
+    "sodium": 440,
+    "gi": 65,
+    "category": "Packaged",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Haldirams Bhujia (30g)",
+    "cal": 152,
+    "protein": 4,
+    "carbs": 17,
+    "fat": 8,
+    "fibre": 1,
+    "sodium": 460,
+    "gi": 65,
+    "category": "Packaged",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Haldirams Chana Chur (30g)",
+    "cal": 142,
+    "protein": 5,
+    "carbs": 19,
+    "fat": 6,
+    "fibre": 2.5,
+    "sodium": 420,
+    "gi": 48,
+    "category": "Packaged",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Haldirams Moong Dal (30g)",
+    "cal": 148,
+    "protein": 6,
+    "carbs": 17,
+    "fat": 7,
+    "fibre": 2,
+    "sodium": 380,
+    "gi": 45,
+    "category": "Packaged",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Horlicks (2 tsp in 200ml milk)",
+    "cal": 145,
+    "protein": 6,
+    "carbs": 24,
+    "fat": 3,
+    "fibre": 0,
+    "sodium": 75,
+    "gi": 55,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "Lay's Classic (30g)",
+    "cal": 162,
+    "protein": 2,
+    "carbs": 16,
+    "fat": 10,
+    "fibre": 1,
+    "sodium": 160,
+    "gi": 70,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "MTR Khichdi Mix (1 pack 100g)",
+    "cal": 340,
+    "protein": 12,
+    "carbs": 62,
+    "fat": 4,
+    "fibre": 3,
+    "sodium": 580,
+    "gi": 52,
+    "category": "Packaged",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "MTR Masala Oats (1 packet 40g)",
+    "cal": 148,
+    "protein": 3.5,
+    "carbs": 28,
+    "fat": 2.5,
+    "fibre": 2,
+    "sodium": 480,
+    "gi": 55,
+    "category": "Packaged",
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "MTR Poha Mix (1 pack 100g)",
+    "cal": 368,
+    "protein": 7,
+    "carbs": 72,
+    "fat": 5,
+    "fibre": 2,
+    "sodium": 680,
+    "gi": 68,
+    "category": "Packaged",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "MTR Sambar Mix (100g)",
+    "cal": 295,
+    "protein": 10,
+    "carbs": 48,
+    "fat": 7,
+    "fibre": 5,
+    "sodium": 1820,
+    "gi": 35,
+    "category": "Packaged",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Maggi 2-Minute Noodles (70g)",
+    "cal": 300,
+    "protein": 6.5,
+    "carbs": 43,
+    "fat": 12,
+    "fibre": 2,
+    "sodium": 1050,
+    "gi": 65,
+    "category": "Packaged",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Parle-G Biscuit (1 piece)",
+    "cal": 20,
+    "protein": 0.4,
+    "carbs": 3.6,
+    "fat": 0.6,
+    "fibre": 0.1,
+    "sodium": 18,
+    "gi": 75,
+    "category": "Packaged",
+    "tags": []
+  },
+  {
+    "name": "Patanjali Dalia (40g dry)",
+    "cal": 130,
+    "protein": 4.5,
+    "carbs": 26,
+    "fat": 0.8,
+    "fibre": 4,
+    "sodium": 5,
+    "gi": 40,
+    "category": "Packaged",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Pediasure (200ml prepared)",
+    "cal": 238,
+    "protein": 7,
+    "carbs": 32,
+    "fat": 10,
+    "fibre": 1.5,
+    "sodium": 165,
+    "gi": 48,
+    "category": "Packaged",
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Quaker Oats (40g dry)",
+    "cal": 147,
+    "protein": 5.1,
+    "carbs": 26,
+    "fat": 2.7,
+    "fibre": 2.8,
+    "sodium": 0,
+    "gi": 55,
+    "category": "Packaged",
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Ragi Malt (200ml with milk)",
+    "cal": 185,
+    "protein": 7,
+    "carbs": 34,
+    "fat": 3,
+    "fibre": 2.5,
+    "sodium": 90,
+    "gi": 68,
+    "category": "Packaged",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "RiteBite Max Protein Bar (67g)",
+    "cal": 220,
+    "protein": 20,
+    "carbs": 22,
+    "fat": 5,
+    "fibre": 3,
+    "sodium": 180,
+    "gi": 38,
+    "category": "Packaged",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Saffola Oats (40g dry)",
+    "cal": 147,
+    "protein": 5,
+    "carbs": 24,
+    "fat": 3,
+    "fibre": 3.5,
+    "sodium": 0,
+    "gi": 55,
+    "category": "Packaged",
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Yoga Bar (50g)",
+    "cal": 198,
+    "protein": 8,
+    "carbs": 28,
+    "fat": 7,
+    "fibre": 3.5,
+    "sodium": 145,
+    "gi": 45,
+    "category": "Packaged",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Kadai Paneer",
+    "cal": 245,
+    "protein": 13,
+    "carbs": 9,
+    "fat": 18,
+    "fibre": 2,
+    "sodium": 600,
+    "gi": 22,
+    "category": "Paneer Dishes",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Matar Paneer",
+    "cal": 195,
+    "protein": 11,
+    "carbs": 13,
+    "fat": 12,
+    "fibre": 3,
+    "sodium": 540,
+    "gi": 30,
+    "category": "Paneer Dishes",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Palak Paneer",
+    "cal": 210,
+    "protein": 12,
+    "carbs": 8,
+    "fat": 15,
+    "fibre": 3,
+    "sodium": 580,
+    "gi": 20,
+    "category": "Paneer Dishes",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Paneer Bhurji",
+    "cal": 235,
+    "protein": 14,
+    "carbs": 5,
+    "fat": 18,
+    "fibre": 1,
+    "sodium": 520,
+    "gi": 20,
+    "category": "Paneer Dishes",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Paneer Butter Masala",
+    "cal": 280,
+    "protein": 13,
+    "carbs": 12,
+    "fat": 21,
+    "fibre": 2,
+    "sodium": 620,
+    "gi": 25,
+    "category": "Paneer Dishes",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Paneer Tikka",
+    "cal": 220,
+    "protein": 16,
+    "carbs": 6,
+    "fat": 15,
+    "fibre": 1,
+    "sodium": 480,
+    "gi": 20,
+    "category": "Paneer Dishes",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Shahi Paneer",
+    "cal": 310,
+    "protein": 12,
+    "carbs": 14,
+    "fat": 24,
+    "fibre": 1,
+    "sodium": 580,
+    "gi": 28,
+    "category": "Paneer Dishes",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Aloo Tikki (2 pieces)",
+    "cal": 218,
+    "protein": 4,
+    "carbs": 32,
+    "fat": 9,
+    "fibre": 2.5,
+    "sodium": 420,
+    "gi": 68,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Aloo matar (200g)",
+    "protein": 4.0,
+    "carbs": 26.0,
+    "fat": 8.0,
+    "cal": 190.0,
+    "category": "Restaurant",
+    "fibre": 4.0,
+    "sodium": 480,
+    "gi": 60,
+    "tags": []
+  },
+  {
+    "name": "Baingan bharta restaurant (200g)",
+    "protein": 3.0,
+    "carbs": 14.0,
+    "fat": 12.0,
+    "cal": 172.0,
+    "category": "Restaurant",
+    "fibre": 5.0,
+    "sodium": 540,
+    "gi": 30,
+    "tags": [
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Bread Pakora (1 piece)",
+    "cal": 215,
+    "protein": 5,
+    "carbs": 26,
+    "fat": 10,
+    "fibre": 1.5,
+    "sodium": 380,
+    "gi": 65,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Burger (veg)",
+    "cal": 295,
+    "protein": 8.5,
+    "carbs": 42,
+    "fat": 11,
+    "fibre": 2.5,
+    "sodium": 680,
+    "gi": 65,
+    "category": "Restaurant",
+    "tags": []
+  },
+  {
+    "name": "Butter chicken (200g)",
+    "protein": 28.0,
+    "carbs": 10.0,
+    "fat": 22.0,
+    "cal": 350.0,
+    "category": "Restaurant",
+    "fibre": 1.5,
+    "sodium": 680,
+    "gi": 25,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Chicken Frankie",
+    "cal": 345,
+    "protein": 16,
+    "carbs": 40,
+    "fat": 13,
+    "fibre": 2,
+    "sodium": 680,
+    "gi": 58,
+    "category": "Restaurant",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Chicken biryani (300g)",
+    "protein": 28.0,
+    "carbs": 55.0,
+    "fat": 16.0,
+    "cal": 480.0,
+    "category": "Restaurant",
+    "fibre": 2.0,
+    "sodium": 720,
+    "gi": 60,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Chole Bhature (1 plate)",
+    "cal": 510,
+    "protein": 15,
+    "carbs": 72,
+    "fat": 18,
+    "fibre": 8,
+    "sodium": 980,
+    "gi": 60,
+    "category": "Restaurant",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Chole masala restaurant (200g)",
+    "protein": 12.0,
+    "carbs": 32.0,
+    "fat": 10.0,
+    "cal": 260.0,
+    "category": "Restaurant",
+    "fibre": 9.0,
+    "sodium": 680,
+    "gi": 35,
+    "tags": [
+      "high-fibre",
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Corn Chaat",
+    "cal": 178,
+    "protein": 4,
+    "carbs": 32,
+    "fat": 5,
+    "fibre": 3.5,
+    "sodium": 480,
+    "gi": 55,
+    "category": "Restaurant",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Dabeli (1 piece)",
+    "cal": 248,
+    "protein": 6,
+    "carbs": 38,
+    "fat": 9,
+    "fibre": 2.5,
+    "sodium": 580,
+    "gi": 62,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Dahi Puri (6 pieces)",
+    "cal": 220,
+    "protein": 6.5,
+    "carbs": 34,
+    "fat": 7,
+    "fibre": 2,
+    "sodium": 560,
+    "gi": 65,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Dahi Vada (2 pieces)",
+    "cal": 185,
+    "protein": 7,
+    "carbs": 24,
+    "fat": 7,
+    "fibre": 1.5,
+    "sodium": 480,
+    "gi": 55,
+    "category": "Restaurant",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Dal Baati Churma",
+    "cal": 560,
+    "protein": 14,
+    "carbs": 72,
+    "fat": 24,
+    "fibre": 6,
+    "sodium": 620,
+    "gi": 62,
+    "category": "Restaurant",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Dal makhani restaurant (250g)",
+    "protein": 12.0,
+    "carbs": 28.0,
+    "fat": 18.0,
+    "cal": 320.0,
+    "category": "Restaurant",
+    "fibre": 7.0,
+    "sodium": 780,
+    "gi": 40,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Egg biryani (300g)",
+    "protein": 20.0,
+    "carbs": 58.0,
+    "fat": 14.0,
+    "cal": 434.0,
+    "category": "Restaurant",
+    "fibre": 2.0,
+    "sodium": 680,
+    "gi": 60,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Egg fried rice (200g)",
+    "protein": 11.0,
+    "carbs": 42.0,
+    "fat": 10.0,
+    "cal": 302.0,
+    "category": "Restaurant",
+    "fibre": 1.5,
+    "sodium": 620,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Fried Rice (veg)",
+    "cal": 260,
+    "protein": 5.5,
+    "carbs": 44,
+    "fat": 7.5,
+    "fibre": 2,
+    "sodium": 760,
+    "gi": 62,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Hakka Noodles (veg)",
+    "cal": 285,
+    "protein": 7.5,
+    "carbs": 48,
+    "fat": 7.5,
+    "fibre": 2.5,
+    "sodium": 820,
+    "gi": 55,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Idli sambar (3 idli + sambar)",
+    "protein": 12.0,
+    "carbs": 45.0,
+    "fat": 3.0,
+    "cal": 255.0,
+    "category": "Restaurant",
+    "fibre": 4.0,
+    "sodium": 580,
+    "gi": 66,
+    "tags": []
+  },
+  {
+    "name": "Kachori (1 piece)",
+    "cal": 228,
+    "protein": 5,
+    "carbs": 28,
+    "fat": 11,
+    "fibre": 2,
+    "sodium": 380,
+    "gi": 65,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Kadai paneer (200g)",
+    "protein": 14.0,
+    "carbs": 12.0,
+    "fat": 22.0,
+    "cal": 298.0,
+    "category": "Restaurant",
+    "fibre": 2.0,
+    "sodium": 560,
+    "gi": 20,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Kathi Roll (chicken)",
+    "cal": 365,
+    "protein": 20,
+    "carbs": 44,
+    "fat": 12,
+    "fibre": 2,
+    "sodium": 720,
+    "gi": 58,
+    "category": "Restaurant",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Kathi Roll (paneer)",
+    "cal": 345,
+    "protein": 13,
+    "carbs": 46,
+    "fat": 13,
+    "fibre": 2.5,
+    "sodium": 680,
+    "gi": 60,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Manchurian (veg, gravy)",
+    "cal": 195,
+    "protein": 5.5,
+    "carbs": 26,
+    "fat": 8,
+    "fibre": 2.5,
+    "sodium": 860,
+    "gi": 55,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Masala dosa (1)",
+    "protein": 6.0,
+    "carbs": 40.0,
+    "fat": 10.0,
+    "cal": 272.0,
+    "category": "Restaurant",
+    "fibre": 2.5,
+    "sodium": 440,
+    "gi": 63,
+    "tags": []
+  },
+  {
+    "name": "Misal Pav",
+    "cal": 320,
+    "protein": 11,
+    "carbs": 50,
+    "fat": 9,
+    "fibre": 7,
+    "sodium": 780,
+    "gi": 60,
+    "category": "Restaurant",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Momos Chicken (6 pieces)",
+    "cal": 248,
+    "protein": 14,
+    "carbs": 28,
+    "fat": 9,
+    "fibre": 1.5,
+    "sodium": 580,
+    "gi": 55,
+    "category": "Restaurant",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Momos Paneer (6 pieces)",
+    "cal": 265,
+    "protein": 10,
+    "carbs": 30,
+    "fat": 12,
+    "fibre": 1.5,
+    "sodium": 540,
+    "gi": 55,
+    "category": "Restaurant",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Momos Veg (6 pieces)",
+    "cal": 218,
+    "protein": 6.5,
+    "carbs": 34,
+    "fat": 6,
+    "fibre": 2,
+    "sodium": 520,
+    "gi": 58,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Palak paneer restaurant (200g)",
+    "protein": 14.0,
+    "carbs": 8.0,
+    "fat": 22.0,
+    "cal": 282.0,
+    "category": "Restaurant",
+    "fibre": 3.5,
+    "sodium": 560,
+    "gi": 15,
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Palak paneer with cream and ghee (1 bowl 200g)",
+    "protein": 18,
+    "carbs": 8,
+    "fat": 28,
+    "cal": 352,
+    "category": "Restaurant",
+    "fibre": 3.5,
+    "sodium": 580,
+    "gi": 15,
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Paneer butter masala (200g)",
+    "protein": 14.0,
+    "carbs": 14.0,
+    "fat": 28.0,
+    "cal": 360.0,
+    "category": "Restaurant",
+    "fibre": 2.0,
+    "sodium": 620,
+    "gi": 25,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Paneer tikka restaurant (150g)",
+    "protein": 22.0,
+    "carbs": 5.0,
+    "fat": 18.0,
+    "cal": 270.0,
+    "category": "Restaurant",
+    "fibre": 1.5,
+    "sodium": 480,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Papdi Chaat",
+    "cal": 248,
+    "protein": 6,
+    "carbs": 34,
+    "fat": 10,
+    "fibre": 3,
+    "sodium": 620,
+    "gi": 65,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Pav Bhaji (1 plate)",
+    "cal": 380,
+    "protein": 8,
+    "carbs": 58,
+    "fat": 13,
+    "fibre": 6,
+    "sodium": 860,
+    "gi": 65,
+    "category": "Restaurant",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Pav bhaji (2 pav + bhaji)",
+    "protein": 10.0,
+    "carbs": 65.0,
+    "fat": 18.0,
+    "cal": 458.0,
+    "category": "Restaurant",
+    "fibre": 5.0,
+    "sodium": 820,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Pizza (cheese, 1 slice)",
+    "cal": 272,
+    "protein": 11,
+    "carbs": 33,
+    "fat": 10.5,
+    "fibre": 2.3,
+    "sodium": 640,
+    "gi": 60,
+    "category": "Restaurant",
+    "tags": []
+  },
+  {
+    "name": "Ragda Pattice",
+    "cal": 265,
+    "protein": 8,
+    "carbs": 40,
+    "fat": 9,
+    "fibre": 5,
+    "sodium": 580,
+    "gi": 60,
+    "category": "Restaurant",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Sev Puri (4 pieces)",
+    "cal": 195,
+    "protein": 4,
+    "carbs": 28,
+    "fat": 8,
+    "fibre": 2,
+    "sodium": 560,
+    "gi": 68,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Tandoori chicken (2 pieces, 200g)",
+    "protein": 40.0,
+    "carbs": 4.0,
+    "fat": 14.0,
+    "cal": 300.0,
+    "category": "Restaurant",
+    "fibre": 0.5,
+    "sodium": 560,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Tawa Pulao",
+    "cal": 238,
+    "protein": 5,
+    "carbs": 40,
+    "fat": 8,
+    "fibre": 3,
+    "sodium": 680,
+    "gi": 62,
+    "category": "Restaurant",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Vada Pav",
+    "cal": 285,
+    "protein": 6.5,
+    "carbs": 42,
+    "fat": 11,
+    "fibre": 3,
+    "sodium": 680,
+    "gi": 70,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Veg Frankie",
+    "cal": 295,
+    "protein": 7,
+    "carbs": 44,
+    "fat": 10,
+    "fibre": 2.5,
+    "sodium": 620,
+    "gi": 60,
+    "category": "Restaurant",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Veg biryani (300g)",
+    "protein": 8.0,
+    "carbs": 60.0,
+    "fat": 12.0,
+    "cal": 377.0,
+    "category": "Restaurant",
+    "fibre": 4.0,
+    "sodium": 680,
+    "gi": 60,
+    "tags": []
+  },
+  {
+    "name": "Veg fried rice (200g)",
+    "protein": 5.0,
+    "carbs": 42.0,
+    "fat": 8.0,
+    "cal": 258.0,
+    "category": "Restaurant",
+    "fibre": 2.5,
+    "sodium": 580,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Bajra Khichdi",
+    "cal": 175,
+    "protein": 5.5,
+    "carbs": 32,
+    "fat": 3.5,
+    "fibre": 4,
+    "sodium": 220,
+    "gi": 52,
+    "category": "Rice Dishes",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Brown Rice (cooked)",
+    "cal": 111,
+    "protein": 2.6,
+    "carbs": 23,
+    "fat": 0.9,
+    "fibre": 1.8,
+    "sodium": 5,
+    "gi": 50,
+    "category": "Rice Dishes",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Chicken Biryani",
+    "cal": 320,
+    "protein": 18,
+    "carbs": 38,
+    "fat": 10,
+    "fibre": 1.5,
+    "sodium": 620,
+    "gi": 58,
+    "category": "Rice Dishes",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Curd Rice",
+    "cal": 155,
+    "protein": 5,
+    "carbs": 28,
+    "fat": 3,
+    "fibre": 0.5,
+    "sodium": 240,
+    "gi": 55,
+    "category": "Rice Dishes",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Egg Biryani",
+    "cal": 285,
+    "protein": 13,
+    "carbs": 38,
+    "fat": 9,
+    "fibre": 1.5,
+    "sodium": 580,
+    "gi": 58,
+    "category": "Rice Dishes",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Jeera Rice",
+    "cal": 180,
+    "protein": 3.5,
+    "carbs": 38,
+    "fat": 2.5,
+    "fibre": 0.5,
+    "sodium": 280,
+    "gi": 64,
+    "category": "Rice Dishes",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Khichdi",
+    "cal": 155,
+    "protein": 6,
+    "carbs": 28,
+    "fat": 3,
+    "fibre": 2.5,
+    "sodium": 260,
+    "gi": 52,
+    "category": "Rice Dishes",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Lemon Rice",
+    "cal": 165,
+    "protein": 3,
+    "carbs": 32,
+    "fat": 4,
+    "fibre": 0.5,
+    "sodium": 320,
+    "gi": 60,
+    "category": "Rice Dishes",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Pulao",
+    "cal": 175,
+    "protein": 4,
+    "carbs": 35,
+    "fat": 3.5,
+    "fibre": 1.5,
+    "sodium": 340,
+    "gi": 60,
+    "category": "Rice Dishes",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Steamed Rice",
+    "cal": 130,
+    "protein": 2.7,
+    "carbs": 28,
+    "fat": 0.3,
+    "fibre": 0.4,
+    "sodium": 5,
+    "gi": 64,
+    "category": "Rice Dishes",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Vegetable Biryani",
+    "cal": 220,
+    "protein": 5,
+    "carbs": 40,
+    "fat": 6,
+    "fibre": 2.5,
+    "sodium": 480,
+    "gi": 58,
+    "category": "Rice Dishes",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Aloo Gobi",
+    "cal": 112,
+    "protein": 3,
+    "carbs": 18,
+    "fat": 4,
+    "fibre": 4,
+    "sodium": 380,
+    "gi": 55,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Aloo Matar",
+    "cal": 130,
+    "protein": 4,
+    "carbs": 22,
+    "fat": 4,
+    "fibre": 4,
+    "sodium": 360,
+    "gi": 55,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Aloo Posto",
+    "cal": 145,
+    "protein": 2.5,
+    "carbs": 18,
+    "fat": 7,
+    "fibre": 2.5,
+    "sodium": 280,
+    "gi": 55,
+    "category": "Sabzi",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Baingan Bharta",
+    "cal": 95,
+    "protein": 2.5,
+    "carbs": 11,
+    "fat": 5,
+    "fibre": 4,
+    "sodium": 340,
+    "gi": 25,
+    "category": "Sabzi",
+    "tags": [
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Bharli Vangi",
+    "cal": 148,
+    "protein": 3,
+    "carbs": 14,
+    "fat": 9,
+    "fibre": 4.5,
+    "sodium": 380,
+    "gi": 28,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Bhindi Masala",
+    "cal": 85,
+    "protein": 2.5,
+    "carbs": 10,
+    "fat": 4,
+    "fibre": 3.5,
+    "sodium": 320,
+    "gi": 28,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Cabbage Sabzi",
+    "cal": 72,
+    "protein": 2,
+    "carbs": 8,
+    "fat": 4,
+    "fibre": 3,
+    "sodium": 280,
+    "gi": 10,
+    "category": "Sabzi",
+    "tags": [
+      "low-gi",
+      "keto-friendly",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Gatte Ki Sabzi",
+    "cal": 198,
+    "protein": 8,
+    "carbs": 22,
+    "fat": 9,
+    "fibre": 3.5,
+    "sodium": 480,
+    "gi": 42,
+    "category": "Sabzi",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Karela Sabzi",
+    "cal": 68,
+    "protein": 2,
+    "carbs": 8,
+    "fat": 3,
+    "fibre": 3.5,
+    "sodium": 280,
+    "gi": 18,
+    "category": "Sabzi",
+    "tags": [
+      "low-gi",
+      "keto-friendly",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Ker Sangri",
+    "cal": 88,
+    "protein": 3.5,
+    "carbs": 14,
+    "fat": 2,
+    "fibre": 6,
+    "sodium": 320,
+    "gi": 28,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Lauki Sabzi",
+    "cal": 52,
+    "protein": 1.5,
+    "carbs": 8,
+    "fat": 2,
+    "fibre": 2.5,
+    "sodium": 240,
+    "gi": 25,
+    "category": "Sabzi",
+    "tags": [
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Methi Sabzi",
+    "cal": 78,
+    "protein": 3,
+    "carbs": 9,
+    "fat": 3.5,
+    "fibre": 4.5,
+    "sodium": 260,
+    "gi": 15,
+    "category": "Sabzi",
+    "tags": [
+      "low-gi",
+      "keto-friendly",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Mix Veg Sabzi",
+    "cal": 108,
+    "protein": 3,
+    "carbs": 14,
+    "fat": 5,
+    "fibre": 4,
+    "sodium": 380,
+    "gi": 40,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Palak Sabzi",
+    "cal": 60,
+    "protein": 3,
+    "carbs": 6,
+    "fat": 3,
+    "fibre": 4,
+    "sodium": 280,
+    "gi": 15,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Sarson Da Saag",
+    "cal": 88,
+    "protein": 3.5,
+    "carbs": 10,
+    "fat": 3.5,
+    "fibre": 5.5,
+    "sodium": 360,
+    "gi": 18,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Sev Tameta",
+    "cal": 118,
+    "protein": 3,
+    "carbs": 14,
+    "fat": 6,
+    "fibre": 2.5,
+    "sodium": 360,
+    "gi": 42,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Shukto",
+    "cal": 88,
+    "protein": 2.5,
+    "carbs": 12,
+    "fat": 3.5,
+    "fibre": 4,
+    "sodium": 260,
+    "gi": 30,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Tinda Sabzi",
+    "cal": 58,
+    "protein": 1.5,
+    "carbs": 8,
+    "fat": 2.5,
+    "fibre": 2.5,
+    "sodium": 240,
+    "gi": 25,
+    "category": "Sabzi",
+    "tags": [
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Undhiyu",
+    "cal": 162,
+    "protein": 4.5,
+    "carbs": 18,
+    "fat": 8,
+    "fibre": 5,
+    "sodium": 380,
+    "gi": 35,
+    "category": "Sabzi",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Butter, salted (1 tbsp / 14g)",
+    "protein": 0.1,
+    "carbs": 0.1,
+    "fat": 11.5,
+    "cal": 102.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 82,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Butter, salted (1 tsp / 4.7g)",
+    "protein": 0.1,
+    "carbs": 0.1,
+    "fat": 3.7,
+    "cal": 33.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 27,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Butter, unsalted (1 tbsp / 14g)",
+    "protein": 0.1,
+    "carbs": 0.1,
+    "fat": 11.5,
+    "cal": 102.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 2,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Butter, unsalted (1 tsp / 4.7g)",
+    "protein": 0.1,
+    "carbs": 0.1,
+    "fat": 3.7,
+    "cal": 33.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 1,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Chia Seeds (1 tbsp 12g)",
+    "cal": 58,
+    "protein": 2,
+    "carbs": 5,
+    "fat": 3.7,
+    "fibre": 4.1,
+    "sodium": 2,
+    "gi": 1,
+    "category": "Seeds & Oils",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Coconut Oil (1 tsp 5ml)",
+    "cal": 44,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 4.9,
+    "fibre": 0,
+    "sodium": 0,
+    "gi": 0,
+    "category": "Seeds & Oils",
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Coconut milk (100ml)",
+    "protein": 2.0,
+    "carbs": 4.0,
+    "fat": 18.0,
+    "cal": 184.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 15,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Coconut oil (1 tsp)",
+    "protein": 0.0,
+    "carbs": 0.0,
+    "fat": 4.5,
+    "cal": 40.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 0,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Flaxseeds (1 tbsp 10g)",
+    "cal": 55,
+    "protein": 1.9,
+    "carbs": 3,
+    "fat": 4.3,
+    "fibre": 2.8,
+    "sodium": 3,
+    "gi": 10,
+    "category": "Seeds & Oils",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Fresh cream (2 tbsp)",
+    "protein": 0.8,
+    "carbs": 1.6,
+    "fat": 14.0,
+    "cal": 132.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 10,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Ghee (1 tbsp 15g)",
+    "protein": 0,
+    "carbs": 0,
+    "fat": 15,
+    "cal": 135,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 1,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Ghee (1 tsp / 4.5g)",
+    "protein": 0.0,
+    "carbs": 0.0,
+    "fat": 5.0,
+    "cal": 45.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 0,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Ghee (1 tsp 5g)",
+    "protein": 0,
+    "carbs": 0,
+    "fat": 5,
+    "cal": 45,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 0,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Ghee (2 tsp)",
+    "protein": 0.0,
+    "carbs": 0.0,
+    "fat": 10.0,
+    "cal": 90.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 1,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Heavy cream (1 tbsp / 15g)",
+    "protein": 0.4,
+    "carbs": 0.8,
+    "fat": 6.9,
+    "cal": 66.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 6,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Mustard oil (1 tsp)",
+    "protein": 0.0,
+    "carbs": 0.0,
+    "fat": 4.5,
+    "cal": 40.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 0,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Olive Oil (1 tsp 5ml)",
+    "cal": 44,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 4.9,
+    "fibre": 0,
+    "sodium": 0,
+    "gi": 0,
+    "category": "Seeds & Oils",
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Olive oil (1 tsp)",
+    "protein": 0.0,
+    "carbs": 0.0,
+    "fat": 4.5,
+    "cal": 40.0,
+    "category": "Seeds & Oils",
+    "fibre": 0,
+    "sodium": 0,
+    "gi": 0,
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Peanut butter (1 tbsp / 15g)",
+    "protein": 4.0,
+    "carbs": 3.0,
+    "fat": 8.0,
+    "cal": 94.0,
+    "category": "Seeds & Oils",
+    "fibre": 1.0,
+    "sodium": 73,
+    "gi": 14,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Pumpkin Seeds (30g)",
+    "cal": 163,
+    "protein": 8.8,
+    "carbs": 4.2,
+    "fat": 14,
+    "fibre": 1.7,
+    "sodium": 2,
+    "gi": 10,
+    "category": "Seeds & Oils",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Sesame Seeds / Til (1 tbsp 9g)",
+    "cal": 52,
+    "protein": 1.6,
+    "carbs": 2.1,
+    "fat": 4.5,
+    "fibre": 1.1,
+    "sodium": 1,
+    "gi": 25,
+    "category": "Seeds & Oils",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Sunflower Oil (1 tsp 5ml)",
+    "cal": 44,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 4.9,
+    "fibre": 0,
+    "sodium": 0,
+    "gi": 0,
+    "category": "Seeds & Oils",
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Almonds (10 pieces 14g)",
+    "protein": 3,
+    "carbs": 2,
+    "fat": 7,
+    "cal": 82,
+    "category": "Snacks",
+    "fibre": 1.5,
+    "sodium": 0,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Almonds (30g)",
+    "cal": 174,
+    "protein": 6.3,
+    "carbs": 5.6,
+    "fat": 15,
+    "fibre": 3.4,
+    "sodium": 0,
+    "gi": 0,
+    "category": "Snacks",
+    "tags": [
+      "keto-friendly",
+      "high-protein",
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Almonds (30g, ~21 nuts)",
+    "protein": 6.0,
+    "carbs": 5.0,
+    "fat": 15.0,
+    "cal": 174.0,
+    "category": "Snacks",
+    "fibre": 3.5,
+    "sodium": 1,
+    "gi": 0,
+    "tags": [
+      "high-fibre",
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Bhel Puri",
+    "cal": 186,
+    "protein": 5,
+    "carbs": 34,
+    "fat": 5,
+    "fibre": 2.5,
+    "sodium": 680,
+    "gi": 68,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Bhujia / Namkeen (100g)",
+    "protein": 13.0,
+    "carbs": 59.0,
+    "fat": 30.0,
+    "cal": 562.0,
+    "category": "Snacks",
+    "fibre": 4.0,
+    "sodium": 1040,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Bhujia / Namkeen (30g)",
+    "protein": 4.0,
+    "carbs": 18.0,
+    "fat": 9.0,
+    "cal": 169.0,
+    "category": "Snacks",
+    "fibre": 1.2,
+    "sodium": 310,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Cashews (30g)",
+    "protein": 5.0,
+    "carbs": 10.0,
+    "fat": 13.0,
+    "cal": 174.0,
+    "category": "Snacks",
+    "fibre": 1.0,
+    "sodium": 3,
+    "gi": 25,
+    "tags": [
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Chakli (2 pieces)",
+    "cal": 100,
+    "protein": 2.5,
+    "carbs": 12,
+    "fat": 5,
+    "fibre": 1,
+    "sodium": 200,
+    "gi": 60,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Dark chocolate 85% (20g)",
+    "protein": 2.0,
+    "carbs": 6.0,
+    "fat": 11.0,
+    "cal": 131.0,
+    "category": "Snacks",
+    "fibre": 2.5,
+    "sodium": 5,
+    "gi": 25,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Dhokla (2 pieces)",
+    "cal": 145,
+    "protein": 5,
+    "carbs": 25,
+    "fat": 3.5,
+    "fibre": 1.5,
+    "sodium": 480,
+    "gi": 60,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Dhokla (2 pieces, ~100g)",
+    "protein": 5.0,
+    "carbs": 20.0,
+    "fat": 3.0,
+    "cal": 127.0,
+    "category": "Snacks",
+    "fibre": 1.5,
+    "sodium": 380,
+    "gi": 50,
+    "tags": []
+  },
+  {
+    "name": "Fafda",
+    "cal": 395,
+    "protein": 8,
+    "carbs": 48,
+    "fat": 19,
+    "fibre": 2,
+    "sodium": 480,
+    "gi": 62,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Ganthia",
+    "cal": 490,
+    "protein": 9,
+    "carbs": 52,
+    "fat": 27,
+    "fibre": 2.5,
+    "sodium": 540,
+    "gi": 60,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Kachori (1, ~80g)",
+    "protein": 4.0,
+    "carbs": 28.0,
+    "fat": 14.0,
+    "cal": 252.0,
+    "category": "Snacks",
+    "fibre": 2.0,
+    "sodium": 280,
+    "gi": 68,
+    "tags": []
+  },
+  {
+    "name": "Khakhra (2 pieces)",
+    "cal": 116,
+    "protein": 4,
+    "carbs": 18,
+    "fat": 4,
+    "fibre": 2.5,
+    "sodium": 280,
+    "gi": 55,
+    "category": "Snacks",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Khaman Dhokla",
+    "cal": 140,
+    "protein": 5.2,
+    "carbs": 22,
+    "fat": 3.8,
+    "fibre": 1.5,
+    "sodium": 520,
+    "gi": 55,
+    "category": "Snacks",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Khandvi",
+    "cal": 135,
+    "protein": 6.5,
+    "carbs": 15,
+    "fat": 6,
+    "fibre": 1,
+    "sodium": 380,
+    "gi": 48,
+    "category": "Snacks",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Kothimbir Vadi",
+    "cal": 165,
+    "protein": 5,
+    "carbs": 22,
+    "fat": 6,
+    "fibre": 2,
+    "sodium": 440,
+    "gi": 52,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Mirchi Vada",
+    "cal": 218,
+    "protein": 4,
+    "carbs": 26,
+    "fat": 11,
+    "fibre": 2,
+    "sodium": 340,
+    "gi": 62,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Mixed Nuts (30g)",
+    "cal": 185,
+    "protein": 5,
+    "carbs": 6,
+    "fat": 16,
+    "fibre": 2.5,
+    "sodium": 90,
+    "gi": 15,
+    "category": "Snacks",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Murukku (30g)",
+    "cal": 148,
+    "protein": 3,
+    "carbs": 20,
+    "fat": 7,
+    "fibre": 1.5,
+    "sodium": 240,
+    "gi": 60,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Pakoda / Bhajiya (2 pieces)",
+    "protein": 3.0,
+    "carbs": 18.0,
+    "fat": 10.0,
+    "cal": 170.0,
+    "category": "Snacks",
+    "fibre": 1.5,
+    "sodium": 220,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Pakora (2 pieces)",
+    "cal": 150,
+    "protein": 4,
+    "carbs": 16,
+    "fat": 8,
+    "fibre": 1.5,
+    "sodium": 340,
+    "gi": 60,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Pani Puri (6 pieces)",
+    "cal": 186,
+    "protein": 3.5,
+    "carbs": 32,
+    "fat": 5.5,
+    "fibre": 1.5,
+    "sodium": 480,
+    "gi": 70,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Peanuts (30g, roasted)",
+    "cal": 175,
+    "protein": 7.9,
+    "carbs": 5.5,
+    "fat": 14.5,
+    "fibre": 2.5,
+    "sodium": 116,
+    "gi": 14,
+    "category": "Snacks",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Peanuts, roasted (30g)",
+    "protein": 7.0,
+    "carbs": 5.0,
+    "fat": 14.0,
+    "cal": 174.0,
+    "category": "Snacks",
+    "fibre": 2.0,
+    "sodium": 3,
+    "gi": 13,
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Peanuts, roasted (50g)",
+    "protein": 12.0,
+    "carbs": 8.0,
+    "fat": 24.0,
+    "cal": 290.0,
+    "category": "Snacks",
+    "fibre": 3.3,
+    "sodium": 5,
+    "gi": 13,
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Pyaaz Ki Kachori",
+    "cal": 258,
+    "protein": 5.5,
+    "carbs": 34,
+    "fat": 12,
+    "fibre": 2,
+    "sodium": 380,
+    "gi": 65,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Ribbon Pakoda (30g)",
+    "cal": 155,
+    "protein": 3.5,
+    "carbs": 18,
+    "fat": 8,
+    "fibre": 1,
+    "sodium": 280,
+    "gi": 62,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Roasted Chana (30g)",
+    "cal": 108,
+    "protein": 7,
+    "carbs": 14,
+    "fat": 2.5,
+    "fibre": 4,
+    "sodium": 96,
+    "gi": 28,
+    "category": "Snacks",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Roasted Makhana (30g)",
+    "cal": 106,
+    "protein": 3.7,
+    "carbs": 20,
+    "fat": 0.7,
+    "fibre": 0.5,
+    "sodium": 64,
+    "gi": 55,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Sabudana Vada (1 piece)",
+    "cal": 168,
+    "protein": 2.5,
+    "carbs": 28,
+    "fat": 6.5,
+    "fibre": 0.5,
+    "sodium": 185,
+    "gi": 78,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Samosa (1 piece)",
+    "cal": 165,
+    "protein": 3.5,
+    "carbs": 22,
+    "fat": 7.5,
+    "fibre": 1.5,
+    "sodium": 380,
+    "gi": 70,
+    "category": "Snacks",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Samosa (1, ~100g)",
+    "protein": 3.0,
+    "carbs": 28.0,
+    "fat": 14.0,
+    "cal": 243.0,
+    "category": "Snacks",
+    "fibre": 2.0,
+    "sodium": 280,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Surti Locho",
+    "cal": 175,
+    "protein": 9,
+    "carbs": 24,
+    "fat": 5,
+    "fibre": 2,
+    "sodium": 440,
+    "gi": 55,
+    "category": "Snacks",
+    "tags": [
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Walnuts (30g)",
+    "cal": 197,
+    "protein": 4.6,
+    "carbs": 4.1,
+    "fat": 19.6,
+    "fibre": 2,
+    "sodium": 1,
+    "gi": 15,
+    "category": "Snacks",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Walnuts (4 halves 15g)",
+    "protein": 2,
+    "carbs": 2,
+    "fat": 10,
+    "cal": 98,
+    "category": "Snacks",
+    "fibre": 1.0,
+    "sodium": 1,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Chicken Clear Soup (200ml)",
+    "cal": 45,
+    "protein": 6,
+    "carbs": 2,
+    "fat": 1.5,
+    "fibre": 0.5,
+    "sodium": 560,
+    "gi": 10,
+    "category": "Soups",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Moong Dal Soup (200ml)",
+    "cal": 80,
+    "protein": 5.5,
+    "carbs": 12,
+    "fat": 1,
+    "fibre": 2.5,
+    "sodium": 380,
+    "gi": 28,
+    "category": "Soups",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Tomato Soup (homemade, 200ml)",
+    "cal": 60,
+    "protein": 2,
+    "carbs": 10,
+    "fat": 1.5,
+    "fibre": 2,
+    "sodium": 480,
+    "gi": 38,
+    "category": "Soups",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Vegetable Soup (200ml)",
+    "cal": 55,
+    "protein": 2.5,
+    "carbs": 8.5,
+    "fat": 1,
+    "fibre": 2.5,
+    "sodium": 520,
+    "gi": 25,
+    "category": "Soups",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Adai (mixed lentil dosa)",
+    "cal": 155,
+    "protein": 9,
+    "carbs": 22,
+    "fat": 3,
+    "fibre": 3.5,
+    "sodium": 260,
+    "gi": 38,
+    "category": "South Indian",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Appam",
+    "cal": 120,
+    "protein": 2.5,
+    "carbs": 23,
+    "fat": 2,
+    "fibre": 1,
+    "sodium": 180,
+    "gi": 68,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Appam with Stew",
+    "cal": 268,
+    "protein": 6.5,
+    "carbs": 40,
+    "fat": 9,
+    "fibre": 2.5,
+    "sodium": 380,
+    "gi": 65,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Avial",
+    "cal": 105,
+    "protein": 2.5,
+    "carbs": 10,
+    "fat": 6,
+    "fibre": 3,
+    "sodium": 240,
+    "gi": 25,
+    "category": "South Indian",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Bisi Bele Bath",
+    "cal": 182,
+    "protein": 6.5,
+    "carbs": 30,
+    "fat": 5.5,
+    "fibre": 3,
+    "sodium": 440,
+    "gi": 48,
+    "category": "South Indian",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Coconut Chutney",
+    "cal": 95,
+    "protein": 1.5,
+    "carbs": 5,
+    "fat": 8.5,
+    "fibre": 3,
+    "sodium": 180,
+    "gi": 15,
+    "category": "South Indian",
+    "tags": [
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Dosa (plain)",
+    "cal": 120,
+    "protein": 3,
+    "carbs": 22,
+    "fat": 3,
+    "fibre": 1,
+    "sodium": 280,
+    "gi": 69,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Idiappam (2 pieces)",
+    "cal": 118,
+    "protein": 2.5,
+    "carbs": 24,
+    "fat": 1,
+    "fibre": 1,
+    "sodium": 145,
+    "gi": 70,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Idli (1 piece)",
+    "cal": 39,
+    "protein": 2,
+    "carbs": 8,
+    "fat": 0.1,
+    "fibre": 0.5,
+    "sodium": 110,
+    "gi": 70,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Kalan (Kerala curry)",
+    "cal": 145,
+    "protein": 3.5,
+    "carbs": 12,
+    "fat": 9,
+    "fibre": 2.5,
+    "sodium": 280,
+    "gi": 30,
+    "category": "South Indian",
+    "tags": [
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Kootu",
+    "cal": 118,
+    "protein": 5.5,
+    "carbs": 14,
+    "fat": 4.5,
+    "fibre": 4,
+    "sodium": 320,
+    "gi": 28,
+    "category": "South Indian",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Masala Dosa",
+    "cal": 186,
+    "protein": 4,
+    "carbs": 28,
+    "fat": 7,
+    "fibre": 1.5,
+    "sodium": 380,
+    "gi": 65,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Medu Vada",
+    "cal": 140,
+    "protein": 4,
+    "carbs": 19,
+    "fat": 6,
+    "fibre": 1.5,
+    "sodium": 280,
+    "gi": 58,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Mor Kuzhambu",
+    "cal": 72,
+    "protein": 3.5,
+    "carbs": 7,
+    "fat": 3.5,
+    "fibre": 1.5,
+    "sodium": 340,
+    "gi": 25,
+    "category": "South Indian",
+    "tags": [
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Neer Dosa",
+    "cal": 98,
+    "protein": 2,
+    "carbs": 18,
+    "fat": 2.5,
+    "fibre": 0.5,
+    "sodium": 185,
+    "gi": 68,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Pesarattu",
+    "cal": 135,
+    "protein": 7.5,
+    "carbs": 21,
+    "fat": 2,
+    "fibre": 3,
+    "sodium": 280,
+    "gi": 35,
+    "category": "South Indian",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Puliyogare (tamarind rice)",
+    "cal": 188,
+    "protein": 3.5,
+    "carbs": 35,
+    "fat": 5,
+    "fibre": 1.5,
+    "sodium": 380,
+    "gi": 62,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Ragi Mudde (1 ball)",
+    "cal": 145,
+    "protein": 3.5,
+    "carbs": 30,
+    "fat": 0.8,
+    "fibre": 3.5,
+    "sodium": 8,
+    "gi": 68,
+    "category": "South Indian",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Rasam",
+    "cal": 30,
+    "protein": 1.2,
+    "carbs": 5,
+    "fat": 0.5,
+    "fibre": 1.5,
+    "sodium": 380,
+    "gi": 20,
+    "category": "South Indian",
+    "tags": [
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Rava Dosa",
+    "cal": 145,
+    "protein": 3.5,
+    "carbs": 25,
+    "fat": 5,
+    "fibre": 1,
+    "sodium": 320,
+    "gi": 65,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Sambar",
+    "cal": 60,
+    "protein": 3,
+    "carbs": 9,
+    "fat": 1.5,
+    "fibre": 3.5,
+    "sodium": 420,
+    "gi": 25,
+    "category": "South Indian",
+    "tags": [
+      "low-gi",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Set Dosa (2 pieces)",
+    "cal": 175,
+    "protein": 4.5,
+    "carbs": 30,
+    "fat": 5,
+    "fibre": 1.5,
+    "sodium": 360,
+    "gi": 65,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Thoran (Kerala stir-fry)",
+    "cal": 95,
+    "protein": 2.5,
+    "carbs": 8,
+    "fat": 6,
+    "fibre": 4,
+    "sodium": 200,
+    "gi": 20,
+    "category": "South Indian",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "keto-friendly",
+      "indian"
+    ]
+  },
+  {
+    "name": "Uttapam",
+    "cal": 145,
+    "protein": 4,
+    "carbs": 25,
+    "fat": 4,
+    "fibre": 1.5,
+    "sodium": 340,
+    "gi": 65,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Ven Pongal",
+    "cal": 185,
+    "protein": 5.5,
+    "carbs": 30,
+    "fat": 6.5,
+    "fibre": 1.5,
+    "sodium": 340,
+    "gi": 58,
+    "category": "South Indian",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "BCAA Powder (10g)",
+    "cal": 40,
+    "protein": 10,
+    "carbs": 0,
+    "fat": 0,
+    "fibre": 0,
+    "sodium": 150,
+    "gi": 0,
+    "category": "Supplements",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Casein Protein (30g)",
+    "cal": 110,
+    "protein": 23,
+    "carbs": 3,
+    "fat": 1,
+    "fibre": 0.5,
+    "sodium": 120,
+    "gi": 10,
+    "category": "Supplements",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Chia seeds (1 tbsp / 12g)",
+    "protein": 2.0,
+    "carbs": 4.0,
+    "fat": 4.0,
+    "cal": 58.0,
+    "category": "Supplements",
+    "fibre": 4.2,
+    "sodium": 2,
+    "gi": 1,
+    "tags": [
+      "high-fibre",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Creatine Monohydrate (5g)",
+    "cal": 0,
+    "protein": 0,
+    "carbs": 0,
+    "fat": 0,
+    "fibre": 0,
+    "sodium": 0,
+    "gi": 0,
+    "category": "Supplements",
+    "tags": [
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Flaxseeds (1 tbsp / 10g)",
+    "protein": 2.0,
+    "carbs": 2.0,
+    "fat": 4.0,
+    "cal": 54.0,
+    "category": "Supplements",
+    "fibre": 2.8,
+    "sodium": 2,
+    "gi": 0,
+    "tags": [
+      "high-fibre",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Isopure Low Carb (1 scoop 34g)",
+    "cal": 110,
+    "protein": 25,
+    "carbs": 1,
+    "fat": 0,
+    "fibre": 0,
+    "sodium": 220,
+    "gi": 0,
+    "category": "Supplements",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Isopure Whey (1 scoop, 31g)",
+    "protein": 25.0,
+    "carbs": 0.0,
+    "fat": 0.5,
+    "cal": 100.0,
+    "category": "Supplements",
+    "fibre": 0,
+    "sodium": 130,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Moringa Powder (5g)",
+    "cal": 18,
+    "protein": 1.2,
+    "carbs": 2,
+    "fat": 0.3,
+    "fibre": 0.5,
+    "sodium": 8,
+    "gi": 10,
+    "category": "Supplements",
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "ORS Electral (200ml)",
+    "cal": 48,
+    "protein": 0,
+    "carbs": 12,
+    "fat": 0,
+    "fibre": 0,
+    "sodium": 470,
+    "gi": 80,
+    "category": "Supplements",
+    "tags": []
+  },
+  {
+    "name": "Pea Protein (1 scoop 30g)",
+    "cal": 115,
+    "protein": 21,
+    "carbs": 4,
+    "fat": 1.5,
+    "fibre": 1,
+    "sodium": 200,
+    "gi": 15,
+    "category": "Supplements",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Protein Shake (whey, 1 scoop 30g)",
+    "cal": 120,
+    "protein": 24,
+    "carbs": 3,
+    "fat": 1.5,
+    "fibre": 0.5,
+    "sodium": 140,
+    "gi": 20,
+    "category": "Supplements",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Protein shake, water (1 scoop)",
+    "protein": 24.0,
+    "carbs": 3.0,
+    "fat": 2.0,
+    "cal": 126.0,
+    "category": "Supplements",
+    "fibre": 0.5,
+    "sodium": 120,
+    "gi": 20,
+    "tags": [
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Seeds mix — pumpkin+sunflower (30g)",
+    "protein": 5.0,
+    "carbs": 4.0,
+    "fat": 13.0,
+    "cal": 153.0,
+    "category": "Supplements",
+    "fibre": 2.5,
+    "sodium": 4,
+    "gi": 0,
+    "tags": [
+      "high-fibre",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Soya chunks cooked (100g)",
+    "protein": 12.0,
+    "carbs": 8.0,
+    "fat": 1.0,
+    "cal": 89.0,
+    "category": "Supplements",
+    "fibre": 2.0,
+    "sodium": 6,
+    "gi": 30,
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Soya chunks dry (30g)",
+    "protein": 15.0,
+    "carbs": 10.0,
+    "fat": 1.0,
+    "cal": 102.0,
+    "category": "Supplements",
+    "fibre": 3.0,
+    "sodium": 6,
+    "gi": 32,
+    "tags": [
+      "high-fibre",
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Tofu firm (100g)",
+    "protein": 8.0,
+    "carbs": 2.0,
+    "fat": 4.0,
+    "cal": 76.0,
+    "category": "Supplements",
+    "fibre": 0.3,
+    "sodium": 8,
+    "gi": 15,
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Tofu pan-fried (100g, 1 tsp ghee)",
+    "protein": 8.0,
+    "carbs": 2.0,
+    "fat": 9.0,
+    "cal": 121.0,
+    "category": "Supplements",
+    "fibre": 0.3,
+    "sodium": 8,
+    "gi": 15,
+    "tags": [
+      "high-protein",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Whey Protein Concentrate (30g)",
+    "cal": 112,
+    "protein": 22,
+    "carbs": 3.5,
+    "fat": 1.5,
+    "fibre": 0.5,
+    "sodium": 130,
+    "gi": 15,
+    "category": "Supplements",
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Whey protein shake Isopure (1 scoop 300ml water)",
+    "protein": 25,
+    "carbs": 1,
+    "fat": 0.5,
+    "cal": 108,
+    "category": "Supplements",
+    "fibre": 0,
+    "sodium": 130,
+    "gi": 0,
+    "tags": [
+      "high-protein",
+      "keto-friendly"
+    ]
+  },
+  {
+    "name": "Aam Shrikhand (100g)",
+    "cal": 218,
+    "protein": 5.5,
+    "carbs": 32,
+    "fat": 8,
+    "fibre": 0.5,
+    "sodium": 40,
+    "gi": 58,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Barfi (kaju, 30g)",
+    "cal": 165,
+    "protein": 3.5,
+    "carbs": 18,
+    "fat": 9,
+    "fibre": 0.5,
+    "sodium": 40,
+    "gi": 45,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Churma",
+    "cal": 385,
+    "protein": 6.5,
+    "carbs": 55,
+    "fat": 15,
+    "fibre": 2.5,
+    "sodium": 85,
+    "gi": 68,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Ghewar (30g)",
+    "cal": 148,
+    "protein": 2.5,
+    "carbs": 20,
+    "fat": 7,
+    "fibre": 0.5,
+    "sodium": 45,
+    "gi": 72,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Gulab Jamun (1 piece)",
+    "cal": 140,
+    "protein": 2.5,
+    "carbs": 22,
+    "fat": 5,
+    "fibre": 0.3,
+    "sodium": 90,
+    "gi": 80,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Gulab jamun (1, ~50g)",
+    "protein": 2.0,
+    "carbs": 22.0,
+    "fat": 7.0,
+    "cal": 158.0,
+    "category": "Sweets",
+    "fibre": 0.5,
+    "sodium": 60,
+    "gi": 76,
+    "tags": []
+  },
+  {
+    "name": "Haldirams Soan Papdi (30g)",
+    "cal": 148,
+    "protein": 2.5,
+    "carbs": 22,
+    "fat": 6,
+    "fibre": 0.3,
+    "sodium": 35,
+    "gi": 70,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Halwa (suji, 100g)",
+    "cal": 267,
+    "protein": 4.5,
+    "carbs": 42,
+    "fat": 9,
+    "fibre": 1.5,
+    "sodium": 180,
+    "gi": 70,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Halwa, sooji (100g)",
+    "protein": 3.0,
+    "carbs": 38.0,
+    "fat": 14.0,
+    "cal": 286.0,
+    "category": "Sweets",
+    "fibre": 1.0,
+    "sodium": 40,
+    "gi": 75,
+    "tags": []
+  },
+  {
+    "name": "Ice cream (1 scoop, ~80g)",
+    "protein": 2.0,
+    "carbs": 20.0,
+    "fat": 7.0,
+    "cal": 148.0,
+    "category": "Sweets",
+    "fibre": 0,
+    "sodium": 50,
+    "gi": 61,
+    "tags": []
+  },
+  {
+    "name": "Jalebi (30g)",
+    "cal": 145,
+    "protein": 1.5,
+    "carbs": 26,
+    "fat": 5,
+    "fibre": 0.2,
+    "sodium": 22,
+    "gi": 82,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Kheer (100g)",
+    "cal": 145,
+    "protein": 4.5,
+    "carbs": 23,
+    "fat": 4,
+    "fibre": 0.5,
+    "sodium": 65,
+    "gi": 65,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Kheer / Rice pudding (150g)",
+    "protein": 5.0,
+    "carbs": 28.0,
+    "fat": 7.0,
+    "cal": 195.0,
+    "category": "Sweets",
+    "fibre": 0.3,
+    "sodium": 70,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Kulfi (1 stick 60g)",
+    "cal": 148,
+    "protein": 4,
+    "carbs": 20,
+    "fat": 6,
+    "fibre": 0,
+    "sodium": 65,
+    "gi": 52,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Ladoo (besan, 1 piece 30g)",
+    "cal": 148,
+    "protein": 3.5,
+    "carbs": 19,
+    "fat": 7,
+    "fibre": 0.8,
+    "sodium": 80,
+    "gi": 55,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Ladoo (motichoor, 1 piece)",
+    "cal": 160,
+    "protein": 3,
+    "carbs": 22,
+    "fat": 7,
+    "fibre": 0.5,
+    "sodium": 85,
+    "gi": 70,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Ladoo, besan (1, ~40g)",
+    "protein": 3.0,
+    "carbs": 22.0,
+    "fat": 10.0,
+    "cal": 189.0,
+    "category": "Sweets",
+    "fibre": 1.0,
+    "sodium": 30,
+    "gi": 52,
+    "tags": []
+  },
+  {
+    "name": "Matka Kulfi (100g)",
+    "cal": 188,
+    "protein": 4.5,
+    "carbs": 24,
+    "fat": 8.5,
+    "fibre": 0,
+    "sodium": 72,
+    "gi": 52,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Mishti Doi (100g)",
+    "cal": 142,
+    "protein": 4.5,
+    "carbs": 22,
+    "fat": 4.5,
+    "fibre": 0,
+    "sodium": 48,
+    "gi": 55,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Mohanthal (30g)",
+    "cal": 148,
+    "protein": 3.5,
+    "carbs": 20,
+    "fat": 6.5,
+    "fibre": 0.8,
+    "sodium": 60,
+    "gi": 65,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Payasam",
+    "cal": 188,
+    "protein": 5,
+    "carbs": 30,
+    "fat": 6,
+    "fibre": 0.5,
+    "sodium": 65,
+    "gi": 65,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Rasgulla (1 piece)",
+    "cal": 106,
+    "protein": 3.5,
+    "carbs": 20,
+    "fat": 1.5,
+    "fibre": 0,
+    "sodium": 60,
+    "gi": 75,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Rasgulla (1, ~50g)",
+    "protein": 2.0,
+    "carbs": 20.0,
+    "fat": 0.5,
+    "cal": 93.0,
+    "category": "Sweets",
+    "fibre": 0,
+    "sodium": 40,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Sandesh (30g)",
+    "cal": 125,
+    "protein": 4.5,
+    "carbs": 18,
+    "fat": 4,
+    "fibre": 0,
+    "sodium": 38,
+    "gi": 60,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Shrikhand (100g)",
+    "cal": 202,
+    "protein": 6,
+    "carbs": 28,
+    "fat": 8,
+    "fibre": 0,
+    "sodium": 42,
+    "gi": 55,
+    "category": "Sweets",
+    "tags": [
+      "indian"
+    ]
+  },
+  {
+    "name": "Aloo gobi sabzi (200g, 1 tsp ghee)",
+    "protein": 4.0,
+    "carbs": 22.0,
+    "fat": 6.0,
+    "cal": 158.0,
+    "category": "Vegetables",
+    "fibre": 4.0,
+    "sodium": 240,
+    "gi": 55,
+    "tags": []
+  },
+  {
+    "name": "Arbi / Colocasia sabzi (150g) ⚠high carb",
+    "protein": 2.0,
+    "carbs": 24.0,
+    "fat": 5.0,
+    "cal": 148.0,
+    "category": "Vegetables",
+    "fibre": 2.5,
+    "sodium": 200,
+    "gi": 68,
+    "tags": []
+  },
+  {
+    "name": "Baby corn (50g)",
+    "protein": 1.0,
+    "carbs": 5.0,
+    "fat": 0.1,
+    "cal": 25.0,
+    "category": "Vegetables",
+    "fibre": 1.0,
+    "sodium": 5,
+    "gi": 55,
+    "tags": []
+  },
+  {
+    "name": "Baingan bharta (150g, 1 tsp ghee)",
+    "protein": 2.0,
+    "carbs": 10.0,
+    "fat": 6.0,
+    "cal": 99.0,
+    "category": "Vegetables",
+    "fibre": 4.5,
+    "sodium": 180,
+    "gi": 28,
+    "tags": [
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Beetroot (100g)",
+    "cal": 43,
+    "protein": 1.6,
+    "carbs": 10,
+    "fat": 0.2,
+    "fibre": 2.8,
+    "sodium": 78,
+    "gi": 61,
+    "category": "Vegetables",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Bhindi / Okra sabzi (150g, 1 tsp ghee)",
+    "protein": 2.0,
+    "carbs": 10.0,
+    "fat": 5.5,
+    "cal": 94.0,
+    "category": "Vegetables",
+    "fibre": 5.0,
+    "sodium": 180,
+    "gi": 20,
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Bitter Gourd / Karela (100g)",
+    "cal": 17,
+    "protein": 1,
+    "carbs": 3.7,
+    "fat": 0.2,
+    "fibre": 2.8,
+    "sodium": 5,
+    "gi": 18,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Bottle Gourd / Lauki (100g)",
+    "cal": 15,
+    "protein": 0.6,
+    "carbs": 3.4,
+    "fat": 0.1,
+    "fibre": 0.5,
+    "sodium": 2,
+    "gi": 25,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Brinjal / Baingan (80g raw)",
+    "protein": 1.0,
+    "carbs": 4.0,
+    "fat": 0.2,
+    "cal": 21.0,
+    "category": "Vegetables",
+    "fibre": 2.0,
+    "sodium": 2,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Broccoli (100g)",
+    "cal": 34,
+    "protein": 2.8,
+    "carbs": 7,
+    "fat": 0.4,
+    "fibre": 2.6,
+    "sodium": 33,
+    "gi": 15,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi",
+      "high-protein"
+    ]
+  },
+  {
+    "name": "Broccoli (80g)",
+    "protein": 2.0,
+    "carbs": 4.0,
+    "fat": 0.3,
+    "cal": 27.0,
+    "category": "Vegetables",
+    "fibre": 2.2,
+    "sodium": 27,
+    "gi": 15,
+    "tags": [
+      "high-fibre",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Cabbage (100g raw)",
+    "cal": 25,
+    "protein": 1.3,
+    "carbs": 5.8,
+    "fat": 0.1,
+    "fibre": 2.5,
+    "sodium": 18,
+    "gi": 10,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Cabbage / Pattagobi (75g)",
+    "protein": 1.0,
+    "carbs": 4.0,
+    "fat": 0.1,
+    "cal": 22.0,
+    "category": "Vegetables",
+    "fibre": 1.4,
+    "sodium": 13,
+    "gi": 10,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Capsicum / Shimla mirch (50g)",
+    "protein": 0.5,
+    "carbs": 3.0,
+    "fat": 0.2,
+    "cal": 16.0,
+    "category": "Vegetables",
+    "fibre": 0.8,
+    "sodium": 2,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Carrot (100g)",
+    "cal": 41,
+    "protein": 0.9,
+    "carbs": 10,
+    "fat": 0.2,
+    "fibre": 2.8,
+    "sodium": 69,
+    "gi": 35,
+    "category": "Vegetables",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Carrot / Gajar (50g)",
+    "protein": 0.5,
+    "carbs": 5.0,
+    "fat": 0.1,
+    "cal": 23.0,
+    "category": "Vegetables",
+    "fibre": 1.5,
+    "sodium": 35,
+    "gi": 39,
+    "tags": [
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Cauliflower (100g)",
+    "cal": 25,
+    "protein": 2,
+    "carbs": 5,
+    "fat": 0.3,
+    "fibre": 2,
+    "sodium": 30,
+    "gi": 15,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Cauliflower / Phoolgobi (100g)",
+    "protein": 2.0,
+    "carbs": 5.0,
+    "fat": 0.3,
+    "cal": 30.0,
+    "category": "Vegetables",
+    "fibre": 2.0,
+    "sodium": 30,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Cluster Beans / Gavar (100g)",
+    "cal": 16,
+    "protein": 1.4,
+    "carbs": 2.9,
+    "fat": 0.1,
+    "fibre": 3.2,
+    "sodium": 3,
+    "gi": 25,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Cucumber (1 medium 150g)",
+    "protein": 1,
+    "carbs": 4,
+    "fat": 0,
+    "cal": 23,
+    "category": "Vegetables",
+    "fibre": 0.7,
+    "sodium": 3,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Cucumber (100g)",
+    "cal": 15,
+    "protein": 0.7,
+    "carbs": 3.6,
+    "fat": 0.1,
+    "fibre": 0.5,
+    "sodium": 2,
+    "gi": 15,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Cucumber / Kheera (100g)",
+    "protein": 0.7,
+    "carbs": 3.0,
+    "fat": 0.1,
+    "cal": 16.0,
+    "category": "Vegetables",
+    "fibre": 0.5,
+    "sodium": 2,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Drumstick / Moringa (100g)",
+    "cal": 37,
+    "protein": 2.1,
+    "carbs": 8.5,
+    "fat": 0.2,
+    "fibre": 3.2,
+    "sodium": 42,
+    "gi": 25,
+    "category": "Vegetables",
+    "tags": [
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Drumstick / Sahjan (100g)",
+    "protein": 2.0,
+    "carbs": 4.0,
+    "fat": 0.2,
+    "cal": 26.0,
+    "category": "Vegetables",
+    "fibre": 3.2,
+    "sodium": 42,
+    "gi": 20,
+    "tags": [
+      "high-fibre",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "French Beans (100g)",
+    "cal": 31,
+    "protein": 1.8,
+    "carbs": 7,
+    "fat": 0.1,
+    "fibre": 3.4,
+    "sodium": 6,
+    "gi": 30,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "French beans (75g)",
+    "protein": 1.0,
+    "carbs": 5.0,
+    "fat": 0.1,
+    "cal": 26.0,
+    "category": "Vegetables",
+    "fibre": 2.5,
+    "sodium": 6,
+    "gi": 30,
+    "tags": [
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Green Peas (100g, cooked)",
+    "cal": 81,
+    "protein": 5.4,
+    "carbs": 14,
+    "fat": 0.4,
+    "fibre": 5.7,
+    "sodium": 5,
+    "gi": 51,
+    "category": "Vegetables",
+    "tags": [
+      "high-protein",
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Green peas / Matar (50g)",
+    "protein": 3.0,
+    "carbs": 9.0,
+    "fat": 0.2,
+    "cal": 49.0,
+    "category": "Vegetables",
+    "fibre": 2.2,
+    "sodium": 2,
+    "gi": 48,
+    "tags": [
+      "high-fibre"
+    ]
+  },
+  {
+    "name": "Karela / Bitter gourd (100g raw)",
+    "protein": 2.0,
+    "carbs": 5.0,
+    "fat": 0.2,
+    "cal": 30.0,
+    "category": "Vegetables",
+    "fibre": 2.6,
+    "sodium": 5,
+    "gi": 18,
+    "tags": [
+      "high-fibre",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Karela sabzi (100g, 1 tsp ghee)",
+    "protein": 2.0,
+    "carbs": 6.0,
+    "fat": 5.3,
+    "cal": 78.0,
+    "category": "Vegetables",
+    "fibre": 2.6,
+    "sodium": 160,
+    "gi": 18,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Lauki sabzi (150g, 1 tsp ghee)",
+    "protein": 1.0,
+    "carbs": 7.0,
+    "fat": 5.0,
+    "cal": 76.0,
+    "category": "Vegetables",
+    "fibre": 2.0,
+    "sodium": 180,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Matar paneer (200g)",
+    "protein": 13.0,
+    "carbs": 18.0,
+    "fat": 18.0,
+    "cal": 282.0,
+    "category": "Vegetables",
+    "fibre": 3.5,
+    "sodium": 480,
+    "gi": 30,
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Methi sabzi (150g, 1 tsp ghee)",
+    "protein": 4.0,
+    "carbs": 7.0,
+    "fat": 5.3,
+    "cal": 90.0,
+    "category": "Vegetables",
+    "fibre": 4.0,
+    "sodium": 200,
+    "gi": 25,
+    "tags": [
+      "high-fibre",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Mix veg sabzi (150g, 1 tsp ghee)",
+    "protein": 3.0,
+    "carbs": 12.0,
+    "fat": 5.5,
+    "cal": 105.0,
+    "category": "Vegetables",
+    "fibre": 3.0,
+    "sodium": 220,
+    "gi": 40,
+    "tags": []
+  },
+  {
+    "name": "Mooli / Radish (100g)",
+    "protein": 0.7,
+    "carbs": 4.0,
+    "fat": 0.1,
+    "cal": 20.0,
+    "category": "Vegetables",
+    "fibre": 1.6,
+    "sodium": 39,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Mushroom (100g raw)",
+    "protein": 3.0,
+    "carbs": 3.0,
+    "fat": 0.3,
+    "cal": 27.0,
+    "category": "Vegetables",
+    "fibre": 1.0,
+    "sodium": 5,
+    "gi": 10,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Mushroom (100g)",
+    "cal": 22,
+    "protein": 3.1,
+    "carbs": 3.3,
+    "fat": 0.3,
+    "fibre": 1,
+    "sodium": 5,
+    "gi": 10,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Mushroom sabzi (150g, 1 tsp ghee)",
+    "protein": 4.0,
+    "carbs": 5.0,
+    "fat": 5.5,
+    "cal": 84.0,
+    "category": "Vegetables",
+    "fibre": 1.5,
+    "sodium": 160,
+    "gi": 10,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Onion (100g)",
+    "cal": 40,
+    "protein": 1.1,
+    "carbs": 9.3,
+    "fat": 0.1,
+    "fibre": 1.7,
+    "sodium": 4,
+    "gi": 10,
+    "category": "Vegetables",
+    "tags": [
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Onion / Pyaz (20g)",
+    "protein": 0.2,
+    "carbs": 2.0,
+    "fat": 0.0,
+    "cal": 9.0,
+    "category": "Vegetables",
+    "fibre": 0.3,
+    "sodium": 1,
+    "gi": 10,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Palak paneer (200g)",
+    "protein": 14.0,
+    "carbs": 8.0,
+    "fat": 22.0,
+    "cal": 282.0,
+    "category": "Vegetables",
+    "fibre": 3.5,
+    "sodium": 500,
+    "gi": 15,
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Palak sabzi (150g, 1 tsp ghee)",
+    "protein": 4.0,
+    "carbs": 5.0,
+    "fat": 5.3,
+    "cal": 80.0,
+    "category": "Vegetables",
+    "fibre": 3.5,
+    "sodium": 180,
+    "gi": 15,
+    "tags": [
+      "high-fibre",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Potato (boiled, 100g)",
+    "cal": 77,
+    "protein": 1.8,
+    "carbs": 17,
+    "fat": 0.1,
+    "fibre": 1.8,
+    "sodium": 6,
+    "gi": 78,
+    "category": "Vegetables",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Pumpkin / Kaddu (100g)",
+    "protein": 1.0,
+    "carbs": 6.0,
+    "fat": 0.1,
+    "cal": 29.0,
+    "category": "Vegetables",
+    "fibre": 0.5,
+    "sodium": 1,
+    "gi": 75,
+    "tags": []
+  },
+  {
+    "name": "Ridge Gourd / Turai (100g)",
+    "cal": 20,
+    "protein": 0.6,
+    "carbs": 4.4,
+    "fat": 0.1,
+    "fibre": 0.5,
+    "sodium": 3,
+    "gi": 20,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Shahi paneer (200g)",
+    "protein": 14.0,
+    "carbs": 12.0,
+    "fat": 26.0,
+    "cal": 330.0,
+    "category": "Vegetables",
+    "fibre": 1.5,
+    "sodium": 520,
+    "gi": 20,
+    "tags": [
+      "high-protein",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Spinach (palak, 100g raw)",
+    "cal": 23,
+    "protein": 2.9,
+    "carbs": 3.6,
+    "fat": 0.4,
+    "fibre": 2.2,
+    "sodium": 79,
+    "gi": 15,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "high-fibre",
+      "low-gi",
+      "high-protein",
+      "indian"
+    ]
+  },
+  {
+    "name": "Spinach / Palak (150g cooked)",
+    "protein": 4.0,
+    "carbs": 4.0,
+    "fat": 0.3,
+    "cal": 35.0,
+    "category": "Vegetables",
+    "fibre": 3.5,
+    "sodium": 120,
+    "gi": 15,
+    "tags": [
+      "high-fibre",
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Spinach / Palak (75g raw)",
+    "protein": 2.0,
+    "carbs": 2.0,
+    "fat": 0.2,
+    "cal": 17.0,
+    "category": "Vegetables",
+    "fibre": 1.5,
+    "sodium": 65,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Sweet Potato (100g)",
+    "cal": 86,
+    "protein": 1.6,
+    "carbs": 20,
+    "fat": 0.1,
+    "fibre": 3,
+    "sodium": 55,
+    "gi": 61,
+    "category": "Vegetables",
+    "tags": [
+      "high-fibre",
+      "indian"
+    ]
+  },
+  {
+    "name": "Sweet corn (50g)",
+    "protein": 2.0,
+    "carbs": 10.0,
+    "fat": 0.5,
+    "cal": 52.0,
+    "category": "Vegetables",
+    "fibre": 1.5,
+    "sodium": 8,
+    "gi": 65,
+    "tags": []
+  },
+  {
+    "name": "Tinda sabzi (150g, 1 tsp ghee)",
+    "protein": 1.0,
+    "carbs": 8.0,
+    "fat": 5.0,
+    "cal": 79.0,
+    "category": "Vegetables",
+    "fibre": 2.5,
+    "sodium": 180,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Tomato (100g)",
+    "cal": 18,
+    "protein": 0.9,
+    "carbs": 3.9,
+    "fat": 0.2,
+    "fibre": 1.2,
+    "sodium": 5,
+    "gi": 15,
+    "category": "Vegetables",
+    "tags": [
+      "keto-friendly",
+      "low-gi",
+      "indian"
+    ]
+  },
+  {
+    "name": "Tomato / Tamatar (40g)",
+    "protein": 0.3,
+    "carbs": 2.0,
+    "fat": 0.1,
+    "cal": 10.0,
+    "category": "Vegetables",
+    "fibre": 0.5,
+    "sodium": 4,
+    "gi": 30,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Torai / Tori sabzi (150g, 1 tsp ghee)",
+    "protein": 1.0,
+    "carbs": 6.0,
+    "fat": 5.0,
+    "cal": 71.0,
+    "category": "Vegetables",
+    "fibre": 2.5,
+    "sodium": 180,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  },
+  {
+    "name": "Zucchini (100g)",
+    "protein": 1.0,
+    "carbs": 3.0,
+    "fat": 0.3,
+    "cal": 18.0,
+    "category": "Vegetables",
+    "fibre": 1.2,
+    "sodium": 8,
+    "gi": 15,
+    "tags": [
+      "keto-friendly",
+      "low-gi"
+    ]
+  }
+]
