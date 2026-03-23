@@ -1,3 +1,4 @@
+import { KEYS } from "../services/storageKeys"
 import { useState, useEffect, useCallback } from "react"
 import { useHealthStore } from "../store/useHealthStore"
 import { loadDayData, saveDayData, DayData, loadHistory, saveHistory, loadMedications, loadTaskConfig, loadWaterTarget } from "../store/useHealthStore"
@@ -6,15 +7,51 @@ import SetupChip from "./SetupChip"
 import { isInBreakPeriod } from "../store/useHealthStore"
 import { computeMacros } from "../services/adaptiveTDEE"
 import { getISTDate } from "../utils/dateHelpers"
-import { getTodayPlan, getDayName, DayPlan } from "../data/mealPlan"
 import { GoalMode, getFlags, isMaternalMode, isGeriatricMode, loadGoalMode, saveGoalMode } from "../services/goalModeConfig"
 import MicronutrientChecklist from "./MicronutrientChecklist"
+import MealPlanSync from "./MealPlanSync"
+import { loadMealPlan, MealPlanEntry } from "../store/useHealthStore"
+import { getTodayPlan, getDayName, DayPlan } from "../data/mealPlan"
+import { formatDailySummaryForShare, shareOrCopy } from "../services/shareUtils"
+
+// ── Get today's meals — from stored plan if available, else hardcoded fallback ─
+function getTodayMeals(dayName: string): { meals: StoredMeal[]; fromStore: boolean } {
+  const stored = loadMealPlan()
+  const todayEntries = stored.filter(e =>
+    !e.day || e.day.toLowerCase() === dayName.toLowerCase()
+  )
+  if (todayEntries.length > 0) {
+    return {
+      fromStore: true,
+      meals: todayEntries.map(e => ({
+        name:        e.name,
+        time:        e.time,
+        protein:     e.protein,
+        carbs:       e.carbs,
+        fat:         e.fat,
+        cal:         e.cal,
+        ingredients: (e.ingredients || []).map((s, i) => ({ hi: s, en: s, qty: "" })),
+        steps:       (e.steps       || []).map((s, i) => ({ hi: s, en: s })),
+      }))
+    }
+  }
+  // Fall back to hardcoded plan
+  const fallback = getTodayPlan(dayName)
+  return { fromStore: false, meals: fallback.meals }
+}
+
+type StoredMeal = {
+  name: string; time: string
+  protein: number; carbs: number; fat: number; cal: number
+  ingredients: { hi: string; en: string; qty: string }[]
+  steps: { hi: string; en: string }[]
+}
 
 // ── Section collapse persistence ──────────────────────────────────────────────
 // Each section remembers open/closed state in localStorage.
 // Weight section always resets open each new day until weight is logged.
 
-const SECTION_PREFS_KEY = "today_section_prefs"
+const SECTION_PREFS_KEY = KEYS.TODAY_SECTION_PREFS
 
 function loadSectionPrefs(): Record<string, boolean> {
   try { return JSON.parse(localStorage.getItem(SECTION_PREFS_KEY) || "{}") } catch { return {} }
@@ -146,7 +183,7 @@ function TaskBubble({ icon, line1, line2, done, onTap }: {
 }
 
 // ── Meal Card ─────────────────────────────────────────────────────────────────
-function MealCard({ meal, index, onLog }: { meal: DayPlan["meals"][0]; index: number; onLog: () => void }) {
+function MealCard({ meal, index, onLog }: { meal: StoredMeal; index: number; onLog: () => void }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="border border-gray-100 rounded-xl overflow-hidden mb-3">
@@ -237,6 +274,7 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
   const [, setTick] = useState(0)
   const [goalMode] = useState<GoalMode>(propGoalMode ?? loadGoalMode())
   const [showPositiveTest, setShowPositiveTest] = useState(false)
+  const [shareToast, setShareToast] = useState<string | null>(null)
 
   const flags = getFlags(goalMode)
   const isMaternal = isMaternalMode(goalMode)
@@ -305,7 +343,8 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
     : DEFAULT_TARGETS
 
   const tots = sumMacros(day.entries)
-  const plan = getTodayPlan(getDayName())
+  const { meals: todayMeals } = getTodayMeals(getDayName())
+  const fallbackPlan = getTodayPlan(getDayName())
   const dayName = getDayName()
   const dateLabel = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })
 
@@ -313,8 +352,8 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
   const medsOk = medications.length === 0 || medications.every(m => !!(day.meds || {})[m.id])
   const walkOk = (day.workouts || []).some(w => w.type === "walk" && w.duration >= 30)
   const proteinOk = tots.protein >= tgt.protein * 0.9
-  const mealsLogged = plan.meals.filter(m => day.entries.some(e => e.name === m.name)).length
-  const mealsOk = mealsLogged >= plan.meals.length
+  const mealsLogged = todayMeals.filter(m => day.entries.some(e => e.name === m.name)).length
+  const mealsOk = mealsLogged >= todayMeals.length
   const waterOk = day.water >= waterTarget
   const carbsOk = day.entries.length > 0 && tots.carbs > 0 && tots.carbs <= tgt.carbs * 1.1
   const fastOk = day.fastBest >= 19 * 3600
@@ -325,7 +364,7 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
     { id: "meds",    icon: "💊", line1: "Meds",    line2: "Taken",                              done: medsOk,    tab: "" },
     { id: "walk",    icon: "🚶", line1: "Walk",    line2: "Done",                               done: walkOk,    tab: "workout" },
     { id: "protein", icon: "🥩", line1: "Protein", line2: "Target",                             done: proteinOk, tab: "food" },
-    { id: "meals",   icon: "🍽", line1: "Meals",   line2: `${mealsLogged}/${plan.meals.length}`, done: mealsOk,   tab: "food" },
+    { id: "meals",   icon: "🍽", line1: "Meals",   line2: `${mealsLogged}/${todayMeals.length}`, done: mealsOk,   tab: "food" },
     { id: "water",   icon: "💧", line1: "Water",   line2: `${(day.water||0).toFixed(1)}L`,      done: waterOk,   tab: "" },
     { id: "carbs",   icon: "🌾", line1: "Carbs",   line2: "On Track",                           done: carbsOk,   tab: "food" },
     // Fast task hidden in pregnancy/postpartum/breastfeeding
@@ -371,7 +410,7 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
     ;(document.getElementById("weightInput") as HTMLInputElement).value = ""
   }
 
-  function logMealFromPlan(meal: DayPlan["meals"][0]) {
+  function logMealFromPlan(meal: StoredMeal) {
     const existing = day.entries.find(e => e.name === meal.name)
     if (existing) return
     const entry = {
@@ -390,11 +429,35 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
     // Switch to pregnancy_t1 and save weeks pregnant
     saveGoalMode("pregnancy_t1")
     try {
-      const pregSettings = JSON.parse(localStorage.getItem("pregnancy_settings") || "{}")
-      localStorage.setItem("pregnancy_settings", JSON.stringify({ ...pregSettings, weeksPregnant: weeks, gdm: false }))
+      const pregSettings = JSON.parse(localStorage.getItem(KEYS.PREGNANCY_SETTINGS) || "{}")
+      localStorage.setItem(KEYS.PREGNANCY_SETTINGS, JSON.stringify({ ...pregSettings, weeksPregnant: weeks, gdm: false }))
     } catch {}
     setShowPositiveTest(false)
     window.location.reload() // reload so App picks up new mode
+  }
+
+  // ── Share handler ─────────────────────────────────────────────────────────
+  async function handleShare() {
+    const meds = loadMedications().filter(m => m.enabled)
+    const medsAllTaken = meds.length === 0 || meds.every(m => !!(day.meds || {})[m.id])
+    const text = formatDailySummaryForShare({
+      date:          today,
+      calories:      tots.cal,
+      calTarget:     tgt.cal,
+      protein:       tots.protein,
+      proteinTarget: tgt.protein,
+      carbs:         tots.carbs,
+      fat:           tots.fat,
+      water:         day.water || 0,
+      waterTarget,
+      weight:        day.weight ?? undefined,
+      fastHours:     day.fastBest,
+      medsAllTaken,
+    })
+    const result = await shareOrCopy(text)
+    const msg = result === "clipboard" ? "Copied!" : result === "native" ? "Shared!" : "Opening WhatsApp…"
+    setShareToast(msg)
+    setTimeout(() => setShareToast(null), 2500)
   }
 
   // ── Medication badge helper ───────────────────────────────────────────────
@@ -431,7 +494,7 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
             : goalMode === "child"       ? "🧒 Child — Growing Strong"
             : goalMode === "teen_early"  ? "🧑 Early Teen"
             : goalMode === "teen_older"  ? "👦 Teen"
-            : plan.theme
+            : fallbackPlan.theme
           }</div>
           {profile.name && <div className="text-xs opacity-60 mt-0.5">Good day, {profile.name} 👋</div>}
         </div>
@@ -492,6 +555,17 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
               width: `${Math.min(100, pct(tots.cal, tgt.cal))}%`,
               background: tots.cal > tgt.cal * 1.15 ? "#ef4444" : tots.cal >= tgt.cal * 0.9 ? "#22c55e" : "#0d9488"
             }} />
+        </div>
+
+        {/* Share row */}
+        <div className="mt-2 flex items-center justify-end gap-2">
+          {shareToast && (
+            <span className="text-[10px] text-teal-600 font-semibold animate-pulse">{shareToast}</span>
+          )}
+          <button onClick={handleShare}
+            className="flex items-center gap-1 text-[10px] font-bold text-gray-500 border border-gray-200 px-2 py-1 rounded-lg">
+            📤 Share day
+          </button>
         </div>
       </div>
 
@@ -570,7 +644,7 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
                 )}
                 {(goalMode === "pregnancy_t1" || goalMode === "pregnancy_t2" || goalMode === "pregnancy_t3") && (() => {
                   try {
-                    const ps = JSON.parse(localStorage.getItem("pregnancy_settings") || "{}")
+                    const ps = JSON.parse(localStorage.getItem(KEYS.PREGNANCY_SETTINGS) || "{}")
                     if (ps.prePregnancyWeightKg) {
                       return <div className="text-xs text-rose-600 mt-0.5">+{(day.weight! - ps.prePregnancyWeightKg).toFixed(1)} kg from pre-pregnancy</div>
                     }
@@ -716,12 +790,14 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
           defaultOpen={!mealsOk}
           badge={mealsLogged > 0
             ? <span className="text-[10px] bg-teal-100 text-teal-700 font-bold px-1.5 py-0.5 rounded-full">
-                {mealsLogged}/{plan.meals.length} logged
+                {mealsLogged}/{todayMeals.length} logged
               </span>
             : undefined
           }
         >
-          {plan.meals.map((meal, i) => {
+          {/* Compact sync warning — tap takes user to Meals tab */}
+          <MealPlanSync compact onRegenerated={() => window.location.reload()} />
+          {todayMeals.map((meal, i) => {
             const logged = day.entries.some(e => e.name === meal.name)
             return (
               <div key={i} className="relative">
@@ -734,7 +810,7 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
               </div>
             )
           })}
-          {plan.shake && (
+          {fallbackPlan.shake && (
             <div className="flex items-center gap-2 mt-1 p-2 bg-blue-50 rounded-lg">
               <span>🥤</span>
               <div className="text-xs text-blue-800">

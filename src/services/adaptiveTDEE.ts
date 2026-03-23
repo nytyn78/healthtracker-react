@@ -115,12 +115,40 @@ export function computeMacros(
   const tdee = calcTDEE(profile)
   const targetCalories = calcTargetCalories(profile, goals)
   if (!bmr || !tdee || !targetCalories) return null
+
   const { fatPct, proteinPct, carbsPct } = settings.macroSplit
+
+  // Protein floor based on adjusted body weight (ABW) for overweight users
+  // Uses 1.2g/kg ABW as the evidence-based minimum for muscle preservation during deficit
+  // Reference: Helms et al. 2013, PROT-AGE guidelines
+  // For BMI ≤ 30: use actual weight. For BMI > 30: use ABW = IBW + 0.4 × (actual - IBW)
+  const w = Number(profile.weightKg)
+  const h = Number(profile.heightCm)
+  const bmi = w / ((h / 100) ** 2)
+  const hIn = h / 2.54
+  const ibw = (profile.sex === "female" ? 45.5 : 50) + 2.3 * Math.max(0, hIn - 60)
+  const abw = bmi > 30 ? ibw + 0.4 * (w - ibw) : w
+  const proteinFloorG = Math.round(abw * 1.2)
+
+  // Calculate from percentage split first
+  const proteinFromPct = Math.round((targetCalories * proteinPct / 100) / 4)
+
+  // Use the higher of: percentage-based or ABW floor
+  // This ensures protein is never under-prescribed for overweight users
+  const proteinG = Math.max(proteinFromPct, proteinFloorG)
+
+  // If protein floor kicks in, adjust fat down to compensate (keep carbs fixed)
+  const carbsG  = Math.round((targetCalories * carbsPct / 100) / 4)
+  const proteinCals = proteinG * 4
+  const carbsCals   = carbsG  * 4
+  const remainingCals = targetCalories - proteinCals - carbsCals
+  const fatG = Math.max(30, Math.round(remainingCals / 9)) // minimum 30g fat for hormones
+
   return {
     bmr, tdee, targetCalories,
-    fatG:     Math.round((targetCalories * fatPct     / 100) / 9),
-    proteinG: Math.round((targetCalories * proteinPct / 100) / 4),
-    carbsG:   Math.round((targetCalories * carbsPct   / 100) / 4),
+    proteinG,
+    carbsG,
+    fatG,
   }
 }
 

@@ -1,3 +1,4 @@
+import { KEYS } from "../services/storageKeys"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { loadDayData, saveDayData, DayData, loadHistory, saveHistory, FoodEntry } from "../store/useHealthStore"
 import EatingOut from "./EatingOut"
@@ -48,11 +49,11 @@ function scaleFood(food: FoodItem, qty: number): FoodItem {
 }
 
 function loadCustomFoods(): CustomFood[] {
-  try { return JSON.parse(localStorage.getItem("custom_foods") || "[]") } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(KEYS.CUSTOM_FOODS) || "[]") } catch { return [] }
 }
 
 function saveCustomFoods(foods: CustomFood[]) {
-  try { localStorage.setItem("custom_foods", JSON.stringify(foods)) } catch {}
+  try { localStorage.setItem(KEYS.CUSTOM_FOODS, JSON.stringify(foods)) } catch {}
 }
 
 // ── USDA Search ───────────────────────────────────────────────────────────────

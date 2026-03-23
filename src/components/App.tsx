@@ -1,3 +1,4 @@
+import { KEYS } from "../services/storageKeys"
 import { useState, useEffect } from "react"
 import BottomNav, { Tab } from "./BottomNav"
 import Settings from "./Settings"
@@ -22,7 +23,7 @@ export default function App() {
   const [disclaimerMode, setDisclaimerMode]        = useState<GoalMode>("pregnancy_t1")
 
   const [tab, setTab] = useState<Tab>(() => {
-    const saved = localStorage.getItem("active_tab") as Tab | null
+    const saved = localStorage.getItem(KEYS.ACTIVE_TAB) as Tab | null
     const valid: Tab[] = ["today","food","fasting","workout","meals","health","analytics","ai","settings"]
     return saved && valid.includes(saved) ? saved : "today"
   })
@@ -56,7 +57,7 @@ export default function App() {
     const flags = getFlags(goalMode)
     if (t === "fasting" && !flags.showFasting) return
     setTab(t)
-    localStorage.setItem("active_tab", t)
+    localStorage.setItem(KEYS.ACTIVE_TAB, t)
   }
 
   if (showOnboarding) {

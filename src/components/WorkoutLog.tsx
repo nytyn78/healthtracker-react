@@ -1,3 +1,4 @@
+import { KEYS } from "../services/storageKeys"
 import { useState, useEffect, useRef, useCallback } from "react"
 import {
   loadDayData, saveDayData, DayData, loadHistory, saveHistory,
@@ -198,7 +199,7 @@ export default function WorkoutLog() {
   const [customDur, setCustomDur] = useState("")
   const [customNote, setCustomNote] = useState("")
   const [doneExIds, setDoneExIds] = useState<string[]>(() => {
-    try { return JSON.parse(localStorage.getItem(`done_ex_${today}`) || "[]") } catch { return [] }
+    try { return JSON.parse(localStorage.getItem(KEYS.DONE_EXERCISES(today)) || "[]") } catch { return [] }
   })
   const [override, setOverride] = useState(false)
   const goalMode = loadGoalMode()
@@ -234,7 +235,7 @@ export default function WorkoutLog() {
   function markExDone(id: string) {
     const updated = [...doneExIds, id]
     setDoneExIds(updated)
-    localStorage.setItem(`done_ex_${today}`, JSON.stringify(updated))
+    localStorage.setItem(KEYS.DONE_EXERCISES(today), JSON.stringify(updated))
   }
 
   function handleAllDone() {

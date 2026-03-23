@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { KEYS } from "../services/storageKeys"
 
 // ── Food / Log types (existing, preserved) ──────────────────────────────────
 export type FoodEntry = {
@@ -139,7 +140,7 @@ type HealthState = {
 }
 
 // ── Persistence ───────────────────────────────────────────────────────────────
-const STORAGE_KEY = "ht-react-store"
+const STORAGE_KEY = KEYS.MAIN_STORE
 
 function loadPersisted(): Partial<HealthState> {
   try {
@@ -217,7 +218,7 @@ export function makeDayData(date: string): DayData {
   }
 }
 
-const DAY_KEY = (d: string) => `hlog_${d}`
+const DAY_KEY = KEYS.DAY_LOG
 
 export function loadDayData(date: string): DayData {
   try {
@@ -239,11 +240,11 @@ export type HistoryRow = {
 }
 
 export function loadHistory(): HistoryRow[] {
-  try { return JSON.parse(localStorage.getItem("hlog_history") || "[]") } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(KEYS.HISTORY) || "[]") } catch { return [] }
 }
 
 export function saveHistory(h: HistoryRow[]) {
-  try { localStorage.setItem("hlog_history", JSON.stringify(h)) } catch {}
+  try { localStorage.setItem(KEYS.HISTORY, JSON.stringify(h)) } catch {}
 }
 
 // ── Medications ───────────────────────────────────────────────────────────────
@@ -269,19 +270,19 @@ export type BloodTest = {
 
 // ── Health config storage helpers ─────────────────────────────────────────────
 export function loadMedications(): Medication[] {
-  try { return JSON.parse(localStorage.getItem("user_medications") || "[]") } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(KEYS.USER_MEDICATIONS) || "[]") } catch { return [] }
 }
 
 export function saveMedications(meds: Medication[]) {
-  try { localStorage.setItem("user_medications", JSON.stringify(meds)) } catch {}
+  try { localStorage.setItem(KEYS.USER_MEDICATIONS, JSON.stringify(meds)) } catch {}
 }
 
 export function loadBloodTests(): BloodTest[] {
-  try { return JSON.parse(localStorage.getItem("user_blood_tests") || "[]") } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(KEYS.USER_BLOOD_TESTS) || "[]") } catch { return [] }
 }
 
 export function saveBloodTests(tests: BloodTest[]) {
-  try { localStorage.setItem("user_blood_tests", JSON.stringify(tests)) } catch {}
+  try { localStorage.setItem(KEYS.USER_BLOOD_TESTS, JSON.stringify(tests)) } catch {}
 }
 
 // ── Task bubble config ────────────────────────────────────────────────────────
@@ -304,7 +305,7 @@ export function loadTaskConfig(): TaskConfig[] {
     { id: "weight",  enabled: true },
   ]
   try {
-    const saved = JSON.parse(localStorage.getItem("task_config") || "null")
+    const saved = JSON.parse(localStorage.getItem(KEYS.TASK_CONFIG) || "null")
     if (!saved) return defaults
     // Merge to handle new task IDs added in future
     return defaults.map(d => ({ ...d, ...(saved.find((s: TaskConfig) => s.id === d.id) || {}) }))
@@ -312,16 +313,16 @@ export function loadTaskConfig(): TaskConfig[] {
 }
 
 export function saveTaskConfig(config: TaskConfig[]) {
-  try { localStorage.setItem("task_config", JSON.stringify(config)) } catch {}
+  try { localStorage.setItem(KEYS.TASK_CONFIG, JSON.stringify(config)) } catch {}
 }
 
 // ── Water target ──────────────────────────────────────────────────────────────
 export function loadWaterTarget(): number {
-  try { return Number(localStorage.getItem("water_target") || "2.5") } catch { return 2.5 }
+  try { return Number(localStorage.getItem(KEYS.WATER_TARGET) || "2.5") } catch { return 2.5 }
 }
 
 export function saveWaterTarget(l: number) {
-  try { localStorage.setItem("water_target", String(l)) } catch {}
+  try { localStorage.setItem(KEYS.WATER_TARGET, String(l)) } catch {}
 }
 
 // ── Workout plan config ───────────────────────────────────────────────────────
@@ -369,7 +370,7 @@ const DEFAULT_PLAN: WorkoutPlan = {
 
 export function loadWorkoutPlan(): WorkoutPlan {
   try {
-    const raw = localStorage.getItem("workout_plan")
+    const raw = localStorage.getItem(KEYS.WORKOUT_PLAN)
     if (!raw) return DEFAULT_PLAN
     const saved = JSON.parse(raw)
     return {
@@ -381,7 +382,7 @@ export function loadWorkoutPlan(): WorkoutPlan {
 }
 
 export function saveWorkoutPlan(plan: WorkoutPlan) {
-  try { localStorage.setItem("workout_plan", JSON.stringify(plan)) } catch {}
+  try { localStorage.setItem(KEYS.WORKOUT_PLAN, JSON.stringify(plan)) } catch {}
 }
 
 export function getTodaySchedule(plan: WorkoutPlan): DaySchedule {
@@ -422,32 +423,32 @@ export type BloodTestLog = {
 }
 
 export function loadBloodTestLog(): BloodTestLog[] {
-  try { return JSON.parse(localStorage.getItem("blood_test_log") || "[]") } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(KEYS.BLOOD_TEST_LOG) || "[]") } catch { return [] }
 }
 
 export function saveBloodTestLog(log: BloodTestLog[]) {
-  try { localStorage.setItem("blood_test_log", JSON.stringify(log)) } catch {}
+  try { localStorage.setItem(KEYS.BLOOD_TEST_LOG, JSON.stringify(log)) } catch {}
 }
 
 // ── Med taken log (per day, keyed by date) ────────────────────────────────────
 export function loadMedTakenForDate(date: string): Record<string, boolean> {
-  try { return JSON.parse(localStorage.getItem(`med_taken_${date}`) || "{}") } catch { return {} }
+  try { return JSON.parse(localStorage.getItem(KEYS.MED_TAKEN(date)) || "{}") } catch { return {} }
 }
 
 export function saveMedTakenForDate(date: string, taken: Record<string, boolean>) {
-  try { localStorage.setItem(`med_taken_${date}`, JSON.stringify(taken)) } catch {}
+  try { localStorage.setItem(KEYS.MED_TAKEN(date), JSON.stringify(taken)) } catch {}
 }
 
 // Weekly med last-taken timestamp
 export function loadWeeklyMedLastTaken(medId: string): number | null {
   try {
-    const v = localStorage.getItem(`med_weekly_${medId}`)
+    const v = localStorage.getItem(KEYS.MED_WEEKLY(medId))
     return v ? Number(v) : null
   } catch { return null }
 }
 
 export function saveWeeklyMedLastTaken(medId: string, ts: number) {
-  try { localStorage.setItem(`med_weekly_${medId}`, String(ts)) } catch {}
+  try { localStorage.setItem(KEYS.MED_WEEKLY(medId), String(ts)) } catch {}
 }
 
 // ── Diet mode ─────────────────────────────────────────────────────────────────
@@ -470,13 +471,13 @@ export const DIET_TAG_LABELS: Record<DietTag, string> = {
 
 export function loadDietConfig(): { mode: DietMode; tag: DietTag } {
   try {
-    const raw = localStorage.getItem("diet_config")
+    const raw = localStorage.getItem(KEYS.DIET_CONFIG)
     return raw ? JSON.parse(raw) : { mode: "keto", tag: "eggetarian" }
   } catch { return { mode: "keto", tag: "eggetarian" } }
 }
 
 export function saveDietConfig(config: { mode: DietMode; tag: DietTag }) {
-  try { localStorage.setItem("diet_config", JSON.stringify(config)) } catch {}
+  try { localStorage.setItem(KEYS.DIET_CONFIG, JSON.stringify(config)) } catch {}
 }
 
 // ── Meal plan ─────────────────────────────────────────────────────────────────
@@ -486,6 +487,7 @@ export type MealPlanEntry = {
   time: string           // e.g. "2:00 PM"
   protein: number
   carbs: number
+  netCarbs?: number      // derived at transformation time — absent on manual/legacy entries → UI shows "Net: —"
   fat: number
   cal: number
   tag: DietTag           // veg / eggetarian / non_veg
@@ -496,32 +498,32 @@ export type MealPlanEntry = {
 }
 
 export function loadMealPlan(): MealPlanEntry[] {
-  try { return JSON.parse(localStorage.getItem("meal_plan") || "[]") } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(KEYS.MEAL_PLAN) || "[]") } catch { return [] }
 }
 
 export function saveMealPlan(plan: MealPlanEntry[]) {
-  try { localStorage.setItem("meal_plan", JSON.stringify(plan)) } catch {}
+  try { localStorage.setItem(KEYS.MEAL_PLAN, JSON.stringify(plan)) } catch {}
 }
 
 // ── Eating out log ────────────────────────────────────────────────────────────
 export function markEatingOut(date: string) {
-  try { localStorage.setItem(`eating_out_${date}`, "1") } catch {}
+  try { localStorage.setItem(KEYS.EATING_OUT(date), "1") } catch {}
 }
 
 export function wasEatingOut(date: string): boolean {
-  try { return localStorage.getItem(`eating_out_${date}`) === "1" } catch { return false }
+  try { return localStorage.getItem(KEYS.EATING_OUT(date)) === "1" } catch { return false }
 }
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
 export type Theme = "light" | "dark"
 
 export function loadTheme(): Theme {
-  try { return (localStorage.getItem("app_theme") as Theme) || "light" } catch { return "light" }
+  try { return (localStorage.getItem(KEYS.APP_THEME) as Theme) || "light" } catch { return "light" }
 }
 
 export function saveTheme(t: Theme) {
   try {
-    localStorage.setItem("app_theme", t)
+    localStorage.setItem(KEYS.APP_THEME, t)
     document.documentElement.classList.toggle("dark", t === "dark")
   } catch {}
 }
@@ -541,11 +543,11 @@ export type BreakPeriod = {
 }
 
 export function loadBreakPeriods(): BreakPeriod[] {
-  try { return JSON.parse(localStorage.getItem("break_periods") || "[]") } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(KEYS.BREAK_PERIODS) || "[]") } catch { return [] }
 }
 
 export function saveBreakPeriods(periods: BreakPeriod[]) {
-  try { localStorage.setItem("break_periods", JSON.stringify(periods)) } catch {}
+  try { localStorage.setItem(KEYS.BREAK_PERIODS, JSON.stringify(periods)) } catch {}
 }
 
 export function isInBreakPeriod(date: string): BreakPeriod | null {
@@ -569,11 +571,11 @@ export type BodyCompositionEntry = {
 }
 
 export function loadBodyCompositionLog(): BodyCompositionEntry[] {
-  try { return JSON.parse(localStorage.getItem("body_comp_log") || "[]") } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(KEYS.BODY_COMP_LOG) || "[]") } catch { return [] }
 }
 
 export function saveBodyCompositionLog(log: BodyCompositionEntry[]) {
-  try { localStorage.setItem("body_comp_log", JSON.stringify(log.slice(0, 120))) } catch {}
+  try { localStorage.setItem(KEYS.BODY_COMP_LOG, JSON.stringify(log.slice(0, 120))) } catch {}
 }
 
 // ── Onboarding ────────────────────────────────────────────────────────────────
@@ -604,13 +606,13 @@ export type OnboardingData = {
 
 export function loadOnboarding(): OnboardingData {
   try {
-    const raw = localStorage.getItem("onboarding")
+    const raw = localStorage.getItem(KEYS.ONBOARDING)
     return raw ? JSON.parse(raw) : { completed: false, step: 0, doIF: true }
   } catch { return { completed: false, step: 0, doIF: true } }
 }
 
 export function saveOnboarding(data: OnboardingData) {
-  try { localStorage.setItem("onboarding", JSON.stringify(data)) } catch {}
+  try { localStorage.setItem(KEYS.ONBOARDING, JSON.stringify(data)) } catch {}
 }
 
 export function needsOnboarding(): boolean {
@@ -618,7 +620,7 @@ export function needsOnboarding(): boolean {
   if (ob.completed) return false
   // Check if key profile fields are empty
   try {
-    const store = JSON.parse(localStorage.getItem("ht-react-store") || "{}")
+    const store = JSON.parse(localStorage.getItem(KEYS.MAIN_STORE) || "{}")
     const profile = store?.state?.profile
     return !profile?.weightKg || !profile?.heightCm || !profile?.age
   } catch { return true }
@@ -636,7 +638,7 @@ export type SetupItem = {
 export function getSetupCompleteness(): { items: SetupItem[]; pct: number; level: "red" | "amber" | "green" } {
   let profile: any = {}, goals: any = {}
   try {
-    const store = JSON.parse(localStorage.getItem("ht-react-store") || "{}")
+    const store = JSON.parse(localStorage.getItem(KEYS.MAIN_STORE) || "{}")
     profile = store?.state?.profile || {}
     goals   = store?.state?.goals   || {}
   } catch {}
@@ -681,7 +683,7 @@ export type FocusItem = {
 
 export function loadFocusItems(): FocusItem[] {
   try {
-    const items = JSON.parse(localStorage.getItem("focus_items") || "[]") as FocusItem[]
+    const items = JSON.parse(localStorage.getItem(KEYS.FOCUS_ITEMS) || "[]") as FocusItem[]
     // Auto-expire
     const now = Date.now()
     return items.filter(i => !i.done && i.expiresAt > now)
@@ -689,7 +691,7 @@ export function loadFocusItems(): FocusItem[] {
 }
 
 export function saveFocusItems(items: FocusItem[]) {
-  try { localStorage.setItem("focus_items", JSON.stringify(items)) } catch {}
+  try { localStorage.setItem(KEYS.FOCUS_ITEMS, JSON.stringify(items)) } catch {}
 }
 
 export function addFocusItem(text: string): FocusItem {
@@ -713,10 +715,10 @@ export type AISettings = {
 
 export function loadAISettings(): AISettings {
   try {
-    return JSON.parse(localStorage.getItem("ai_settings") || '{"anthropicKey":"","openaiKey":"","voiceMode":"webspeech"}')
+    return JSON.parse(localStorage.getItem(KEYS.AI_SETTINGS) || '{"anthropicKey":"","openaiKey":"","voiceMode":"webspeech"}')
   } catch { return { anthropicKey: "", openaiKey: "", voiceMode: "webspeech" } }
 }
 
 export function saveAISettings(s: AISettings) {
-  try { localStorage.setItem("ai_settings", JSON.stringify(s)) } catch {}
+  try { localStorage.setItem(KEYS.AI_SETTINGS, JSON.stringify(s)) } catch {}
 }

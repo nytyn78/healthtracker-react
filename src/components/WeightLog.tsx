@@ -1,3 +1,4 @@
+import { KEYS } from "../services/storageKeys"
 import { useState, useCallback } from "react"
 import { useHealthStore } from "../store/useHealthStore"
 import {
@@ -26,10 +27,10 @@ const MEASURES = [
 type MeasureId = typeof MEASURES[number]["id"]
 
 function loadMeasureLog(): MeasureEntry[] {
-  try { return JSON.parse(localStorage.getItem("measure_log") || "[]") } catch { return [] }
+  try { return JSON.parse(localStorage.getItem(KEYS.MEASURE_LOG) || "[]") } catch { return [] }
 }
 function saveMeasureLog(log: MeasureEntry[]) {
-  try { localStorage.setItem("measure_log", JSON.stringify(log.slice(0, 90))) } catch {}
+  try { localStorage.setItem(KEYS.MEASURE_LOG, JSON.stringify(log.slice(0, 90))) } catch {}
 }
 
 // ── Event tag picker ──────────────────────────────────────────────────────────

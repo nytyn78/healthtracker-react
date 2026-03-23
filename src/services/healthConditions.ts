@@ -1,3 +1,4 @@
+import { KEYS } from "./storageKeys"
 /**
  * healthConditions.ts — Session 12 extension
  * Pre-existing conditions questionnaire data:
@@ -584,7 +585,7 @@ export const CONDITION_GUIDANCE: Record<ConditionId, ConditionGuidance> = {
 
 // ── Saved conditions ───────────────────────────────────────────────────────────
 
-const CONDITIONS_KEY = "health_conditions"
+const CONDITIONS_KEY = KEYS.HEALTH_CONDITIONS
 
 export interface SavedConditions {
   conditions: ConditionId[]

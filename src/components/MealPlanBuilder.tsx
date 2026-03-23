@@ -4,6 +4,7 @@ import {
   loadDietConfig, saveDietConfig, DietMode, DIET_MODE_LABELS,
 } from "../store/useHealthStore"
 import { PRESETS, PresetKey } from "../services/mealPlanPresets"
+import MealPlanSync from "./MealPlanSync"
 
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday","Any day"]
 const TAG_COLORS: Record<DietTag, string> = {
@@ -234,6 +235,9 @@ export default function MealPlanBuilder() {
         <div className="text-base font-bold">Your Weekly Meals</div>
         <div className="text-xs opacity-60 mt-0.5">{plan.length} meal{plan.length !== 1 ? "s" : ""} saved</div>
       </div>
+
+      {/* Sync check — shows warning + regenerate if targets changed */}
+      <MealPlanSync onRegenerated={() => setPlan(loadMealPlan())} />
 
       {/* Diet config */}
       <div className="bg-white rounded-2xl shadow-sm p-4 mb-3">

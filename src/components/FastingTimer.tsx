@@ -1,3 +1,4 @@
+import { KEYS } from "../services/storageKeys"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useHealthStore } from "../store/useHealthStore"
 import { loadDayData, saveDayData, DayData, makeDayData, loadHistory } from "../store/useHealthStore"
@@ -26,7 +27,7 @@ function shortDay(dateStr: string): string {
 
 // Carry a fast that started yesterday across midnight into today
 function carryFastOverMidnight(today: string): DayData | null {
-  const todayRaw = localStorage.getItem(`hlog_${today}`)
+  const todayRaw = localStorage.getItem(KEYS.DAY_LOG(today))
   if (todayRaw) {
     try {
       const d: DayData = JSON.parse(todayRaw)
@@ -37,7 +38,7 @@ function carryFastOverMidnight(today: string): DayData | null {
     } catch {}
   }
   const yStr = getPastDate(1)
-  const yRaw = localStorage.getItem(`hlog_${yStr}`)
+  const yRaw = localStorage.getItem(KEYS.DAY_LOG(yStr))
   if (!yRaw) return null
   try {
     const yDay: DayData = JSON.parse(yRaw)
@@ -49,9 +50,9 @@ function carryFastOverMidnight(today: string): DayData | null {
         const ySecs = Math.floor((midnight - originalStart) / 1000)
         yDay.fastBest = Math.max(yDay.fastBest||0, ySecs)
         yDay.fasting = false; yDay.fastStart = null
-        localStorage.setItem(`hlog_${yStr}`, JSON.stringify(yDay))
+        localStorage.setItem(KEYS.DAY_LOG(yStr), JSON.stringify(yDay))
         const newToday: DayData = { ...makeDayData(today), fasting: true, fastStart: originalStart }
-        localStorage.setItem(`hlog_${today}`, JSON.stringify(newToday))
+        localStorage.setItem(KEYS.DAY_LOG(today), JSON.stringify(newToday))
         return newToday
       }
     }
@@ -67,7 +68,7 @@ function buildHistoryBars(): HistBar[] {
   for (let i = 1; i <= 7; i++) {
     const date = getPastDate(i)
     let fastBest = 0
-    const raw = localStorage.getItem(`hlog_${date}`)
+    const raw = localStorage.getItem(KEYS.DAY_LOG(date))
     if (raw) { try { fastBest = (JSON.parse(raw) as DayData).fastBest||0 } catch {} }
     if (!fastBest) fastBest = hist.find(h=>h.date===date)?.fastBest||0
     bars.push({ date, fastBest })

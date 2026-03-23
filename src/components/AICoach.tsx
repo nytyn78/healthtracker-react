@@ -1,3 +1,4 @@
+import { KEYS } from "../services/storageKeys"
 import { useState, useRef, useEffect } from "react"
 import {
   loadHistory, loadAISettings, saveAISettings, AISettings,
@@ -144,9 +145,9 @@ function WeeklyReport() {
 
   function saveFeedback() {
     if (!feedback.trim()) return
-    const existing = JSON.parse(localStorage.getItem("weekly_feedback") || "[]")
+    const existing = JSON.parse(localStorage.getItem(KEYS.WEEKLY_FEEDBACK) || "[]")
     existing.unshift({ date: new Date().toISOString().slice(0, 10), text: feedback.trim() })
-    localStorage.setItem("weekly_feedback", JSON.stringify(existing.slice(0, 52)))
+    localStorage.setItem(KEYS.WEEKLY_FEEDBACK, JSON.stringify(existing.slice(0, 52)))
     setSavedFeedback(true)
     setSavingFeedback(false)
     setTimeout(() => setSavedFeedback(false), 2000)

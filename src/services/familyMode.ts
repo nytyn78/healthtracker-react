@@ -1,3 +1,4 @@
+import { KEYS } from "./storageKeys"
 /**
  * familyMode.ts
  * Family mode — multiple members, shared kitchen, unified meal planning.
@@ -154,7 +155,7 @@ export function buildShoppingList(ingredients: { ingredient: string; meal: strin
 
 // ── localStorage helpers ──────────────────────────────────────────────────────
 
-const FAMILY_KEY = "family_settings"
+const FAMILY_KEY = KEYS.FAMILY_SETTINGS
 
 export function loadFamilySettings(): FamilySettings {
   try {

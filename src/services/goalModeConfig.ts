@@ -1,3 +1,4 @@
+import { KEYS } from "./storageKeys"
 /**
  * goalModeConfig.ts — Session 12
  * Central config for all 9 goal modes:
@@ -647,11 +648,10 @@ export const MICRONUTRIENT_ITEMS: MicronutrientItem[] = [
 
 // ─── localStorage helpers ─────────────────────────────────────────────────────
 
-const GOAL_MODE_KEY     = "goal_mode"
-const PREGNANCY_KEY     = "pregnancy_settings"
-const DISCLAIMER_KEY    = "pregnancy_disclaimer_shown"
+const GOAL_MODE_KEY     = KEYS.GOAL_MODE
+const PREGNANCY_KEY     = KEYS.PREGNANCY_SETTINGS
+
 const SUPP_OFFER_KEY    = (mode: GoalMode) => `supp_offer_shown_${mode}`
-const MICRO_KEY         = (date: string) => `micronutrient_${date}`
 
 export function loadGoalMode(): GoalMode {
   try { return (localStorage.getItem(GOAL_MODE_KEY) as GoalMode) || "fat_loss" } catch { return "fat_loss" }
@@ -673,11 +673,11 @@ export function savePregnancySettings(s: PregnancySettings) {
 }
 
 export function hasShownDisclaimer(mode: GoalMode): boolean {
-  try { return localStorage.getItem(`${DISCLAIMER_KEY}_${mode}`) === "1" } catch { return false }
+  try { return localStorage.getItem(KEYS.PREGNANCY_DISCLAIMER(mode)) === "1" } catch { return false }
 }
 
 export function markDisclaimerShown(mode: GoalMode) {
-  try { localStorage.setItem(`${DISCLAIMER_KEY}_${mode}`, "1") } catch {}
+  try { localStorage.setItem(KEYS.PREGNANCY_DISCLAIMER(mode), "1") } catch {}
 }
 
 export function hasShownSupplementOffer(mode: GoalMode): boolean {
@@ -691,9 +691,9 @@ export function markSupplementOfferShown(mode: GoalMode) {
 }
 
 export function loadMicronutrientLog(date: string): Record<string, boolean> {
-  try { return JSON.parse(localStorage.getItem(MICRO_KEY(date)) || "{}") } catch { return {} }
+  try { return JSON.parse(localStorage.getItem(KEYS.MICRONUTRIENT_LOG(date)) || "{}") } catch { return {} }
 }
 
 export function saveMicronutrientLog(date: string, log: Record<string, boolean>) {
-  try { localStorage.setItem(MICRO_KEY(date), JSON.stringify(log)) } catch {}
+  try { localStorage.setItem(KEYS.MICRONUTRIENT_LOG(date), JSON.stringify(log)) } catch {}
 }
