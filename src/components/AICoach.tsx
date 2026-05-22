@@ -11,7 +11,14 @@ import {
   useHealthStore,
 } from "../store/useHealthStore"
 import { computeMacros } from "../services/adaptiveTDEE"
-import { loadDietConfig } from "../services/goalModeConfig"
+function loadDietConfig() {
+  try {
+    const raw = localStorage.getItem("diet_config")
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
