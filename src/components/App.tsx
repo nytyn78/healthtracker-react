@@ -15,8 +15,11 @@ import Onboarding from "./Onboarding"
 import { needsOnboarding } from "../store/useHealthStore"
 import { loadGoalMode, GoalMode, getFlags, isMaternalMode, hasShownDisclaimer } from "../services/goalModeConfig"
 import PregnancyModeDisclaimer from "./PregnancyModeDisclaimer"
+import DisclaimerModal, { hasAcceptedDisclaimer } from "./DisclaimerModal"
+import GuidanceTool from "./GuidanceTool"
 
 export default function App() {
+  const [showDisclaimerModal, setShowDisclaimerModal] = useState(() => !hasAcceptedDisclaimer())
   const [showOnboarding, setShowOnboarding]       = useState(() => needsOnboarding())
   const [goalMode, setGoalMode]                   = useState<GoalMode>(loadGoalMode)
   const [showDisclaimer, setShowDisclaimer]        = useState(false)
@@ -60,6 +63,10 @@ export default function App() {
     localStorage.setItem(KEYS.ACTIVE_TAB, t)
   }
 
+  if (showDisclaimerModal) {
+    return <DisclaimerModal onAccept={() => setShowDisclaimerModal(false)} />
+  }
+
   if (showOnboarding) {
     return <Onboarding onComplete={() => setShowOnboarding(false)} />
   }
@@ -83,6 +90,7 @@ export default function App() {
       <main className="max-w-lg mx-auto">
         {screen[tab]}
       </main>
+      <GuidanceTool tab={tab} />
       <BottomNav active={tab} onChange={handleTabChange} goalMode={goalMode} />
 
       {/* One-time disclaimer for maternal modes */}
