@@ -130,12 +130,18 @@ export function computeMacros(
   const abw = bmi > 30 ? ibw + 0.4 * (w - ibw) : w
   const proteinFloorG = Math.round(abw * 1.2)
 
-  // Calculate from percentage split first
-  const proteinFromPct = Math.round((targetCalories * proteinPct / 100) / 4)
+// Protein target based on TARGET weight when available
+const targetWeight =
+  goals.targetWeightKg || Number(profile.weightKg)
 
-  // Use the higher of: percentage-based or ABW floor
-  // This ensures protein is never under-prescribed for overweight users
-  const proteinG = Math.max(proteinFromPct, proteinFloorG)
+// Sustainable evidence-based target
+const proteinTargetG = Math.round(targetWeight * 1.6)
+
+// Respect minimum floor for muscle preservation
+const proteinG = Math.min(
+  Math.max(proteinTargetG, proteinFloorG),
+  130
+)
 
   // If protein floor kicks in, adjust fat down to compensate (keep carbs fixed)
   const carbsG  = Math.round((targetCalories * carbsPct / 100) / 4)
