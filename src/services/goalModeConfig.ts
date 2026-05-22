@@ -645,7 +645,29 @@ export const MICRONUTRIENT_ITEMS: MicronutrientItem[] = [
     modes: ["geriatric"],
   },
 ]
+// ─── Diet Config ────────────────────────────────────────────────────────────
 
+export interface DietConfig {
+  mode?: string
+  tag?: string
+}
+
+const DIET_CONFIG_KEY = "diet_config"
+
+export function loadDietConfig(): DietConfig {
+  try {
+    const raw = localStorage.getItem(DIET_CONFIG_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
+export function saveDietConfig(config: DietConfig) {
+  try {
+    localStorage.setItem(DIET_CONFIG_KEY, JSON.stringify(config))
+  } catch {}
+}
 // ─── localStorage helpers ─────────────────────────────────────────────────────
 
 const GOAL_MODE_KEY     = KEYS.GOAL_MODE
