@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react"
-import { searchByBarcode } from "../services/barcodeSearch"
-import { loadDayData, saveDayData, loadHistory, saveHistory, FoodEntry } from "../store/useHealthStore"
+import { useHealthStore, loadDayData, saveDayData, loadHistory, saveHistory, FoodEntry } from "../store/useHealthStore"
 import { getISTDate } from "../utils/dateHelpers"
+import { KEYS } from "../services/storageKeys"
 
 function makeId() { return `scan-${Date.now()}-${Math.random().toString(36).slice(2, 7)}` }
 
@@ -79,9 +79,19 @@ export default function BarcodeScanner() {
     setError("")
     setMode("result")
     try {
-      const food = await searchByBarcode(code)
-      if (food) {
-        setResult({ ...food, barcode: code })
+      const res = await fetch(`https://world.openfoodfacts.org/api/v0/product/${code}.json`)
+      const data = await res.json()
+      if (data.status === 1 && data.product) {
+        const p = data.product
+        const n = p.nutriments || {}
+        setResult({
+          name: p.product_name || p.brands || `Product ${code}`,
+          calories: Math.round(n["energy-kcal_100g"] || n["energy-kcal"] || 0),
+          protein:  Math.round((n.proteins_100g || 0) * 10) / 10,
+          carbs:    Math.round((n.carbohydrates_100g || 0) * 10) / 10,
+          fat:      Math.round((n.fat_100g || 0) * 10) / 10,
+          barcode:  code,
+        })
       } else {
         setError(`No food found for barcode ${code}. Try manual search in the Food tab.`)
         setMode("manual")
