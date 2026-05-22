@@ -61,6 +61,8 @@ export const KEYS = {
   ACTIVE_TAB:           K("active_tab"),
   TODAY_SECTION_PREFS:  K("today_section_prefs"),
   APP_THEME:            K("app_theme"),
+  GUIDANCE_TOUR_STATE:  K("guidance_tour"),
+  DISCLAIMER_ACCEPTED:  K("disclaimer_accepted_v1"),
 
   // ── Misc / AI ─────────────────────────────────────────────────────────────
   AI_SETTINGS:          K("ai_settings"),
