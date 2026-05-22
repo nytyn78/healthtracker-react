@@ -143,12 +143,11 @@ const proteinG = Math.min(
   130
 )
 
-  // If protein floor kicks in, adjust fat down to compensate (keep carbs fixed)
-  const carbsG  = Math.round((targetCalories * carbsPct / 100) / 4)
-  const proteinCals = proteinG * 4
-  const carbsCals   = carbsG  * 4
-  const remainingCals = targetCalories - proteinCals - carbsCals
-  const fatG = Math.max(30, Math.round(remainingCals / 9)) // minimum 30g fat for hormones
+  // Sustainable evidence-based macro targets
+
+const carbsG = Math.round(targetWeight * 1.8)
+
+const fatG = Math.round(targetWeight * 0.8)
 
   return {
     bmr, tdee, targetCalories,
