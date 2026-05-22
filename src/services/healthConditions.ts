@@ -128,7 +128,7 @@ export const CONDITION_GUIDANCE: Record<ConditionId, ConditionGuidance> = {
       avoid: ["High sodium foods — processed foods, pickles, papadums, salty snacks", "Excessive caffeine", "Alcohol", "High saturated fat"],
       prioritise: ["Potassium-rich foods — banana, sweet potato, spinach", "Magnesium — nuts, seeds, leafy greens", "Low-sodium cooking — use herbs, lime instead of salt", "DASH-style eating — more fruits, vegetables, whole grains"],
       warnings: ["Even keto diets can be adapted for hypertension — prioritise unsaturated fats and low-sodium options"],
-      notes: "Saroglitazar and Olmesartan (already in your medication list) treat hypertension directly. Diet is a powerful complement.",
+      notes: "Many people with hypertension take medications like ACE inhibitors, ARBs, or beta blockers — diet is a powerful complement to whatever your doctor has prescribed. Track your meds in Settings.",
     },
   },
 
