@@ -40,9 +40,9 @@ export default function AIWeeklyReport() {
   const macros = computeMacros(profile, goals, settings)
 
   async function generateReport() {
-    const apiKey = aiSettings?.apiKey
+    const apiKey = aiSettings?.anthropicKey
     if (!apiKey) {
-      setError("Add your Claude API key in Settings → AI & Voice to use this feature.")
+      setError("Add your Anthropic API key in Settings → AI & Voice to use this feature.")
       return
     }
 
