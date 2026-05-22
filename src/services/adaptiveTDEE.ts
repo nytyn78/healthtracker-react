@@ -143,11 +143,20 @@ const proteinG = Math.min(
   130
 )
 
-  // Sustainable evidence-based macro targets
-
-const carbsG = Math.round(targetWeight * 1.8)
-
+// Minimum healthy fat target
 const fatG = Math.round(targetWeight * 0.8)
+
+// Allocate remaining calories to carbs
+const proteinCals = proteinG * 4
+const fatCals = fatG * 9
+
+const remainingCals =
+  targetCalories - proteinCals - fatCals
+
+const carbsG = Math.max(
+  75,
+  Math.round(remainingCals / 4)
+)
 
   return {
     bmr, tdee, targetCalories,
