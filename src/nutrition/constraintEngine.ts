@@ -103,7 +103,7 @@ function checkIngredientCounts(plan: ComposedDayPlan): Issue[] {
   for (const meal of plan.meals) {
     if (meal.slot === "shake") continue  // shake slot exempt
 
-    const coreCount  = meal.ingredients.filter(i => !FOODS[i.foodId]?.isTrace).length
+    const coreCount  = meal.ingredients.filter(i => !(FOODS[i.foodId] as { isTrace?: boolean })?.isTrace).length
     const totalCount = meal.ingredients.length
 
     if (totalCount > MAX_TOTAL_INGREDIENTS_PER_MEAL) {
@@ -125,7 +125,7 @@ function checkIngredientCounts(plan: ComposedDayPlan): Issue[] {
 
 function checkVitaminCSource(plan: ComposedDayPlan): Issue | null {
   const hasVitaminC = plan.meals.some(meal =>
-    meal.ingredients.some(i => FOODS[i.foodId]?.tags?.includes("vitamin-c"))
+    meal.ingredients.some(i => (FOODS[i.foodId].tags as string[] | undefined)?.includes("vitamin-c"))
   )
   if (!hasVitaminC) {
     return {
