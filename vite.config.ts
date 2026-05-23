@@ -8,4 +8,14 @@ export default defineConfig({
     outDir: "dist",
     sourcemap: false,
   },
+  test: {
+    environment: "node",
+    globals: true,
+    include: ["src/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "html"],
+      include: ["src/services/adaptiveTDEE.ts", "src/services/mealPlanPresets.ts"],
+    },
+  },
 })
