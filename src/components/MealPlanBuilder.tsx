@@ -5,6 +5,12 @@ import {
 } from "../store/useHealthStore"
 import { PRESETS, PresetKey } from "../services/mealPlanPresets"
 import MealPlanSync from "./MealPlanSync"
+import {
+  formatGroceryListForShare,
+  formatRecipeForShare,
+  shareOrCopy,
+  ShareableMeal,
+} from "../services/shareUtils"
 
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday","Any day"]
 const TAG_COLORS: Record<DietTag, string> = {
@@ -16,7 +22,11 @@ const TAG_COLORS: Record<DietTag, string> = {
 function makeId() { return `meal-${Date.now()}-${Math.random().toString(36).slice(2)}` }
 
 // ── Meal Card ─────────────────────────────────────────────────────────────────
-function MealCard({ meal, onDelete }: { meal: MealPlanEntry; onDelete: () => void }) {
+function MealCard({ meal, onDelete, onShare }: {
+  meal: MealPlanEntry
+  onDelete: () => void
+  onShare: () => void
+}) {
   const [expanded, setExpanded] = useState(false)
   return (
     <div className="border border-gray-100 rounded-xl overflow-hidden mb-2">
@@ -40,6 +50,9 @@ function MealCard({ meal, onDelete }: { meal: MealPlanEntry; onDelete: () => voi
           </div>
         </div>
         <div className="flex items-center gap-1 ml-2 shrink-0">
+          <button onClick={e => { e.stopPropagation(); onShare() }}
+            className="text-teal-500 text-xs px-1.5 py-0.5 border border-teal-100 rounded-lg"
+            title="Share recipe">📤</button>
           <button onClick={e => { e.stopPropagation(); onDelete() }}
             className="text-red-300 text-xs px-1.5 py-0.5 border border-red-100 rounded-lg">✕</button>
           <span className="text-gray-400 text-xs">{expanded ? "▲" : "▼"}</span>
@@ -183,6 +196,7 @@ export default function MealPlanBuilder() {
   const [filterDay, setFilterDay] = useState<string>("all")
   const [showPresets, setShowPresets] = useState(false)
   const [importedPreset, setImportedPreset] = useState<string | null>(null)
+  const [shareToast, setShareToast] = useState<string | null>(null)
 
   function persistPlan(updated: MealPlanEntry[]) {
     setPlan(updated)
@@ -207,6 +221,30 @@ export default function MealPlanBuilder() {
 
   function removeMeal(id: string) {
     persistPlan(plan.filter(m => m.id !== id))
+  }
+
+  function toShareable(m: MealPlanEntry): ShareableMeal {
+    return {
+      name: m.name, time: m.time,
+      protein: m.protein, carbs: m.carbs, fat: m.fat, cal: m.cal,
+      ingredients: m.ingredients, steps: m.steps,
+    }
+  }
+
+  async function handleShareGrocery() {
+    const text = formatGroceryListForShare(plan.map(toShareable))
+    const result = await shareOrCopy(text, "Weekly Grocery List")
+    const msg = result === "clipboard" ? "Copied!" : result === "native" ? "Shared!" : "Opening WhatsApp…"
+    setShareToast(msg)
+    setTimeout(() => setShareToast(null), 2500)
+  }
+
+  async function handleShareRecipe(meal: MealPlanEntry) {
+    const text = formatRecipeForShare(toShareable(meal))
+    const result = await shareOrCopy(text, meal.name)
+    const msg = result === "clipboard" ? "Copied!" : result === "native" ? "Shared!" : "Opening WhatsApp…"
+    setShareToast(msg)
+    setTimeout(() => setShareToast(null), 2500)
   }
 
   function addMeal(meal: MealPlanEntry) {
@@ -234,7 +272,19 @@ export default function MealPlanBuilder() {
         <div className="text-xs opacity-70 mb-0.5">Meal Plan</div>
         <div className="text-base font-bold">Your Weekly Meals</div>
         <div className="text-xs opacity-60 mt-0.5">{plan.length} meal{plan.length !== 1 ? "s" : ""} saved</div>
+        {plan.length > 0 && (
+          <button onClick={handleShareGrocery}
+            className="mt-3 flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-xs font-bold">
+            🛒 Share grocery list
+          </button>
+        )}
       </div>
+
+      {shareToast && (
+        <div className="bg-teal-50 border border-teal-200 rounded-xl px-3 py-2 mb-3 text-xs text-teal-700 font-semibold text-center">
+          {shareToast}
+        </div>
+      )}
 
       {/* Sync check — shows warning + regenerate if targets changed */}
       <MealPlanSync onRegenerated={() => setPlan(loadMealPlan())} />
@@ -356,7 +406,7 @@ export default function MealPlanBuilder() {
           {anyDay.length > 0 && (
             <div className="mb-3">
               <div className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Any Day</div>
-              {anyDay.map(m => <MealCard key={m.id} meal={m} onDelete={() => removeMeal(m.id)} />)}
+              {anyDay.map(m => <MealCard key={m.id} meal={m} onDelete={() => removeMeal(m.id)} onShare={() => handleShareRecipe(m)} />)}
             </div>
           )}
 
@@ -367,7 +417,7 @@ export default function MealPlanBuilder() {
             return (
               <div key={day} className="mb-3">
                 <div className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">{day}</div>
-                {meals.map(m => <MealCard key={m.id} meal={m} onDelete={() => removeMeal(m.id)} />)}
+                {meals.map(m => <MealCard key={m.id} meal={m} onDelete={() => removeMeal(m.id)} onShare={() => handleShareRecipe(m)} />)}
               </div>
             )
           })}
