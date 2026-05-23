@@ -129,6 +129,8 @@ type HealthState = {
   profile: UserProfile
   goals: UserGoals
   settings: AppSettings
+  settingsVersion: number
+  bumpSettingsVersion: () => void
   init: () => Promise<void>
   addFood: (f: FoodEntry) => void
   removeFood: (id: string) => void
@@ -164,7 +166,7 @@ export const useHealthStore = create<HealthState>((set, get) => ({
   today: "",
   logs: saved.logs ?? {},
   loading: false,
-  error: null,
+  error: null, settingsVersion: 0, bumpSettingsVersion: () => set(s => ({ settingsVersion: s.settingsVersion + 1 })),
   profile:  { ...DEFAULT_PROFILE,  ...(saved.profile  ?? {}) },
   goals:    { ...DEFAULT_GOALS,    ...(saved.goals    ?? {}) },
   settings: {
@@ -274,7 +276,10 @@ export function loadMedications(): Medication[] {
 }
 
 export function saveMedications(meds: Medication[]) {
-  try { localStorage.setItem(KEYS.USER_MEDICATIONS, JSON.stringify(meds)) } catch {}
+  try {
+    localStorage.setItem(KEYS.USER_MEDICATIONS, JSON.stringify(meds))
+    bumpSettingsVersion()
+  } catch {}
 }
 
 export function loadBloodTests(): BloodTest[] {
@@ -282,7 +287,10 @@ export function loadBloodTests(): BloodTest[] {
 }
 
 export function saveBloodTests(tests: BloodTest[]) {
-  try { localStorage.setItem(KEYS.USER_BLOOD_TESTS, JSON.stringify(tests)) } catch {}
+  try {
+    localStorage.setItem(KEYS.USER_BLOOD_TESTS, JSON.stringify(tests))
+    bumpSettingsVersion()
+  } catch {}
 }
 
 // ── Task bubble config ────────────────────────────────────────────────────────
@@ -382,7 +390,10 @@ export function loadWorkoutPlan(): WorkoutPlan {
 }
 
 export function saveWorkoutPlan(plan: WorkoutPlan) {
-  try { localStorage.setItem(KEYS.WORKOUT_PLAN, JSON.stringify(plan)) } catch {}
+  try {
+    localStorage.setItem(KEYS.WORKOUT_PLAN, JSON.stringify(plan))
+    bumpSettingsVersion()
+  } catch {}
 }
 
 export function getTodaySchedule(plan: WorkoutPlan): DaySchedule {
@@ -502,7 +513,10 @@ export function loadMealPlan(): MealPlanEntry[] {
 }
 
 export function saveMealPlan(plan: MealPlanEntry[]) {
-  try { localStorage.setItem(KEYS.MEAL_PLAN, JSON.stringify(plan)) } catch {}
+  try {
+    localStorage.setItem(KEYS.MEAL_PLAN, JSON.stringify(plan))
+    bumpSettingsVersion()
+  } catch {}
 }
 
 // ── Eating out log ────────────────────────────────────────────────────────────
