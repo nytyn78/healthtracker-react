@@ -1,13 +1,37 @@
-import { useState } from "react"
-import { getSetupCompleteness } from "../store/useHealthStore"
+import { useState, useEffect } from "react"
+import { useHealthStore, getSetupCompleteness } from "../store/useHealthStore"
 
 type Props = { onNavigate: (tab: string) => void }
 
 export default function SetupChip({ onNavigate }: Props) {
   const [open, setOpen] = useState(false)
+
+  // ── Reactivity layer 1: Zustand-tracked fields (profile + goals) ──────────
+  // These re-render the component whenever weight, height, age, or targetWeight
+  // are updated through updateProfile / updateGoals actions.
+  useHealthStore(s => s.profile)
+  useHealthStore(s => s.goals)
+
+  // ── Reactivity layer 2: settingsVersion counter ───────────────────────────
+  // saveMedications / saveBloodTests / saveWorkoutPlan / saveMealPlan all call
+  // bumpSettingsVersion() after writing to localStorage, which increments this
+  // counter in the store and causes this component to re-render.
+  useHealthStore(s => s.settingsVersion)
+
+  // ── Reactivity layer 3: cross-tab / external writes ───────────────────────
+  // Catches any localStorage change originating from another tab or a save
+  // function that hasn't been wired to bumpSettingsVersion yet.
+  const [, forceUpdate] = useState(0)
+  useEffect(() => {
+    const handler = () => forceUpdate(n => n + 1)
+    window.addEventListener("storage", handler)
+    return () => window.removeEventListener("storage", handler)
+  }, [])
+
+  // Re-read completeness fresh on every render (cheap — just JSON.parse calls)
   const { items, pct, level } = getSetupCompleteness()
 
-  if (level === "green") return null  // fully set up — hide chip
+  if (level === "green") return null // fully set up — hide chip
 
   const chipColor = level === "red"
     ? "bg-red-100 text-red-700 border-red-200"
@@ -15,8 +39,10 @@ export default function SetupChip({ onNavigate }: Props) {
 
   return (
     <div className="mb-3">
-      <button onClick={() => setOpen(o => !o)}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold ${chipColor}`}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold ${chipColor}`}
+      >
         ⚙️ Setup {pct}% complete {open ? "▲" : "▼"}
       </button>
 
@@ -24,19 +50,38 @@ export default function SetupChip({ onNavigate }: Props) {
         <div className="mt-2 bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-50">
             <div className="text-xs font-bold text-gray-700">Complete your profile</div>
-            <div className="text-[10px] text-gray-400 mt-0.5">The app gets smarter the more you fill in</div>
+            <div className="text-[10px] text-gray-400 mt-0.5">
+              The app gets smarter the more you fill in
+            </div>
           </div>
           {items.map(item => (
-            <button key={item.id} onClick={() => { onNavigate(item.tab); setOpen(false) }}
-              className="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0 text-left">
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0
-                ${item.done ? "bg-green-500" : item.priority === "required" ? "bg-red-100" : "bg-amber-100"}`}>
+            <button
+              key={item.id}
+              onClick={() => { onNavigate(item.tab); setOpen(false) }}
+              className="w-full flex items-center gap-3 px-4 py-3 border-b border-gray-50 last:border-0 text-left"
+            >
+              <div
+                className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0
+                  ${item.done
+                    ? "bg-green-500"
+                    : item.priority === "required" ? "bg-red-100" : "bg-amber-100"
+                  }`}
+              >
                 {item.done
                   ? <span className="text-white text-[10px]">✓</span>
-                  : <span className={`text-[10px] font-bold ${item.priority === "required" ? "text-red-500" : "text-amber-500"}`}>!</span>}
+                  : <span
+                      className={`text-[10px] font-bold ${
+                        item.priority === "required" ? "text-red-500" : "text-amber-500"
+                      }`}
+                    >!</span>
+                }
               </div>
               <div className="flex-1 min-w-0">
-                <div className={`text-xs font-semibold ${item.done ? "text-gray-400 line-through" : "text-gray-700"}`}>
+                <div
+                  className={`text-xs font-semibold ${
+                    item.done ? "text-gray-400 line-through" : "text-gray-700"
+                  }`}
+                >
                   {item.label}
                 </div>
                 <div className="text-[9px] text-gray-300 capitalize">{item.priority}</div>
