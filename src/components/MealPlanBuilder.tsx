@@ -2,7 +2,9 @@ import { useState } from "react"
 import {
   loadMealPlan, saveMealPlan, MealPlanEntry, DietTag, DIET_TAG_LABELS,
   loadDietConfig, saveDietConfig, DietMode, DIET_MODE_LABELS,
+  useHealthStore,
 } from "../store/useHealthStore"
+import { computeMacros } from "../services/adaptiveTDEE"
 import { PRESETS, PresetKey } from "../services/mealPlanPresets"
 import MealPlanSync from "./MealPlanSync"
 import {
@@ -28,11 +30,10 @@ function MealCard({ meal, onDelete, onShare }: {
   onShare: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
-  
   return (
-    <div className="border border-gray-100 rounded-xl overflow-hidden mb-2 bg-white">
+    <div className="border border-gray-100 rounded-xl overflow-hidden mb-2">
       <button onClick={() => setExpanded(e => !e)}
-        className="w-full flex items-start justify-between p-3 text-left">
+        className="w-full flex items-start justify-between p-3 bg-white text-left">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5 flex-wrap">
             <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${TAG_COLORS[meal.tag]}`}>
@@ -51,55 +52,32 @@ function MealCard({ meal, onDelete, onShare }: {
           </div>
         </div>
         <div className="flex items-center gap-1 ml-2 shrink-0">
+          <button onClick={e => { e.stopPropagation(); onShare() }}
+            className="text-teal-500 text-xs px-1.5 py-0.5 border border-teal-100 rounded-lg"
+            title="Share recipe">📤</button>
           <button onClick={e => { e.stopPropagation(); onDelete() }}
-            className="text-red-300 text-xs px-1.5 py-0.5 border border-red-100 rounded-lg hover:bg-red-50">✕</button>
+            className="text-red-300 text-xs px-1.5 py-0.5 border border-red-100 rounded-lg">✕</button>
           <span className="text-gray-400 text-xs">{expanded ? "▲" : "▼"}</span>
         </div>
       </button>
-
       {expanded && (
-        <div className="bg-gray-50 px-3 pb-3 border-t border-gray-100">
+        <div className="bg-gray-50 px-3 pb-3">
           {meal.ingredients.length > 0 && (
             <>
-              <div className="text-[10px] font-bold text-gray-500 mt-3 mb-1.5 uppercase tracking-wide">
-                🧾 Ingredients
-              </div>
-              <div className="bg-white rounded-lg p-2 mb-2">
-                {meal.ingredients.map((ing, i) => (
-                  <div key={i} className="text-[11px] text-gray-700 py-0.5 flex items-start gap-1.5">
-                    <span className="text-teal-500 shrink-0">•</span>
-                    <span>{ing}</span>
-                  </div>
-                ))}
-              </div>
+              <div className="text-[10px] font-bold text-gray-500 mt-2 mb-1">Ingredients</div>
+              {meal.ingredients.map((ing, i) => (
+                <div key={i} className="text-[10px] text-gray-600 py-0.5">· {ing}</div>
+              ))}
             </>
           )}
-
           {meal.steps.length > 0 && (
             <>
-              <div className="text-[10px] font-bold text-gray-500 mt-2 mb-1.5 uppercase tracking-wide">
-                👨‍🍳 Method
-              </div>
-              <div className="bg-white rounded-lg p-2 mb-3">
-                {meal.steps.map((s, i) => (
-                  <div key={i} className="text-[11px] text-gray-700 py-1 flex items-start gap-2">
-                    <span className="bg-teal-100 text-teal-700 text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shrink-0">
-                      {i + 1}
-                    </span>
-                    <span className="leading-relaxed">{s}</span>
-                  </div>
-                ))}
-              </div>
+              <div className="text-[10px] font-bold text-gray-500 mt-2 mb-1">Steps</div>
+              {meal.steps.map((s, i) => (
+                <div key={i} className="text-[10px] text-gray-600 py-0.5">{i + 1}. {s}</div>
+              ))}
             </>
           )}
-
-          <button 
-            onClick={onShare}
-            className="w-full flex items-center justify-center gap-2 py-2.5 bg-green-500 hover:bg-green-600 text-white rounded-xl text-xs font-bold transition-colors"
-          >
-            <span>📲</span>
-            <span>Share Recipe via WhatsApp</span>
-          </button>
         </div>
       )}
     </div>
@@ -211,6 +189,48 @@ function AddMealForm({ onAdd, onCancel, dietTag }: {
   )
 }
 
+// ── Protein Gap Warning ───────────────────────────────────────────────────────
+// Shown when user's protein target exceeds what a preset realistically delivers.
+// Honest about the trade-off — Indian veg eating struggles past 70-80g without help.
+function ProteinGapWarning({ preset, userProteinTarget }: { preset: typeof PRESETS[PresetKey]; userProteinTarget: number }) {
+  const presetProtein = preset.entries.reduce((s, m) => s + m.protein, 0)
+  const gap = userProteinTarget - presetProtein
+  if (gap <= 5) return null  // close enough, no warning needed
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-2">
+      <div className="text-xs font-bold text-amber-800 mb-1">
+        ⚠️ Protein gap: {gap}g
+      </div>
+      <p className="text-[11px] text-amber-700 leading-relaxed mb-2">
+        Your target is <b>{userProteinTarget}g/day</b> but this preset delivers <b>~{presetProtein}g</b>.
+        {preset.tag === "veg" && (
+          <> Indian vegetarian meals struggle to hit higher protein targets from food alone.</>
+        )}
+      </p>
+      <div className="text-[11px] text-amber-700">
+        <b>Options to bridge:</b>
+        <ul className="list-disc ml-4 mt-1 space-y-0.5">
+          {preset.tag === "veg" && (
+            <>
+              <li>Try the "High Protein" vegetarian preset (uses soya + extra paneer)</li>
+              <li>Add 1 whey scoop = +25g protein</li>
+              <li>Adjust meal quantities upward — bigger paneer/dal portions</li>
+            </>
+          )}
+          {preset.tag !== "veg" && (
+            <>
+              <li>Increase chicken/fish portions by 50g (+15g protein)</li>
+              <li>Add eggs to breakfast or snack (+6g per egg)</li>
+              <li>Whey shake post-workout = +25g</li>
+            </>
+          )}
+        </ul>
+      </div>
+    </div>
+  )
+}
+
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function MealPlanBuilder() {
   const [plan, setPlan] = useState<MealPlanEntry[]>(() => loadMealPlan())
@@ -221,6 +241,11 @@ export default function MealPlanBuilder() {
   const [showPresets, setShowPresets] = useState(false)
   const [importedPreset, setImportedPreset] = useState<string | null>(null)
   const [shareToast, setShareToast] = useState<string | null>(null)
+
+  // Read user's profile to compute personalised protein target
+  const { profile, goals, settings } = useHealthStore()
+  const macros = computeMacros(profile, goals, settings)
+  const userProteinTarget = macros?.proteinG ?? 0
 
   function persistPlan(updated: MealPlanEntry[]) {
     setPlan(updated)
@@ -360,15 +385,23 @@ export default function MealPlanBuilder() {
         {showPresets && (
           <div className="space-y-2">
             {(Object.entries(PRESETS) as [PresetKey, typeof PRESETS[PresetKey]][]).map(([key, preset]) => (
-              <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                <div>
-                  <div className="text-xs font-semibold text-gray-700">{preset.label}</div>
-                  <div className="text-[10px] text-gray-400">{preset.entries.length} meals · {DIET_TAG_LABELS[preset.tag]}</div>
+              <div key={key} className="p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-semibold text-gray-700">{preset.label}</div>
+                    <div className="text-[10px] text-gray-400">{preset.entries.length} meals · {DIET_TAG_LABELS[preset.tag]}</div>
+                  </div>
+                  <button onClick={() => importPreset(key)}
+                    className="text-xs px-3 py-1.5 bg-teal-600 text-white rounded-lg font-bold shrink-0">
+                    Import
+                  </button>
                 </div>
-                <button onClick={() => importPreset(key)}
-                  className="text-xs px-3 py-1.5 bg-teal-600 text-white rounded-lg font-bold">
-                  Import
-                </button>
+                {preset.note && (
+                  <div className="text-[10px] text-gray-500 mt-1">{preset.note}</div>
+                )}
+                {userProteinTarget > 0 && (
+                  <ProteinGapWarning preset={preset} userProteinTarget={userProteinTarget} />
+                )}
               </div>
             ))}
           </div>
