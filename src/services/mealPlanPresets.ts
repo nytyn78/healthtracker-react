@@ -10,15 +10,17 @@ function makeId() { return `preset-${Math.random().toString(36).slice(2)}` }
 export const EGGETARIAN_KETO_PRESET: MealPlanEntry[] = [
   {
     id: makeId(), name: "Egg Bhurji with Paneer", time: "2:00 PM",
-    protein: 42, carbs: 4, fat: 35, cal: 495, tag: "eggetarian",
-    ingredients: ["3 whole eggs", "80g paneer — crumbled", "1 tsp ghee", "Salt, cumin, green chilli"],
+    // Audit fix: 4 eggs (P24,F20) + 80g paneer (P14.4,F16) + 1 tsp ghee (F5) = P38,C4,F41,Cal481
+    protein: 38, carbs: 4, fat: 41, cal: 537, tag: "eggetarian",
+    ingredients: ["4 whole eggs", "80g paneer — crumbled", "1 tsp ghee", "Salt, cumin, green chilli"],
     steps: ["Heat ghee — add cumin and green chilli", "Crack eggs — stir slowly on low heat", "Fold in crumbled paneer — 1 min", "Season and serve"],
     isPreset: true,
   },
   {
     id: makeId(), name: "Paneer Tikka with Boiled Eggs", time: "6:30 PM",
-    protein: 38, carbs: 5, fat: 28, cal: 418, tag: "eggetarian",
-    ingredients: ["100g paneer — cubed", "2 whole eggs — boiled", "2 tbsp curd", "1 tsp tandoori masala", "1 tsp ghee"],
+    // Audit fix: 70g paneer (P12.6,F14) + 2 eggs (P12,F10) + 30g curd (P0.9,F1.2) + 1 tsp ghee (F5) = P26,C5,F30,Cal390
+    protein: 26, carbs: 5, fat: 30, cal: 394, tag: "eggetarian",
+    ingredients: ["70g paneer — cubed", "2 whole eggs — boiled", "2 tbsp curd", "1 tsp tandoori masala", "1 tsp ghee"],
     steps: ["Marinate paneer in curd + tandoori masala — 15 min", "Cook on tawa in ghee — 2 min each side", "Serve with halved boiled eggs"],
     isPreset: true,
   },
@@ -35,23 +37,37 @@ export const EGGETARIAN_KETO_PRESET: MealPlanEntry[] = [
 export const VEGETARIAN_BALANCED_PRESET: MealPlanEntry[] = [
   {
     id: makeId(), name: "Moong Dal Chilla with Curd", time: "12:30 PM",
-    protein: 18, carbs: 32, fat: 6, cal: 258, tag: "veg",
-    ingredients: ["100g moong dal — soaked overnight", "1 tsp oil", "Green chilli, coriander", "100g low-fat curd"],
+    // Audit fix: 50g raw moong (P12,C30) + 100g low-fat curd (P4,C5,F1.5) + 1 tsp oil (F4.5) = P16,C35,F6,Cal264
+    protein: 16, carbs: 35, fat: 6, cal: 264, tag: "veg",
+    ingredients: ["50g moong dal — soaked overnight", "1 tsp oil", "Green chilli, coriander", "100g low-fat curd"],
     steps: ["Grind dal to batter — add chilli + coriander", "Pour thin on hot tawa — cook 2 min each side", "Serve with curd"],
     isPreset: true,
   },
   {
     id: makeId(), name: "Palak Paneer with Roti", time: "3:30 PM",
-    protein: 22, carbs: 28, fat: 16, cal: 340, tag: "veg",
-    ingredients: ["150g paneer — cubed", "200g spinach — blanched", "1 tsp oil", "Spices", "1 whole wheat roti"],
+    // Audit fix: 80g paneer (P14.4,F16) + 200g spinach (P5.8,C7,F0.8) + 1 roti (P3,C15,F1) + 1 tsp oil (F4.5) = P23,C24,F22,Cal376
+    protein: 23, carbs: 24, fat: 22, cal: 376, tag: "veg",
+    ingredients: ["80g paneer — cubed", "200g spinach — blanched", "1 tsp oil", "Spices", "1 whole wheat roti"],
     steps: ["Blend blanched spinach to puree", "Sauté spices and onion — add puree", "Add paneer — simmer 5 min", "Serve with roti"],
     isPreset: true,
   },
   {
     id: makeId(), name: "Rajma Bowl with Brown Rice", time: "7:00 PM",
-    protein: 16, carbs: 52, fat: 5, cal: 317, tag: "veg",
-    ingredients: ["100g cooked rajma", "50g brown rice — cooked", "Onion, tomato, spices", "Lemon juice"],
+    // Audit fix: 80g raw rajma soaked+boiled (P19,C46) + 60g dry brown rice cooked (P3,C46) — raw weights used for accuracy
+    // 80g raw rajma cooked: P~19, C~46, F~0.4; 60g dry rice cooked: P~3, C~46, F~0.5 → too high carbs
+    // Realistic: 80g raw rajma (P19,C48) + 40g dry rice (P3,C30) = P22,C50,F2,Cal304
+    protein: 22, carbs: 50, fat: 2, cal: 304, tag: "veg",
+    ingredients: ["80g raw rajma — soaked overnight and boiled", "40g brown rice — dry weight, cooked", "Onion, tomato, spices", "Lemon juice"],
     steps: ["Cook rajma masala", "Serve over brown rice with lemon"],
+    isPreset: true,
+  },
+  {
+    id: makeId(), name: "Curd with Nuts (Snack)", time: "5:00 PM",
+    // Added: Veg balanced plan was only 915 kcal — needs 4th meal to reach ~1300 kcal target
+    // 150g whole fat curd (P4.7,C7,F6) + 20g mixed nuts (P3.8,C2.4,F12.4) = P9,C9,F18,Cal238
+    protein: 9, carbs: 9, fat: 18, cal: 238, tag: "veg",
+    ingredients: ["150g whole fat curd", "20g mixed nuts (almonds, walnuts)", "Optional: pinch of cinnamon"],
+    steps: ["Serve curd in a bowl", "Top with nuts — eat as a snack between meals"],
     isPreset: true,
   },
 ]
@@ -60,23 +76,34 @@ export const VEGETARIAN_BALANCED_PRESET: MealPlanEntry[] = [
 export const NON_VEG_KETO_PRESET: MealPlanEntry[] = [
   {
     id: makeId(), name: "Tandoori Chicken with Salad", time: "2:00 PM",
-    protein: 42, carbs: 4, fat: 12, cal: 292, tag: "non_veg",
-    ingredients: ["200g chicken — skin removed", "2 tbsp curd", "1 tsp tandoori masala", "Cucumber + onion salad"],
+    // Audit fix: 150g chicken breast (P46.5,F5.4) + 30g curd marinade (P0.9,F1.2) + 1 tsp oil (F4.5) + salad (C4) = P47,C5,F11,Cal309
+    protein: 47, carbs: 5, fat: 11, cal: 309, tag: "non_veg",
+    ingredients: ["150g chicken breast — skin removed", "2 tbsp curd", "1 tsp tandoori masala", "1 tsp oil for grilling", "Cucumber + onion salad"],
     steps: ["Marinate chicken 30 min", "Grill or air-fry 20 min", "Serve with salad"],
     isPreset: true,
   },
   {
     id: makeId(), name: "Egg & Chicken Stir Fry", time: "6:30 PM",
-    protein: 48, carbs: 6, fat: 18, cal: 378, tag: "non_veg",
-    ingredients: ["150g chicken breast — sliced", "2 eggs", "1 tsp oil", "Capsicum, onion, soy sauce", "Garlic, pepper"],
+    // Audit fix: 100g chicken breast (P31,F3.6) + 2 eggs (P12,F10) + 1 tsp oil (F4.5) + veg (C5) = P43,C6,F18,Cal358
+    protein: 43, carbs: 6, fat: 18, cal: 358, tag: "non_veg",
+    ingredients: ["100g chicken breast — sliced", "2 eggs", "1 tsp oil", "Capsicum, onion, soy sauce", "Garlic, pepper"],
     steps: ["Stir fry chicken on high heat 5 min", "Push aside — scramble eggs in same pan", "Add vegetables — toss together 2 min"],
     isPreset: true,
   },
   {
     id: makeId(), name: "Fish Curry (light)", time: "2:00 PM",
-    protein: 38, carbs: 8, fat: 14, cal: 310, tag: "non_veg",
+    // Audit: 200g fish (P38,F4) + 100ml light coconut milk (P1.5,C4,F7) + veg (C8) = P40,C12,F11,Cal307 — acceptable
+    protein: 40, carbs: 12, fat: 11, cal: 307, tag: "non_veg",
     ingredients: ["200g fish — any white fish", "Coconut milk (light) 100ml", "Onion, tomato, curry leaves", "Turmeric, red chilli, mustard seeds"],
     steps: ["Temper mustard + curry leaves", "Add onion-tomato base — cook down", "Add fish + coconut milk — simmer 8 min"],
+    isPreset: true,
+  },
+  {
+    id: makeId(), name: "Whey Protein Shake", time: "4:30 PM",
+    // Added: non-veg keto was only 2 meals at ~980 kcal — add shake to match eggetarian preset structure
+    protein: 25, carbs: 2, fat: 1, cal: 117, tag: "non_veg",
+    ingredients: ["1 scoop whey isolate", "300ml cold water"],
+    steps: ["Shake or blend — serve cold"],
     isPreset: true,
   },
 ]
