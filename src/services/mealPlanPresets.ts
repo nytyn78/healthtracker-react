@@ -6,87 +6,266 @@ import type { MealPlanEntry, DietTag } from "../store/useHealthStore"
 
 function makeId() { return `preset-${Math.random().toString(36).slice(2)}` }
 
-// ── Eggetarian Keto preset (your plan, generalised) ───────────────────────────
-export const EGGETARIAN_KETO_PRESET: MealPlanEntry[] = [
+// ── Vegetarian preset — regular Indian 3-meal day ─────────────────────────────
+// Realistic household meals · ~1500 kcal · breakfast + lunch + dinner
+export const VEGETARIAN_REGULAR_PRESET: MealPlanEntry[] = [
   {
-    id: makeId(), name: "Egg Bhurji with Paneer", time: "2:00 PM",
-    protein: 42, carbs: 4, fat: 35, cal: 495, tag: "eggetarian",
-    ingredients: ["3 whole eggs", "80g paneer — crumbled", "1 tsp ghee", "Salt, cumin, green chilli"],
-    steps: ["Heat ghee — add cumin and green chilli", "Crack eggs — stir slowly on low heat", "Fold in crumbled paneer — 1 min", "Season and serve"],
+    id: makeId(), name: "Poha with Curd", time: "8:00 AM",
+    protein: 10, carbs: 70, fat: 12, cal: 428, tag: "veg",
+    ingredients: [
+      "80g poha — flattened rice (dry weight)",
+      "1 tsp oil",
+      "1 small onion, 1 green chilli, curry leaves",
+      "Mustard seeds, turmeric, peanuts (15g)",
+      "100g curd — on the side",
+      "1 cup tea",
+    ],
+    steps: [
+      "Rinse poha and drain — keep aside",
+      "Heat oil, splutter mustard seeds, add peanuts, curry leaves",
+      "Add onion + chilli, sauté until soft",
+      "Add turmeric and poha, mix gently, cover 2 min",
+      "Serve hot with curd and tea",
+    ],
     isPreset: true,
   },
   {
-    id: makeId(), name: "Paneer Tikka with Boiled Eggs", time: "6:30 PM",
-    protein: 38, carbs: 5, fat: 28, cal: 418, tag: "eggetarian",
-    ingredients: ["100g paneer — cubed", "2 whole eggs — boiled", "2 tbsp curd", "1 tsp tandoori masala", "1 tsp ghee"],
-    steps: ["Marinate paneer in curd + tandoori masala — 15 min", "Cook on tawa in ghee — 2 min each side", "Serve with halved boiled eggs"],
+    id: makeId(), name: "Dal + 2 Roti + Sabzi + Curd", time: "1:00 PM",
+    protein: 25, carbs: 83, fat: 17, cal: 585, tag: "veg",
+    ingredients: [
+      "1 katori dal (150g cooked) — moong, toor or mix",
+      "2 whole wheat rotis",
+      "1 katori sabzi (200g) — aloo gobi or seasonal veg",
+      "1 tsp oil for cooking",
+      "100g curd",
+      "Salad — onion, cucumber, lemon",
+    ],
+    steps: [
+      "Pressure cook dal with turmeric and salt",
+      "Make sabzi with 1 tsp oil and spices",
+      "Roll and cook rotis on tawa",
+      "Serve dal + sabzi + roti with curd on the side",
+    ],
     isPreset: true,
   },
   {
-    id: makeId(), name: "Whey Protein Shake", time: "4:00 PM",
-    protein: 24, carbs: 3, fat: 2, cal: 126, tag: "eggetarian",
-    ingredients: ["1 scoop whey isolate (Isopure or similar)", "200ml cold water"],
-    steps: ["Shake or blend — serve cold"],
-    isPreset: true,
-  },
-]
-
-// ── Vegetarian Balanced preset ────────────────────────────────────────────────
-export const VEGETARIAN_BALANCED_PRESET: MealPlanEntry[] = [
-  {
-    id: makeId(), name: "Moong Dal Chilla with Curd", time: "12:30 PM",
-    protein: 18, carbs: 32, fat: 6, cal: 258, tag: "veg",
-    ingredients: ["100g moong dal — soaked overnight", "1 tsp oil", "Green chilli, coriander", "100g low-fat curd"],
-    steps: ["Grind dal to batter — add chilli + coriander", "Pour thin on hot tawa — cook 2 min each side", "Serve with curd"],
-    isPreset: true,
-  },
-  {
-    id: makeId(), name: "Palak Paneer with Roti", time: "3:30 PM",
-    protein: 22, carbs: 28, fat: 16, cal: 340, tag: "veg",
-    ingredients: ["150g paneer — cubed", "200g spinach — blanched", "1 tsp oil", "Spices", "1 whole wheat roti"],
-    steps: ["Blend blanched spinach to puree", "Sauté spices and onion — add puree", "Add paneer — simmer 5 min", "Serve with roti"],
-    isPreset: true,
-  },
-  {
-    id: makeId(), name: "Rajma Bowl with Brown Rice", time: "7:00 PM",
-    protein: 16, carbs: 52, fat: 5, cal: 317, tag: "veg",
-    ingredients: ["100g cooked rajma", "50g brown rice — cooked", "Onion, tomato, spices", "Lemon juice"],
-    steps: ["Cook rajma masala", "Serve over brown rice with lemon"],
-    isPreset: true,
-  },
-]
-
-// ── Non-veg Keto preset ────────────────────────────────────────────────────────
-export const NON_VEG_KETO_PRESET: MealPlanEntry[] = [
-  {
-    id: makeId(), name: "Tandoori Chicken with Salad", time: "2:00 PM",
-    protein: 42, carbs: 4, fat: 12, cal: 292, tag: "non_veg",
-    ingredients: ["200g chicken — skin removed", "2 tbsp curd", "1 tsp tandoori masala", "Cucumber + onion salad"],
-    steps: ["Marinate chicken 30 min", "Grill or air-fry 20 min", "Serve with salad"],
-    isPreset: true,
-  },
-  {
-    id: makeId(), name: "Egg & Chicken Stir Fry", time: "6:30 PM",
-    protein: 48, carbs: 6, fat: 18, cal: 378, tag: "non_veg",
-    ingredients: ["150g chicken breast — sliced", "2 eggs", "1 tsp oil", "Capsicum, onion, soy sauce", "Garlic, pepper"],
-    steps: ["Stir fry chicken on high heat 5 min", "Push aside — scramble eggs in same pan", "Add vegetables — toss together 2 min"],
-    isPreset: true,
-  },
-  {
-    id: makeId(), name: "Fish Curry (light)", time: "2:00 PM",
-    protein: 38, carbs: 8, fat: 14, cal: 310, tag: "non_veg",
-    ingredients: ["200g fish — any white fish", "Coconut milk (light) 100ml", "Onion, tomato, curry leaves", "Turmeric, red chilli, mustard seeds"],
-    steps: ["Temper mustard + curry leaves", "Add onion-tomato base — cook down", "Add fish + coconut milk — simmer 8 min"],
+    id: makeId(), name: "Paneer Bhurji + 2 Roti + Salad", time: "8:00 PM",
+    protein: 26, carbs: 40, fat: 27, cal: 507, tag: "veg",
+    ingredients: [
+      "100g paneer — crumbled",
+      "1 small onion, 1 tomato, 1 green chilli",
+      "1 tsp oil",
+      "2 whole wheat rotis",
+      "Salad — cucumber, carrot, lemon",
+      "Salt, turmeric, garam masala, coriander",
+    ],
+    steps: [
+      "Heat oil, sauté onion + chilli until golden",
+      "Add tomato, cook until soft, add spices",
+      "Fold in crumbled paneer, cook 2 min",
+      "Garnish with coriander, serve with hot rotis and salad",
+    ],
     isPreset: true,
   },
 ]
 
-export type PresetKey = "eggetarian_keto" | "vegetarian_balanced" | "non_veg_keto"
+// ── High-Protein Vegetarian preset — for users with 90g+ protein targets ──────
+// ~1530 kcal · ~97g protein from food alone (no whey needed)
+// Uses soya chunks + larger paneer portions + dual dairy sources
+// Honest trade-off: more cooking effort, less variety than regular veg
+export const VEGETARIAN_HIGH_PROTEIN_PRESET: MealPlanEntry[] = [
+  {
+    id: makeId(), name: "Paneer Bhurji + 2 Toast", time: "8:00 AM",
+    protein: 22, carbs: 28, fat: 27, cal: 443, tag: "veg",
+    ingredients: [
+      "100g paneer — crumbled",
+      "1 small onion, 1 tomato, 1 green chilli",
+      "1 tsp oil",
+      "2 slices whole wheat toast",
+      "Salt, turmeric, garam masala, coriander",
+      "1 cup tea",
+    ],
+    steps: [
+      "Heat oil, sauté onion + chilli until golden",
+      "Add tomato, cook until soft, add spices",
+      "Fold in crumbled paneer, cook 2 min",
+      "Serve with toast and tea",
+    ],
+    isPreset: true,
+  },
+  {
+    id: makeId(), name: "Soya Chunks Curry + Dal + 2 Roti + Curd", time: "1:00 PM",
+    protein: 43, carbs: 71, fat: 12, cal: 564, tag: "veg",
+    ingredients: [
+      "50g soya chunks (dry weight) — soaked in hot water for 15 min",
+      "1 katori dal (100g cooked) — moong or toor",
+      "2 whole wheat rotis",
+      "1 onion, 1 tomato, ginger-garlic paste",
+      "1 tsp oil",
+      "100g curd on the side",
+      "Turmeric, red chilli, garam masala",
+    ],
+    steps: [
+      "Soak soya in hot water 15 min, squeeze out water",
+      "Heat oil, sauté onion until golden, add tomato + spices",
+      "Add soya chunks, cook 5 min, add water and simmer 10 min",
+      "Serve with hot dal, rotis and curd",
+    ],
+    isPreset: true,
+  },
+  {
+    id: makeId(), name: "Paneer Tikka + 1 Roti + Salad", time: "8:00 PM",
+    protein: 32, carbs: 26, fat: 32, cal: 520, tag: "veg",
+    ingredients: [
+      "150g paneer — cubed",
+      "3 tbsp hung curd for marinade",
+      "1 tsp oil",
+      "1 whole wheat roti",
+      "Capsicum, onion chunks",
+      "Salad — cucumber, tomato, lemon",
+      "Tandoori masala, ginger-garlic paste",
+    ],
+    steps: [
+      "Marinate paneer + capsicum + onion in curd, tandoori masala, ginger-garlic for 30 min",
+      "Heat 1 tsp oil on tawa, cook marinated paneer 2-3 min each side",
+      "Serve with hot roti and salad",
+    ],
+    isPreset: true,
+  },
+]
 
-export const PRESETS: Record<PresetKey, { label: string; tag: DietTag; entries: MealPlanEntry[] }> = {
-  eggetarian_keto:       { label: "Eggetarian Keto",        tag: "eggetarian", entries: EGGETARIAN_KETO_PRESET },
-  vegetarian_balanced:   { label: "Vegetarian Balanced",    tag: "veg",        entries: VEGETARIAN_BALANCED_PRESET },
-  non_veg_keto:          { label: "Non-veg Keto",           tag: "non_veg",    entries: NON_VEG_KETO_PRESET },
+// ── Eggetarian preset — regular Indian 3-meal day ─────────────────────────────
+// ~1490 kcal · adds eggs to a balanced Indian vegetarian base
+export const EGGETARIAN_REGULAR_PRESET: MealPlanEntry[] = [
+  {
+    id: makeId(), name: "Masala Omelette + 2 Toast", time: "8:00 AM",
+    protein: 22, carbs: 28, fat: 22, cal: 398, tag: "eggetarian",
+    ingredients: [
+      "3 whole eggs",
+      "1 tsp butter or oil",
+      "1 small onion, 1 green chilli, coriander — chopped",
+      "Salt, pepper, pinch of turmeric",
+      "2 slices whole wheat toast",
+      "1 cup tea",
+    ],
+    steps: [
+      "Whisk eggs with chopped onion, chilli, coriander, salt, pepper",
+      "Heat butter in pan, pour egg mixture, cook 2 min each side",
+      "Toast the bread separately",
+      "Serve omelette with toast and tea",
+    ],
+    isPreset: true,
+  },
+  {
+    id: makeId(), name: "Egg Curry + Dal + 2 Roti", time: "1:00 PM",
+    protein: 32, carbs: 67, fat: 21, cal: 585, tag: "eggetarian",
+    ingredients: [
+      "2 boiled eggs",
+      "1 katori dal (150g cooked)",
+      "2 whole wheat rotis",
+      "1 small onion + 1 tomato for egg curry",
+      "1 tsp oil",
+      "100g curd",
+      "Garam masala, turmeric, red chilli, coriander",
+    ],
+    steps: [
+      "Boil eggs, peel, halve",
+      "Heat oil, sauté onion until golden, add tomato + spices",
+      "Add 1 cup water, simmer 5 min, add halved eggs",
+      "Serve with hot dal, rotis and curd",
+    ],
+    isPreset: true,
+  },
+  {
+    id: makeId(), name: "Paneer Bhurji + 2 Roti + Salad", time: "8:00 PM",
+    protein: 26, carbs: 40, fat: 27, cal: 507, tag: "eggetarian",
+    ingredients: [
+      "100g paneer — crumbled",
+      "1 small onion, 1 tomato, 1 green chilli",
+      "1 tsp oil",
+      "2 whole wheat rotis",
+      "Salad — cucumber, carrot, lemon",
+      "Salt, turmeric, garam masala, coriander",
+    ],
+    steps: [
+      "Heat oil, sauté onion + chilli until golden",
+      "Add tomato, cook until soft, add spices",
+      "Fold in crumbled paneer, cook 2 min",
+      "Garnish with coriander, serve with hot rotis and salad",
+    ],
+    isPreset: true,
+  },
+]
+
+// ── Non-veg preset — regular Indian 3-meal day ────────────────────────────────
+// ~1335 kcal · high protein with normal meal structure
+export const NON_VEG_REGULAR_PRESET: MealPlanEntry[] = [
+  {
+    id: makeId(), name: "Scrambled Eggs + 1 Toast", time: "8:00 AM",
+    protein: 20, carbs: 14, fat: 20, cal: 316, tag: "non_veg",
+    ingredients: [
+      "3 whole eggs",
+      "1 tsp butter",
+      "1 slice whole wheat toast",
+      "Salt, pepper",
+      "1 cup tea or black coffee",
+    ],
+    steps: [
+      "Whisk eggs with salt and pepper",
+      "Melt butter in pan, pour eggs, stir gently on low heat",
+      "Cook until just set, soft and fluffy",
+      "Serve with toast and tea",
+    ],
+    isPreset: true,
+  },
+  {
+    id: makeId(), name: "Chicken Curry + Dal + 2 Roti", time: "1:00 PM",
+    protein: 63, carbs: 60, fat: 12, cal: 600, tag: "non_veg",
+    ingredients: [
+      "150g chicken breast — cubed",
+      "1 katori dal (150g cooked)",
+      "2 whole wheat rotis",
+      "1 onion, 1 tomato, ginger-garlic paste",
+      "1 tsp oil",
+      "Turmeric, red chilli, garam masala, coriander",
+    ],
+    steps: [
+      "Marinate chicken with salt, turmeric, ginger-garlic paste for 15 min",
+      "Heat oil, sauté onion until golden, add tomato + spices",
+      "Add chicken, cook 5 min, add water, simmer 15 min covered",
+      "Serve with dal and rotis",
+    ],
+    isPreset: true,
+  },
+  {
+    id: makeId(), name: "Fish Curry + 1 Roti + Sabzi", time: "8:00 PM",
+    protein: 44, carbs: 27, fat: 15, cal: 419, tag: "non_veg",
+    ingredients: [
+      "200g fish — any white fish (rohu, tilapia, basa)",
+      "1 whole wheat roti",
+      "1 katori sabzi (150g) — bhindi, beans or seasonal",
+      "1 small onion, 1 tomato, curry leaves",
+      "1 tsp oil",
+      "Turmeric, red chilli, mustard seeds, coriander",
+    ],
+    steps: [
+      "Marinate fish with turmeric and salt — 10 min",
+      "Heat oil, splutter mustard seeds, add curry leaves",
+      "Add onion + tomato, cook until soft, add spices",
+      "Add fish and 1/2 cup water, simmer 8 min",
+      "Serve with roti and sabzi",
+    ],
+    isPreset: true,
+  },
+]
+
+export type PresetKey = "vegetarian_regular" | "vegetarian_high_protein" | "eggetarian_regular" | "non_veg_regular"
+
+export const PRESETS: Record<PresetKey, { label: string; tag: DietTag; entries: MealPlanEntry[]; note?: string }> = {
+  vegetarian_regular:       { label: "Vegetarian — Regular Indian",      tag: "veg",        entries: VEGETARIAN_REGULAR_PRESET, note: "~1520 kcal · ~61g protein (typical Indian veg eating)" },
+  vegetarian_high_protein:  { label: "Vegetarian — High Protein",        tag: "veg",        entries: VEGETARIAN_HIGH_PROTEIN_PRESET, note: "~1530 kcal · ~97g protein (uses soya + extra paneer)" },
+  eggetarian_regular:       { label: "Eggetarian — Regular Indian",      tag: "eggetarian", entries: EGGETARIAN_REGULAR_PRESET, note: "~1490 kcal · ~80g protein" },
+  non_veg_regular:          { label: "Non-veg — Regular Indian",         tag: "non_veg",    entries: NON_VEG_REGULAR_PRESET, note: "~1335 kcal · ~127g protein" },
 }
 
 // ── Eating out database ────────────────────────────────────────────────────────
