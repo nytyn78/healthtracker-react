@@ -183,45 +183,201 @@ function TaskBubble({ icon, line1, line2, done, onTap }: {
 }
 
 // ── Meal Card ─────────────────────────────────────────────────────────────────
-function MealCard({ meal, index, onLog }: { meal: StoredMeal; index: number; onLog: () => void }) {
+// Users can adjust per-ingredient quantities and see live macro recalculation.
+//
+// Ingredient string formats handled:
+//   "3 whole eggs"          → qty=3, unit="",    rest="whole eggs"
+//   "80g paneer — crumbled" → qty=80, unit="g",  rest="paneer — crumbled"
+//   "2 tsp ghee"            → qty=2, unit="tsp", rest="ghee"
+//   "1 scoop whey"          → qty=1, unit="scoop", rest="whey"
+
+type ParsedIngredient = {
+  raw: string      // original display string
+  qty: number      // base numeric quantity (0 = unparseable, show as-is)
+  unit: string     // "g" | "tsp" | "tbsp" | "scoop" | "ml" | ""
+  rest: string     // ingredient name + prep note
+  adjQty: number   // user-adjusted quantity
+}
+
+function parseIngredient(raw: string): ParsedIngredient {
+  const match = raw.match(/^(\d+(?:\.\d+)?)\s*(g|tsp|tbsp|scoop|ml|kg)?\s*(.*)$/)
+  if (match) {
+    const qty  = parseFloat(match[1])
+    const unit = match[2] ?? ""
+    const rest = match[3].trim()
+    return { raw, qty, unit, rest, adjQty: qty }
+  }
+  return { raw, qty: 0, unit: "", rest: raw, adjQty: 0 }
+}
+
+function formatAdjusted(ing: ParsedIngredient): string {
+  if (ing.qty === 0) return ing.raw
+  const num = (ing.unit === "g" || ing.unit === "ml" || ing.unit === "kg")
+    ? Math.round(ing.adjQty)
+    : +ing.adjQty.toFixed(1)
+  return `${num}${ing.unit ? ing.unit + " " : " "}${ing.rest}`
+}
+
+function stepFor(unit: string): number {
+  if (unit === "g" || unit === "ml") return 10
+  if (unit === "tsp" || unit === "tbsp") return 0.5
+  if (unit === "scoop") return 0.5
+  return 1
+}
+
+function MealCard({ meal, index, onLog }: { meal: StoredMeal; index: number; onLog: (scaleFactor: number) => void }) {
   const [open, setOpen] = useState(false)
+
+  const [ingredients, setIngredients] = useState<ParsedIngredient[]>(() =>
+    meal.ingredients.map(ing => parseIngredient(ing.en || String(ing)))
+  )
+
+  const adjustableCount = ingredients.filter(i => i.qty > 0).length
+  const scaleFactor = adjustableCount === 0 ? 1 :
+    ingredients.filter(i => i.qty > 0).reduce((sum, i) => sum + i.adjQty / i.qty, 0) / adjustableCount
+
+  const scaled = {
+    protein: +(meal.protein * scaleFactor).toFixed(1),
+    carbs:   +(meal.carbs   * scaleFactor).toFixed(1),
+    fat:     +(meal.fat     * scaleFactor).toFixed(1),
+    cal:     Math.round(meal.cal * scaleFactor),
+  }
+
+  const macrosChanged = Math.abs(scaleFactor - 1) > 0.01
+
+  function adjustQty(idx: number, delta: number) {
+    setIngredients(prev => prev.map((ing, i) => {
+      if (i !== idx || ing.qty === 0) return ing
+      const step = stepFor(ing.unit)
+      const min  = (ing.unit === "g" || ing.unit === "ml") ? 10 : 0.5
+      const newQ = Math.max(min, +(ing.adjQty + delta * step).toFixed(2))
+      return { ...ing, adjQty: newQ }
+    }))
+  }
+
+  function resetQty(idx: number) {
+    setIngredients(prev => prev.map((ing, i) =>
+      i === idx ? { ...ing, adjQty: ing.qty } : ing
+    ))
+  }
+
+  function resetAll() {
+    setIngredients(prev => prev.map(ing => ({ ...ing, adjQty: ing.qty })))
+  }
+
   return (
     <div className="border border-gray-100 rounded-xl overflow-hidden mb-3">
+
+      {/* ── Header ── */}
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex justify-between items-start p-3 bg-white text-left"
       >
-        <div>
+        <div className="flex-1 min-w-0">
           <div className="text-xs font-bold text-teal-700 mb-0.5">Meal {index + 1} · {meal.time}</div>
           <div className="text-sm font-semibold text-gray-800 leading-tight">{meal.name}</div>
-          <div className="text-xs text-gray-500 mt-1">
-            P {meal.protein}g · C {meal.carbs}g · F {meal.fat}g · {meal.cal} kcal
+          <div className="text-xs text-gray-500 mt-1 flex flex-wrap gap-x-2">
+            <span className={macrosChanged ? "text-blue-600 font-semibold" : ""}>P {scaled.protein}g</span>
+            <span>·</span>
+            <span className={macrosChanged ? "text-green-600 font-semibold" : ""}>C {scaled.carbs}g</span>
+            <span>·</span>
+            <span className={macrosChanged ? "text-amber-600 font-semibold" : ""}>F {scaled.fat}g</span>
+            <span>·</span>
+            <span className={macrosChanged ? "font-semibold text-teal-700" : ""}>{scaled.cal} kcal</span>
+            {macrosChanged && (
+              <span className="text-[10px] text-teal-500">
+                ({scaleFactor > 1 ? "+" : ""}{Math.round((scaleFactor - 1) * 100)}%)
+              </span>
+            )}
           </div>
         </div>
-        <span className="text-gray-400 ml-2 mt-1">{open ? "▲" : "▼"}</span>
+        <span className="text-gray-400 ml-2 mt-1 shrink-0">{open ? "▲" : "▼"}</span>
       </button>
 
       {open && (
         <div className="bg-gray-50 px-3 pb-3">
-          <div className="text-xs font-semibold text-gray-600 mt-2 mb-1">Ingredients</div>
-          {meal.ingredients.map((ing, i) => (
-            <div key={i} className="text-xs text-gray-700 py-0.5 flex gap-2">
-              <span className="text-gray-400 shrink-0">{ing.qty}</span>
-              <span>{ing.en}</span>
-              <span className="text-gray-400 ml-auto">{ing.hi}</span>
+
+          {/* ── Ingredients with quantity controls ── */}
+          <div className="flex items-center justify-between mt-2 mb-1.5">
+            <div className="text-xs font-semibold text-gray-600">Ingredients</div>
+            {macrosChanged && (
+              <button onClick={resetAll}
+                className="text-[10px] text-gray-400 border border-gray-200 px-2 py-0.5 rounded-full">
+                Reset all
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            {ingredients.map((ing, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <span className="text-xs text-gray-700">
+                    {ing.qty > 0 ? formatAdjusted(ing) : ing.raw}
+                  </span>
+                  {/* Show Hindi label if different from English */}
+                  {meal.ingredients[i]?.hi && meal.ingredients[i].hi !== meal.ingredients[i].en && (
+                    <span className="text-[10px] text-gray-400 ml-1">{meal.ingredients[i].hi}</span>
+                  )}
+                </div>
+                {ing.qty > 0 && (
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <button onClick={() => adjustQty(i, -1)}
+                      className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-sm font-bold flex items-center justify-center">
+                      −
+                    </button>
+                    <button onClick={() => resetQty(i)}
+                      className={`text-[9px] px-1 py-0.5 rounded font-mono min-w-[32px] text-center
+                        ${Math.abs(ing.adjQty - ing.qty) > 0.01
+                          ? "text-teal-700 font-bold bg-teal-50"
+                          : "text-gray-400"}`}>
+                      {(ing.unit === "g" || ing.unit === "ml")
+                        ? `${Math.round(ing.adjQty)}${ing.unit}`
+                        : `${+ing.adjQty.toFixed(1)}${ing.unit}`}
+                    </button>
+                    <button onClick={() => adjustQty(i, +1)}
+                      className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-sm font-bold flex items-center justify-center">
+                      +
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* ── Live macro preview when adjusted ── */}
+          {macrosChanged && (
+            <div className="mt-3 bg-teal-50 border border-teal-100 rounded-xl p-2.5">
+              <div className="text-[10px] font-semibold text-teal-700 mb-1.5">Adjusted macros</div>
+              <div className="flex justify-around text-center">
+                {[
+                  { label: "Protein", val: scaled.protein, unit: "g", color: "text-blue-600" },
+                  { label: "Carbs",   val: scaled.carbs,   unit: "g", color: "text-green-600" },
+                  { label: "Fat",     val: scaled.fat,     unit: "g", color: "text-amber-600" },
+                  { label: "Cals",    val: scaled.cal,     unit: "",  color: "text-teal-700"  },
+                ].map(m => (
+                  <div key={m.label}>
+                    <div className={`text-sm font-bold ${m.color}`}>{m.val}{m.unit}</div>
+                    <div className="text-[9px] text-gray-400">{m.label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
+          )}
+
+          {/* ── Steps ── */}
           <div className="text-xs font-semibold text-gray-600 mt-3 mb-1">Steps</div>
           {meal.steps.map((s, i) => (
             <div key={i} className="text-xs text-gray-700 py-0.5">
               <span className="text-teal-600 font-bold mr-1">{i + 1}.</span>{s.en}
             </div>
           ))}
+
           <button
-            onClick={onLog}
+            onClick={() => onLog(scaleFactor)}
             className="mt-3 w-full py-2 bg-teal-600 text-white rounded-lg text-xs font-bold"
           >
-            + Log This Meal
+            + Log This Meal{macrosChanged ? ` (${scaled.cal} kcal)` : ""}
           </button>
         </div>
       )}
@@ -410,16 +566,16 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
     ;(document.getElementById("weightInput") as HTMLInputElement).value = ""
   }
 
-  function logMealFromPlan(meal: StoredMeal) {
+  function logMealFromPlan(meal: StoredMeal, scaleFactor: number = 1) {
     const existing = day.entries.find(e => e.name === meal.name)
     if (existing) return
     const entry = {
       id: `meal-${Date.now()}`,
       name: meal.name,
-      calories: meal.cal,
-      protein: meal.protein,
-      carbs: meal.carbs,
-      fat: meal.fat,
+      calories: Math.round(meal.cal     * scaleFactor),
+      protein:  +(meal.protein * scaleFactor).toFixed(1),
+      carbs:    +(meal.carbs   * scaleFactor).toFixed(1),
+      fat:      +(meal.fat     * scaleFactor).toFixed(1),
       timestamp: Date.now(),
     }
     persist({ ...day, entries: [...day.entries, entry] })
@@ -806,7 +962,7 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
                     ✓ Logged
                   </div>
                 )}
-                <MealCard meal={meal} index={i} onLog={() => logMealFromPlan(meal)} />
+                <MealCard meal={meal} index={i} onLog={(sf) => logMealFromPlan(meal, sf)} />
               </div>
             )
           })}
