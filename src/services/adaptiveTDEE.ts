@@ -135,7 +135,18 @@ const targetWeight =
   goals.targetWeightKg || Number(profile.weightKg)
 
 // Sustainable evidence-based target
-const proteinTargetG = Math.round(targetWeight * 1.6)
+// Non-veg / eggetarian: 1.6g/kg (standard athletic recommendation)
+// Vegetarian: 1.4g/kg (more achievable without supplements; user can override with whey)
+// Reference: vegetarians typically achieve 1.0-1.2g/kg from food alone in Indian eating patterns;
+// 1.4 is a stretch target that requires soya/tofu/paneer-heavy meals.
+const dietTag = (() => {
+  try {
+    const cfg = JSON.parse(localStorage.getItem("diet_config") || "{}")
+    return cfg.tag || "non_veg"
+  } catch { return "non_veg" }
+})()
+const proteinMultiplier = dietTag === "veg" ? 1.4 : 1.6
+const proteinTargetG = Math.round(targetWeight * proteinMultiplier)
 
 // Respect minimum floor for muscle preservation
 const proteinG = Math.min(

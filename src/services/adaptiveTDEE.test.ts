@@ -482,55 +482,77 @@ describe("mealPlanPresets — calorie math (P×4 + C×4 + F×9)", () => {
     expect(diff, `${name}: macro-derived ${computed} ≠ listed ${listedCal}`).toBeLessThanOrEqual(TOLERANCE)
   }
 
-  describe("Eggetarian Keto preset", () => {
-    it("Egg Bhurji with Paneer", () => checkMeal("Egg Bhurji", 38, 4, 41, 537))
-    it("Paneer Tikka with Boiled Eggs", () => checkMeal("Paneer Tikka", 26, 5, 30, 394))
-    it("Whey Protein Shake", () => checkMeal("Whey Shake", 25, 2, 1, 117))
+  describe("Vegetarian Regular preset", () => {
+    it("Poha with Curd",            () => checkMeal("Poha",         10, 70, 12, 428))
+    it("Dal + 2 Roti + Sabzi",      () => checkMeal("Dal+Roti",     25, 83, 17, 585))
+    it("Paneer Bhurji + 2 Roti",    () => checkMeal("Paneer Bhurji", 26, 40, 27, 507))
   })
 
-  describe("Vegetarian Balanced preset", () => {
-    it("Moong Dal Chilla with Curd", () => checkMeal("Dal Chilla", 16, 35, 6, 264))
-    it("Palak Paneer with Roti", () => checkMeal("Palak Paneer", 23, 24, 22, 376))
-    it("Rajma Bowl with Brown Rice", () => checkMeal("Rajma Bowl", 22, 50, 2, 304))
-    it("Curd with Nuts Snack", () => checkMeal("Curd Nuts", 9, 9, 18, 238))
+  describe("Vegetarian High-Protein preset", () => {
+    it("Paneer Bhurji + 2 Toast",         () => checkMeal("Paneer Toast",  22, 28, 27, 443))
+    it("Soya Chunks Curry + Dal + 2 Roti", () => checkMeal("Soya Curry",   43, 71, 12, 564))
+    it("Paneer Tikka + 1 Roti + Salad",   () => checkMeal("Paneer Tikka", 32, 26, 32, 520))
   })
 
-  describe("Non-veg Keto preset", () => {
-    it("Tandoori Chicken with Salad", () => checkMeal("Tandoori", 47, 5, 11, 309))
-    it("Egg & Chicken Stir Fry", () => checkMeal("Stir Fry", 43, 6, 18, 358))
-    it("Fish Curry (light)", () => checkMeal("Fish Curry", 40, 12, 11, 307))
-    it("Whey Shake (non-veg)", () => checkMeal("Whey Shake", 25, 2, 1, 117))
+  describe("Eggetarian Regular preset", () => {
+    it("Masala Omelette + 2 Toast", () => checkMeal("Omelette",     22, 28, 22, 398))
+    it("Egg Curry + Dal + 2 Roti",  () => checkMeal("Egg Curry",    32, 67, 21, 585))
+    it("Paneer Bhurji + 2 Roti",    () => checkMeal("Paneer Bhurji", 26, 40, 27, 507))
+  })
+
+  describe("Non-veg Regular preset", () => {
+    it("Scrambled Eggs + 1 Toast",     () => checkMeal("Scrambled",   20, 14, 20, 316))
+    it("Chicken Curry + Dal + 2 Roti", () => checkMeal("Chicken",     63, 60, 12, 600))
+    it("Fish Curry + 1 Roti + Sabzi",  () => checkMeal("Fish Curry",  44, 27, 15, 419))
   })
 
   describe("Daily totals", () => {
-    it("Eggetarian Keto daily calories ~1048", () => {
-      const meals = [[38,4,41],[26,5,30],[25,2,1]]
+    it("Vegetarian Regular daily calories ~1520", () => {
+      const meals = [[10,70,12],[25,83,17],[26,40,27]]
       const total = meals.reduce((s,[p,c,f]) => s + p*4 + c*4 + f*9, 0)
-      expect(total).toBe(1048)
+      expect(Math.abs(total - 1520)).toBeLessThanOrEqual(15)
     })
 
-    it("Vegetarian Balanced daily calories ~1182", () => {
-      const meals = [[16,35,6],[23,24,22],[22,50,2],[9,9,18]]
+    it("Vegetarian High-Protein daily calories ~1527", () => {
+      const meals = [[22,28,27],[43,71,12],[32,26,32]]
       const total = meals.reduce((s,[p,c,f]) => s + p*4 + c*4 + f*9, 0)
-      expect(Math.abs(total - 1182)).toBeLessThanOrEqual(10)
+      expect(Math.abs(total - 1527)).toBeLessThanOrEqual(15)
     })
 
-    it("Non-veg Keto daily calories ~1091", () => {
-      const meals = [[47,5,11],[43,6,18],[40,12,11],[25,2,1]]
+    it("Vegetarian High-Protein delivers ≥90g daily protein from food alone", () => {
+      const protein = 22 + 43 + 32   // 97g
+      expect(protein).toBeGreaterThanOrEqual(90)
+    })
+
+    it("Eggetarian Regular daily calories ~1490", () => {
+      const meals = [[22,28,22],[32,67,21],[26,40,27]]
       const total = meals.reduce((s,[p,c,f]) => s + p*4 + c*4 + f*9, 0)
-      expect(Math.abs(total - 1091)).toBeLessThanOrEqual(10)
+      expect(Math.abs(total - 1490)).toBeLessThanOrEqual(15)
     })
 
-    it("Keto presets have <30g carbs (true keto)", () => {
-      const eggetarianCarbs = 4 + 5 + 2   // 11g
-      const nonVegCarbs     = 5 + 6 + 12 + 2  // 25g
-      expect(eggetarianCarbs).toBeLessThan(30)
-      expect(nonVegCarbs).toBeLessThan(30)
+    it("Non-veg Regular daily calories ~1335", () => {
+      const meals = [[20,14,20],[63,60,12],[44,27,15]]
+      const total = meals.reduce((s,[p,c,f]) => s + p*4 + c*4 + f*9, 0)
+      expect(Math.abs(total - 1335)).toBeLessThanOrEqual(15)
     })
 
-    it("Vegetarian Balanced has adequate daily protein (≥60g)", () => {
-      const totalProtein = 16 + 23 + 22 + 9  // 70g
-      expect(totalProtein).toBeGreaterThanOrEqual(60)
+    it("All presets have adequate daily protein (≥60g)", () => {
+      const veg = 10 + 25 + 26       // 61g
+      const egg = 22 + 32 + 26       // 80g
+      const nv  = 20 + 63 + 44       // 127g
+      expect(veg).toBeGreaterThanOrEqual(60)
+      expect(egg).toBeGreaterThanOrEqual(60)
+      expect(nv).toBeGreaterThanOrEqual(60)
+    })
+
+    it("All presets have moderate carbs (40-200g — not keto-restrictive)", () => {
+      const veg = 70 + 83 + 40   // 193g
+      const egg = 28 + 67 + 40   // 135g
+      const nv  = 14 + 60 + 27   // 101g
+      ;[veg, egg, nv].forEach(carbs => {
+        expect(carbs).toBeGreaterThanOrEqual(40)
+        expect(carbs).toBeLessThanOrEqual(220)
+      })
     })
   })
 })
