@@ -4,6 +4,8 @@ import { useHealthStore } from "../store/useHealthStore"
 import { loadDayData, saveDayData, DayData, loadHistory, saveHistory, loadMedications, loadTaskConfig, loadWaterTarget } from "../store/useHealthStore"
 import { getTopNudge } from "../services/nudgeEngine"
 import SetupChip from "./SetupChip"
+import NextActionCard from "./NextActionCard"
+import MacroExplainer from "./MacroExplainer"
 import { isInBreakPeriod } from "../store/useHealthStore"
 import { computeMacros } from "../services/adaptiveTDEE"
 import { getISTDate } from "../utils/dateHelpers"
@@ -88,7 +90,7 @@ function Section({ id, title, badge, defaultOpen = true, forceOpen = false, chil
   const isOpen = forceOpen || open
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm mb-3 overflow-hidden">
+    <div id={`card-${id}`} className="bg-white rounded-2xl shadow-sm mb-3 overflow-hidden">
       <button
         onClick={() => !forceOpen && setOpen(!open)}
         className="w-full flex items-center justify-between px-4 py-3 text-left"
@@ -740,6 +742,22 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
 
         {/* Setup Chip */}
         <SetupChip onNavigate={onNavigate} />
+
+        {/* Next Action — single high-priority "do this now" suggestion */}
+        {!activeBreak && (
+          <NextActionCard
+            day={day}
+            meds={medications}
+            tgt={tgt}
+            tots={tots}
+            waterTarget={waterTarget}
+            onNavigate={onNavigate}
+            onScrollTo={scrollTo}
+          />
+        )}
+
+        {/* Macro Explainer — tap any number to see how it's calculated */}
+        {!activeBreak && <MacroExplainer />}
 
         {/* Break Period Banner */}
         {activeBreak && (
