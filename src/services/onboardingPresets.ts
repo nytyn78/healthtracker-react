@@ -83,9 +83,9 @@ export function getWorkoutPlanForLevel(level: FitnessLevel): WorkoutPlan {
 }
 
 export function getMealPresetForDiet(tag: DietTag, isKeto: boolean): MealPlanEntry[] {
-  if (tag === "non_veg")    return PRESETS.non_veg_keto.entries
-  if (tag === "eggetarian") return PRESETS.eggetarian_keto.entries
-  return PRESETS.vegetarian_balanced.entries
+  if (tag === "non_veg")    return PRESETS.non_veg_regular.entries
+  if (tag === "eggetarian") return PRESETS.eggetarian_regular.entries
+  return PRESETS.vegetarian_regular.entries
 }
 
 export function getIFSettingsForStyle(style: EatingStyle) {
