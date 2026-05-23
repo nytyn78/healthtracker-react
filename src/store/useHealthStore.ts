@@ -187,6 +187,9 @@ export const useHealthStore = create<HealthState>((set, get) => ({
     persist(n); return n
   }),
 }))
+export function bumpSettingsVersion() {
+  useHealthStore.getState().bumpSettingsVersion()
+}
 
 // ── Day log types ─────────────────────────────────────────────────────────────
 export type DayData = {
