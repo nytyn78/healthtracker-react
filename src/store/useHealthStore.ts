@@ -656,8 +656,8 @@ export function getSetupCompleteness(): { items: SetupItem[]; pct: number; level
   let profile: any = {}, goals: any = {}
   try {
     const store = JSON.parse(localStorage.getItem(KEYS.MAIN_STORE) || "{}")
-    profile = store?.state?.profile || {}
-    goals   = store?.state?.goals   || {}
+    profile = store?.profile || {}
+goals   = store?.goals   || {}
   } catch {}
 
   const meds  = loadMedications()
