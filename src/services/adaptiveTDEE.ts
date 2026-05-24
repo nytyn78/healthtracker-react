@@ -247,7 +247,31 @@ export function computeMacros(
   // ── Step 1: Resolve mode ───────────────────────────────────────────────────
   // From this point on, macroMode is the only source of truth.
   // All macro logic below is isolated per mode — nothing shared globally.
-  const macroMode = resolveMacroMode(settings.macroSplit)
+  let macroMode = resolveMacroMode(settings.macroSplit)
+
+  // ── Step 1b: Medical context safety clamps ────────────────────────────────
+  // Silently override unsafe modes for users who declared conditions during
+  // onboarding. The user's macroSplit preference is preserved in storage;
+  // only the *resolved* mode is changed for the calculation.
+  //
+  // CKD: high-protein modes contraindicated (1.6+ g/kg accelerates decline).
+  // ED history: aggressive deficits / cut-style macros can trigger relapse.
+  // Diabetes: keto can interact dangerously with insulin/sulfonylureas
+  //   without medical supervision — soften to LOW_CARB instead.
+  const mc = profile.medicalContext
+  if (mc?.hasCKD) {
+    if (macroMode === "HIGH_PROTEIN_CUT" || macroMode === "RECOMPOSITION") {
+      macroMode = "LOW_CARB"
+    }
+  }
+  if (mc?.hasEDHistory) {
+    macroMode = "BALANCED"
+  }
+  if (mc?.hasDiabetes) {
+    if (macroMode === "KETO" || macroMode === "VERY_LOW_CARB") {
+      macroMode = "LOW_CARB"
+    }
+  }
 
   // ── Step 2: Clamp calories to mode-specific floor ──────────────────────────
   const targetCalories = Math.max(rawTargetCalories, CALORIE_FLOOR[macroMode])
