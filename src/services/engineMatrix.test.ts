@@ -21,10 +21,10 @@ import { join, dirname } from "path"
 import { fileURLToPath } from "url"
 import {
   calcBMR, calcTDEE, calcTargetCalories, computeMacros,
-} from "../adaptiveTDEE"
-import { getMacroWarnings, type MacroWarning } from "../macroWarnings"
-import type { UserProfile, UserGoals, AppSettings, MedicalContext } from "../../store/useHealthStore"
-import type { GoalMode } from "../goalModeConfig"
+} from "./adaptiveTDEE"
+import { getMacroWarnings, type MacroWarning } from "./macroWarnings"
+import type { UserProfile, UserGoals, AppSettings, MedicalContext } from "../store/useHealthStore"
+import type { GoalMode } from "./goalModeConfig"
 
 // ── Scenario types ───────────────────────────────────────────────────────────
 
