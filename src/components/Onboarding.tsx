@@ -192,7 +192,7 @@ function suggestModeForAge(age: number, currentGoal: GoalMode): GoalMode | null 
     return "teen_early"
   }
   if (age >= 17 && age <= 19 && currentGoal === "fat_loss") return "teen_older"
-  if (age >= 65 && (currentGoal === "fat_loss" || currentGoal === "recomposition") && currentGoal !== "geriatric") {
+  if (age >= 65 && (currentGoal === "fat_loss" || currentGoal === "recomposition")) {
     return "geriatric"
   }
   return null
