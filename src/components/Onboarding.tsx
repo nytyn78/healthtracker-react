@@ -183,6 +183,28 @@ function ConditionCheckbox({
   )
 }
 
+// ── Age-based goal suggestions ────────────────────────────────────────────────
+// Suggests a more appropriate mode when the user's age doesn't match their goal.
+// Suggestion only — not a forced redirect (forcing kills onboarding completion).
+function suggestModeForAge(age: number, currentGoal: GoalMode): GoalMode | null {
+  if (age < 13 && currentGoal !== "child") return "child"
+  if (age >= 13 && age <= 16 && (currentGoal === "fat_loss" || currentGoal === "recomposition" || currentGoal === "maintenance")) {
+    return "teen_early"
+  }
+  if (age >= 17 && age <= 19 && currentGoal === "fat_loss") return "teen_older"
+  if (age >= 65 && (currentGoal === "fat_loss" || currentGoal === "recomposition") && currentGoal !== "geriatric") {
+    return "geriatric"
+  }
+  return null
+}
+
+const GOAL_MODE_LABELS_SHORT: Partial<Record<GoalMode, string>> = {
+  child:       "Healthy Growth (under 13)",
+  teen_early:  "Early Teen (13–16)",
+  teen_older:  "Older Teen (17–19)",
+  geriatric:   "Healthy Ageing (60+)",
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function Onboarding({ onComplete }: { onComplete: () => void }) {
@@ -433,6 +455,29 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
         </div>
       </div>
 
+      {/* Age-based goal suggestion */}
+      {(() => {
+        if (profile.age === "" || !profile.age) return null
+        const suggested = suggestModeForAge(Number(profile.age), goalMode)
+        if (!suggested) return null
+        const suggestedLabel = GOAL_MODE_LABELS_SHORT[suggested]
+          ?? GOAL_MODE_INFO[suggested]?.label
+          ?? suggested
+        return (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
+            <p className="text-xs text-amber-800 leading-snug mb-2">
+              <span className="font-bold">Heads up:</span> at age {profile.age}, the{" "}
+              <span className="font-semibold">{suggestedLabel}</span> mode might fit better than your
+              current selection. It uses safer, age-appropriate nutrition targets.
+            </p>
+            <button onClick={() => setGoal(suggested)}
+              className="text-xs font-bold text-amber-900 underline">
+              Switch to {suggestedLabel} →
+            </button>
+          </div>
+        )
+      })()}
+
       <div className="mb-4">
         <label className="text-xs font-bold text-gray-500 block mb-1">How active are you day-to-day?</label>
         <select className={inputCls} value={profile.activityLevel ?? "moderately_active"}
@@ -561,12 +606,22 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
         )}
       </div>
 
-      {/* Mandatory disclaimer for special modes */}
+      {/* Universal disclaimer — shown to all users */}
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-3">
+        <p className="text-xs text-gray-600 leading-snug">
+          <span className="font-bold">A quick note:</span> this app helps you track food, weight, and habits.
+          It's not a substitute for advice from a doctor or registered dietitian. You can edit your
+          health context anytime from Settings.
+        </p>
+      </div>
+
+      {/* Extra disclaimer for special modes */}
       {(isMaternal || isChild) && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">
           <p className="text-xs text-amber-700 leading-snug">
-            ⚠️ This app supports nutrition tracking only. Always follow your doctor's specific guidance —
-            especially for {isChild ? "children's growth and nutrition" : "pregnancy and postpartum care"}.
+            ⚠️ Always follow your doctor's specific guidance for{" "}
+            {isChild ? "children's growth and nutrition" : "pregnancy and postpartum care"}.
+            This app's recommendations are general — your doctor's are specific.
           </p>
         </div>
       )}

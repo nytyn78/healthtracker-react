@@ -8,6 +8,7 @@ import {
   Medication, MedFrequency, BloodTest, TaskConfig, TaskId,
   loadMedications, saveMedications, loadBloodTests, saveBloodTests,
   loadTaskConfig, saveTaskConfig, loadWaterTarget, saveWaterTarget,
+  MedicalContext,
 } from "../store/useHealthStore"
 import { computeMacros, formatHour } from "../services/adaptiveTDEE"
 import GoalModeSelector from "./GoalModeSelector"
@@ -796,6 +797,89 @@ function MacroSplitSection({ macroSplit, updateMacroSplit }: {
 }
 
 // ── Main Settings Component ───────────────────────────────────────────────────
+// ── Health Context Section ────────────────────────────────────────────────────
+// Edits the medical context captured during onboarding. The macro engine reads
+// these flags to silently clamp unsafe modes (no aggressive cuts for ED history,
+// no high-protein for CKD, no keto for insulin-dependent diabetes).
+function HealthContextSection() {
+  const { profile, updateProfile } = useHealthStore()
+  const mc: MedicalContext = profile.medicalContext ?? {}
+
+  function toggle(key: "hasDiabetes" | "hasCKD" | "hasEDHistory") {
+    updateProfile({
+      medicalContext: {
+        ...mc,
+        [key]: !mc[key],
+        // Preserve acknowledgment timestamp if it exists
+        acknowledgedDisclaimer: mc.acknowledgedDisclaimer ?? true,
+        acknowledgedAt: mc.acknowledgedAt ?? Date.now(),
+      },
+    })
+  }
+
+  const hasAny = mc.hasDiabetes || mc.hasCKD || mc.hasEDHistory
+
+  return (
+    <Section title="Health Context">
+      <p className="text-xs text-gray-500 mb-3 leading-snug">
+        We use this to adjust nutrition recommendations safely.
+        This isn't shared with anyone and isn't a substitute for medical advice.
+      </p>
+
+      <HealthCheckbox
+        label="Type 1 or insulin-dependent diabetes"
+        sublabel="Switches keto modes to low-carb (safer with insulin)"
+        checked={!!mc.hasDiabetes}
+        onClick={() => toggle("hasDiabetes")}
+      />
+      <HealthCheckbox
+        label="Chronic kidney disease"
+        sublabel="Keeps protein at moderate levels (CKD-safe)"
+        checked={!!mc.hasCKD}
+        onClick={() => toggle("hasCKD")}
+      />
+      <HealthCheckbox
+        label="Eating disorder (current or recent)"
+        sublabel="Uses balanced macros, avoids aggressive cuts"
+        checked={!!mc.hasEDHistory}
+        onClick={() => toggle("hasEDHistory")}
+      />
+
+      {hasAny && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+          <p className="text-xs text-amber-800 leading-snug">
+            <span className="font-bold">Please consult your doctor</span> for personalised
+            guidance. This app makes conservative adjustments but cannot replace medical care.
+          </p>
+        </div>
+      )}
+    </Section>
+  )
+}
+
+function HealthCheckbox({ label, sublabel, checked, onClick }: {
+  label: string; sublabel: string; checked: boolean; onClick: () => void
+}) {
+  return (
+    <button onClick={onClick}
+      className={`w-full text-left p-3 rounded-lg border transition-all mb-2
+        ${checked ? "border-teal-500 bg-teal-50" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+      <div className="flex items-start gap-3">
+        <div className={`w-5 h-5 rounded border-2 shrink-0 mt-0.5 flex items-center justify-center
+          ${checked ? "bg-teal-600 border-teal-600" : "border-gray-300 bg-white"}`}>
+          {checked && <span className="text-white text-xs font-bold">✓</span>}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={`text-sm font-medium ${checked ? "text-teal-800" : "text-gray-800"}`}>
+            {label}
+          </div>
+          <div className="text-xs text-gray-500 mt-0.5 leading-snug">{sublabel}</div>
+        </div>
+      </div>
+    </button>
+  )
+}
+
 export default function Settings({ onGoalModeChange }: { onGoalModeChange?: (mode: import("../services/goalModeConfig").GoalMode) => void }) {
   const { profile, goals, settings, updateProfile, updateGoals, updateMacroSplit, updateIFProtocol } = useHealthStore()
   const macros = computeMacros(profile, goals, settings)
@@ -871,6 +955,9 @@ export default function Settings({ onGoalModeChange }: { onGoalModeChange?: (mod
           </select>
         </Field>
       </Section>
+
+      {/* ── Health Context ── */}
+      <HealthContextSection />
 
       {/* ── Macro Split ── */}
       <MacroSplitSection macroSplit={macroSplit} updateMacroSplit={updateMacroSplit} />
