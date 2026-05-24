@@ -27,7 +27,41 @@ function regression(xs: number[], ys: number[]) {
   }
 }
 
-export function computeAdaptiveTDEE(history: HistoryEntry[]): TDEEResult {
+export function computeAdaptiveTDEE(
+  history: HistoryEntry[],
+  goalMode?: GoalMode,
+): TDEEResult {
+  // ── Goal-mode awareness ──────────────────────────────────────────────────
+  // Adaptive TDEE assumes weight changes reflect fat-mass changes calibrated
+  // by 7700 kcal/kg. That assumption fails in some life stages:
+  //
+  // - Pregnancy: weight gain is fetal tissue, placenta, fluid + maternal fat.
+  //   The 7700 kcal/kg model would interpret normal pregnancy weight gain as
+  //   a calorie surplus and falsely lower the user's target.
+  //
+  // - Child / early teen: weight gain reflects growth, not surplus. Same
+  //   misinterpretation risk — could under-prescribe a growing child.
+  //
+  // In these modes we return null and let static calculation (Mifflin + goal-mode
+  // adjustments) be authoritative.
+  if (goalMode && isPregnancyMode(goalMode)) {
+    return {
+      tdee: null, slopeKgPerWeek: null, avgCalories: null,
+      confidence: "none", daysUsed: 0,
+      message: "Adaptive TDEE is paused during pregnancy — weight changes during this " +
+               "time reflect fetal growth, fluid, and tissue, not fat. Your target is " +
+               "based on Mifflin-St Jeor + pregnancy stage surplus.",
+    }
+  }
+  if (goalMode === "child" || goalMode === "teen_early") {
+    return {
+      tdee: null, slopeKgPerWeek: null, avgCalories: null,
+      confidence: "none", daysUsed: 0,
+      message: "Adaptive TDEE is disabled during growth phase — weight changes " +
+               "reflect growth, not fat. Targets are based on age-appropriate calculation.",
+    }
+  }
+
   const usable = history
     .filter(d => d.weight !== null && d.cal > 0)
     .map(d => ({ ...d, weight: d.weight as number }))
@@ -63,12 +97,22 @@ export function computeAdaptiveTDEE(history: HistoryEntry[]): TDEEResult {
     message: "TDEE estimate out of range — check calorie logging accuracy",
   }
 
+  // Breastfeeding / postpartum lactation caveat — the regression sees only
+  // food intake vs weight, but lactation burns ~500 kcal/day on top of body
+  // expenditure. The estimate is still useful for trend tracking, but the
+  // user should know the number doesn't account for milk production cost.
+  let message = "Estimated from calorie intake vs weight trend"
+  if (goalMode === "breastfeeding" || goalMode === "postpartum") {
+    message += " — note: this doesn't account for the ~400-500 kcal/day used " +
+               "to produce milk. Your body is likely using more than this estimate."
+  }
+
   return {
     tdee: Math.round(tdeeRaw),
     slopeKgPerWeek: Math.round(slope * 7 * 100) / 100,
     avgCalories: Math.round(avgCal),
     confidence, daysUsed: days,
-    message: "Estimated from calorie intake vs weight trend",
+    message,
   }
 }
 
@@ -210,6 +254,19 @@ const PROTEIN_MULTIPLIER_HIGH: Record<string, number> = {
   moderately_active: 1.7,
   very_active:       1.75,
   extra_active:      1.8,
+}
+
+// ── Child / early-teen protein multipliers ──────────────────────────────────
+// Children 4-13 years need more protein per kg than adults due to growth.
+// WHO 2007: 0.95 g/kg baseline; sports nutrition guidance 1.2-1.5 g/kg for
+// active children. We scale by activity, with a higher ceiling than the adult
+// PROTEIN_MULTIPLIER table to ensure growing bodies aren't under-fed.
+const PROTEIN_MULTIPLIER_CHILD: Record<string, number> = {
+  sedentary:         1.0,   // baseline WHO + small growth allowance
+  lightly_active:    1.1,
+  moderately_active: 1.3,
+  very_active:       1.5,   // active growing child — top of range
+  extra_active:      1.6,
 }
 
 // ── ABW protein floor ─────────────────────────────────────────────────────────
@@ -391,17 +448,18 @@ export function computeMacros(
 
   } else {
     // BALANCED MODE
-    // Protein: 1.2–1.4 g/kg, adherence-friendly. ABW floor enforced.
+    // Protein: 1.2–1.4 g/kg adult, 1.0-1.6 g/kg for children (higher per kg due to growth).
+    // ABW floor enforced.
     // Fat:     anchored at 30% of total target calories (midpoint of 25–35%).
     // Carbs:   fill remaining after protein + fat.
     //
-    // Carbs are NOT computed as a fixed percentage of total calories.
-    // Doing so would cause a calorie shortfall because protein kcal would
-    // be counted twice (once in protein, once implicitly in fat+carb percentages).
-    // Fat is anchored as a percentage because it's the most satiety-critical
-    // macro and 30% of calories is clinically meaningful regardless of protein.
-    // Carbs absorb the remainder naturally — scaling up for higher budgets.
-    const mult   = Math.min(PROTEIN_MULTIPLIER[profile.activityLevel] ?? 1.2, 1.4)
+    // Children and early teens use a separate protein multiplier table
+    // (PROTEIN_MULTIPLIER_CHILD) calibrated for growing bodies. The ABW floor
+    // still applies as a safety net.
+    const isChildMode = goalMode === "child" || goalMode === "teen_early"
+    const mult   = isChildMode
+      ? PROTEIN_MULTIPLIER_CHILD[profile.activityLevel] ?? 1.2
+      : Math.min(PROTEIN_MULTIPLIER[profile.activityLevel] ?? 1.2, 1.4)
     proteinG     = Math.max(
       Math.round(targetWeight * mult),
       Math.round(abw * ABW_PROTEIN_FLOOR_MULTIPLIER)
