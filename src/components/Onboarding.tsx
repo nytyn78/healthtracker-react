@@ -205,6 +205,41 @@ const GOAL_MODE_LABELS_SHORT: Partial<Record<GoalMode, string>> = {
   geriatric:   "Healthy Ageing (60+)",
 }
 
+function EatingModeCard({
+  modeId, title, subtitle, sampleMeals, stats, recommended, selected, onClick,
+}: {
+  modeId: string
+  title: string
+  subtitle: string
+  sampleMeals: string
+  stats: string
+  recommended: boolean
+  selected: boolean
+  onClick: () => void
+}) {
+  return (
+    <button onClick={onClick}
+      className={`w-full text-left p-4 rounded-2xl border-2 transition-all mb-3
+        ${selected ? "border-teal-500 bg-teal-50" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+      <div className="flex items-start justify-between gap-2 mb-1.5">
+        <div className={`text-sm font-bold ${selected ? "text-teal-800" : "text-gray-800"}`}>
+          {title}
+        </div>
+        {recommended && (
+          <span className="text-[10px] font-bold uppercase tracking-wide text-teal-600 bg-teal-100 rounded-full px-2 py-0.5 shrink-0">
+            Recommended
+          </span>
+        )}
+      </div>
+      <div className="text-xs text-gray-500 leading-snug mb-2">{subtitle}</div>
+      <div className="text-[11px] text-gray-600 bg-gray-50 rounded-lg p-2 leading-snug mb-2">
+        <span className="font-semibold">Sample day:</span> {sampleMeals}
+      </div>
+      <div className="text-[10px] text-gray-400 leading-snug">{stats}</div>
+    </button>
+  )
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function Onboarding({ onComplete }: { onComplete: () => void }) {
@@ -213,14 +248,19 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
   const [step, setStep]       = useState(0)
   const [goalMode, setGoal]   = useState<GoalMode>("fat_loss")
   const [showAdvanced, setShowAdvanced] = useState(false)
-  const [dietTag, setDietTag] = useState<DietTag>("eggetarian")
+  const [dietTag, setDietTag] = useState<DietTag>("veg")
   const [medicalContext, setMedicalContext] = useState<{
     hasDiabetes: boolean
     hasCKD: boolean
     hasEDHistory: boolean
   }>({ hasDiabetes: false, hasCKD: false, hasEDHistory: false })
 
-  const TOTAL_STEPS = 6
+  // User's chosen eating approach. Defaults to "balanced" — most neutral starting point.
+  // User picks freely on the new Screen 4.5; recommendation is shown but never forced.
+  type EatingMode = "balanced" | "low_carb" | "high_protein" | "keto"
+  const [eatingMode, setEatingMode] = useState<EatingMode>("balanced")
+
+  const TOTAL_STEPS = 7
   const isMaternal  = isMaternalMode(goalMode)
   const isChild     = goalMode === "child" || goalMode === "teen_early"
   const isGeriatric = goalMode === "geriatric"
@@ -242,15 +282,14 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
       },
     })
 
-    // Diet config — auto-pick a sensible diet mode based on goal
-    const autoMode =
-      goalMode === "fat_loss" ? "keto"
-      : goalMode === "recomposition" ? "high_protein"
-      : isMaternal ? "balanced"
-      : isChild ? "balanced"
-      : isGeriatric ? "high_protein"
-      : "balanced"
-    saveDietConfig({ mode: autoMode, tag: dietTag })
+    // Diet config — save the user's actual choice from the eating-approach screen.
+    // No silent inference; no override. The user's selection is authoritative.
+    saveDietConfig({ mode: eatingMode, tag: dietTag })
+
+    // Force sex to "female" for maternal modes (we already know).
+    if (isMaternal && profile.sex !== "female") {
+      updateProfile({ sex: "female" })
+    }
 
     // IF — set a sensible default for standard fat loss, skip for special modes
     if (!isMaternal && !isChild) {
@@ -280,8 +319,9 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
       saveWorkoutPlan(getWorkoutPlanForLevel(DEFAULT_FITNESS_LEVEL))
     }
 
-    // Meal plan
-    saveMealPlan(getMealPresetForDiet(dietTag, autoMode === "keto"))
+    // Meal plan — use existing preset for the user's diet tag
+    // (Mode-specific presets — low-carb/keto variants — coming in a future iteration.)
+    saveMealPlan(getMealPresetForDiet(dietTag, eatingMode === "keto"))
 
     saveOnboarding({ completed: true, step: TOTAL_STEPS, doIF: !isMaternal && !isChild })
     onComplete()
@@ -433,14 +473,17 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
             value={profile.age ?? ""}
             onChange={e => updateProfile({ age: e.target.value === "" ? "" : Number(e.target.value) })} />
         </div>
-        <div>
-          <label className="text-xs font-bold text-gray-500 block mb-1">Sex</label>
-          <select className={inputCls} value={profile.sex ?? "male"}
-            onChange={e => updateProfile({ sex: e.target.value as "male"|"female" })}>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-          </select>
-        </div>
+        {/* Maternal modes don't ask for sex — we already know */}
+        {!isMaternal && (
+          <div>
+            <label className="text-xs font-bold text-gray-500 block mb-1">Sex</label>
+            <select className={inputCls} value={profile.sex ?? "male"}
+              onChange={e => updateProfile({ sex: e.target.value as "male"|"female" })}>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+            </select>
+          </div>
+        )}
         <div>
           <label className="text-xs font-bold text-gray-500 block mb-1">Height (cm)</label>
           <input className={inputCls} type="number" placeholder="e.g. 168"
@@ -532,9 +575,8 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
 
       <div className="bg-gray-50 rounded-xl p-3 mt-1">
         <p className="text-xs text-gray-500 leading-snug">
-          <span className="font-bold">The app will suggest a starting diet style</span> based on your goal
-          ({goalMode === "fat_loss" || goalMode === "recomposition" ? "high protein, low carb" : "balanced"}).
-          You can change this anytime in Settings → Diet.
+          Next we'll help you pick how your meals are structured (balanced, low-carb, high-protein, or keto).
+          You can change this anytime in Settings.
         </p>
       </div>
 
@@ -547,14 +589,124 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
     </div>
   )
 
+  // ── SCREEN 4.5: Choose your eating approach ─────────────────────────────────
+  // The user picks how their macros are structured. Recommendations are shown
+  // but never forced. Sample meals match the selected dietary tag.
+  // Statistics drawn from DIETFITS (Gardner et al., 2018, JAMA) and the
+  // Cochrane Review (Naude et al., 2022). Treat ranges as approximate —
+  // adherence and outcomes vary substantially across individuals.
+  function getSampleMeals(mode: EatingMode, tag: DietTag): string {
+    const samples: Record<EatingMode, Record<DietTag, string>> = {
+      balanced: {
+        veg:        "Poha · Dal + 2 roti + sabzi · Paneer curry + roti + salad",
+        eggetarian: "Egg + 2 toast · Dal + 2 roti + sabzi · Egg curry + roti + salad",
+        non_veg:    "Eggs + toast · Chicken curry + 1 roti + dal · Fish curry + roti + sabzi",
+      },
+      low_carb: {
+        veg:        "Greek yogurt + nuts · Paneer bhurji + 1 roti + sabzi · Tofu stir-fry + salad",
+        eggetarian: "3-egg omelette · Paneer + 1 roti + dal · Egg bhurji + salad + paneer",
+        non_veg:    "Eggs + cheese · Grilled chicken + salad · Fish + sautéed veg",
+      },
+      high_protein: {
+        veg:        "Greek yogurt + whey · Paneer tikka + 1 roti + dal · Soya curry + 1 roti + salad",
+        eggetarian: "4-egg whites + 2 yolks + toast · Paneer + dal + roti · Whey shake + paneer salad",
+        non_veg:    "Whey + 3 eggs · Chicken breast + 1 roti + dal · Fish + paneer + salad",
+      },
+      keto: {
+        veg:        "Coffee + butter · Paneer + avocado + leafy greens · Cheese + nuts + sautéed sabzi",
+        eggetarian: "3 eggs in ghee · Paneer + spinach + cream · Eggs + cheese + leafy salad",
+        non_veg:    "Bacon + eggs · Grilled chicken thigh + cheese + greens · Fatty fish + sautéed veg",
+      },
+    }
+    return samples[mode][tag]
+  }
+
+  // Recommendation: balanced for most users. The cards still let them pick anything.
+  // (Recomposition users see "high_protein" recommended; aggressive cuts see "low_carb".)
+  const recommendedMode: EatingMode =
+    goalMode === "recomposition" ? "high_protein" : "balanced"
+
+  const screen4_5 = (
+    <div>
+      <h2 className="text-xl font-bold text-gray-900 mb-1">How do you want your meals structured?</h2>
+      <p className="text-sm text-gray-400 mb-4 leading-snug">
+        All four can work for fat loss. The best one is the one you can stick with.
+        You can change this anytime.
+      </p>
+
+      <EatingModeCard
+        modeId="balanced"
+        title="🍽 Balanced"
+        subtitle="Moderate carbs, fats, and protein. Most flexible socially. Suits Indian cuisine well."
+        sampleMeals={getSampleMeals("balanced", dietTag)}
+        stats="DIETFITS 2018: ~5.3 kg loss at 12 mo. Highest adherence (~70%)."
+        recommended={recommendedMode === "balanced"}
+        selected={eatingMode === "balanced"}
+        onClick={() => setEatingMode("balanced")}
+      />
+
+      <EatingModeCard
+        modeId="low_carb"
+        title="🥗 Low-carb"
+        subtitle="80–120g carbs. Reduces refined grains and sugar. Good for blood sugar management."
+        sampleMeals={getSampleMeals("low_carb", dietTag)}
+        stats="DIETFITS 2018: ~6.0 kg loss at 12 mo. Similar to balanced — adherence ~60%."
+        recommended={false}
+        selected={eatingMode === "low_carb"}
+        onClick={() => setEatingMode("low_carb")}
+      />
+
+      <EatingModeCard
+        modeId="high_protein"
+        title="💪 High-protein"
+        subtitle="1.6+ g/kg protein. Best for muscle preservation during a cut or recomp."
+        sampleMeals={getSampleMeals("high_protein", dietTag)}
+        stats="Strong evidence for muscle retention in deficit. Higher satiety per calorie."
+        recommended={recommendedMode === "high_protein"}
+        selected={eatingMode === "high_protein"}
+        onClick={() => setEatingMode("high_protein")}
+      />
+
+      <EatingModeCard
+        modeId="keto"
+        title="🥑 Keto"
+        subtitle="20–50g carbs, very high fat. Effective short-term but socially demanding."
+        sampleMeals={getSampleMeals("keto", dietTag)}
+        stats="DIETFITS 2018: ~6.0 kg loss at 6 mo. Adherence drops to ~30–45% by 12 mo."
+        recommended={false}
+        selected={eatingMode === "keto"}
+        onClick={() => setEatingMode("keto")}
+      />
+
+      <div className="bg-gray-50 rounded-xl p-3 mt-1 mb-4">
+        <p className="text-[11px] text-gray-500 leading-snug">
+          Statistics from Gardner et al., DIETFITS (JAMA, 2018) and the Cochrane Review on low-carb
+          vs balanced diets (Naude et al., 2022). Individual results vary; adherence matters more
+          than which diet you pick.
+        </p>
+      </div>
+
+      <div className="flex gap-3 mt-2">
+        <button onClick={back}
+          className="flex-1 py-3.5 bg-gray-100 text-gray-500 rounded-2xl font-bold">
+          ← Back
+        </button>
+        <button onClick={next}
+          className="flex-2 flex-grow py-3.5 bg-teal-600 text-white rounded-2xl font-bold">
+          Continue →
+        </button>
+      </div>
+    </div>
+  )
+
   // ── SCREEN 5: Preview + start ────────────────────────────────────────────────
-  const autoMode =
-    goalMode === "fat_loss" ? "Keto (high protein, very low carb)"
-    : goalMode === "recomposition" ? "High protein"
-    : isMaternal ? "Balanced (pregnancy nutrition)"
-    : isChild ? "Balanced (growth-focused)"
-    : isGeriatric ? "High protein (muscle preservation)"
-    : "Balanced"
+  // Diet label now reflects the user's chosen eating approach
+  const eatingModeLabel = ({
+    balanced:      "Balanced",
+    low_carb:      "Low-carb",
+    high_protein:  "High-protein",
+    keto:          "Keto",
+  } as const)[eatingMode]
 
   const screen5 = (
     <div>
@@ -576,7 +728,7 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
           <span className="text-xl shrink-0">🍽</span>
           <div>
             <div className="text-xs font-bold text-blue-700">Diet</div>
-            <div className="text-sm text-blue-900">{DIET_TAG_LABELS[dietTag]} · {autoMode}</div>
+            <div className="text-sm text-blue-900">{DIET_TAG_LABELS[dietTag]} · {eatingModeLabel}</div>
           </div>
         </div>
 
@@ -637,7 +789,7 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
     </div>
   )
 
-  const screens = [screen1, screen2, screen2_5, screen3, screen4, screen5]
+  const screens = [screen1, screen2, screen2_5, screen3, screen4, screen4_5, screen5]
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center overflow-y-auto">
