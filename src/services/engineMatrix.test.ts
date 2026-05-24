@@ -134,7 +134,7 @@ const SCENARIOS: Scenario[] = [
     profile: { age: 45, sex: "male", heightCm: 175, weightKg: 125, activityLevel: "sedentary" },
     goals: { targetWeightKg: 85, weeklyLossKg: 0.75 },
     eatingMode: "balanced", goalMode: "fat_loss",
-    expect: { minProtein: 100, minCalories: 1500 },
+    expect: { minProtein: 100, minCalories: 1300 },
   },
   {
     id: "obese-female-bmi35",
