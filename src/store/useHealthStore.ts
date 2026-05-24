@@ -47,6 +47,19 @@ export const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
 
 export type WeightLossRate = 0.25 | 0.5 | 0.75 | 1.0
 
+// ── Medical context ──────────────────────────────────────────────────────────
+// Captured during onboarding (one quick screen) and editable later from Settings.
+// The macro engine reads this to silently clamp unsafe modes — e.g. CKD
+// blocks HIGH_PROTEIN_CUT, ED history blocks aggressive deficits, etc.
+// All fields optional — most users will have none of these set.
+export type MedicalContext = {
+  hasDiabetes?: boolean              // Type 1 or insulin-dependent T2
+  hasCKD?: boolean                   // Chronic kidney disease stage 3+
+  hasEDHistory?: boolean             // Eating disorder, current or recent
+  acknowledgedDisclaimer?: boolean   // Saw and accepted "not medical advice"
+  acknowledgedAt?: number            // Unix ms timestamp of acknowledgment
+}
+
 export type UserProfile = {
   name: string
   age: number | ""
@@ -55,6 +68,7 @@ export type UserProfile = {
   weightKg: number | ""
   activityLevel: ActivityLevel
   bmrOverride?: number
+  medicalContext?: MedicalContext
 }
 
 export type UserGoals = {
