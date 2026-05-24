@@ -21,10 +21,10 @@ import { join, dirname } from "path"
 import { fileURLToPath } from "url"
 import {
   calcBMR, calcTDEE, calcTargetCalories, computeMacros,
-} from "./adaptiveTDEE"
-import { getMacroWarnings, type MacroWarning } from "./macroWarnings"
-import type { UserProfile, UserGoals, AppSettings, MedicalContext } from "../store/useHealthStore"
-import type { GoalMode } from "./goalModeConfig"
+} from "../adaptiveTDEE"
+import { getMacroWarnings, type MacroWarning } from "../macroWarnings"
+import type { UserProfile, UserGoals, AppSettings, MedicalContext } from "../../store/useHealthStore"
+import type { GoalMode } from "../goalModeConfig"
 
 // ── Scenario types ───────────────────────────────────────────────────────────
 
@@ -134,7 +134,7 @@ const SCENARIOS: Scenario[] = [
     profile: { age: 45, sex: "male", heightCm: 175, weightKg: 125, activityLevel: "sedentary" },
     goals: { targetWeightKg: 85, weeklyLossKg: 0.75 },
     eatingMode: "balanced", goalMode: "fat_loss",
-    expect: { minProtein: 100, minCalories: 1300 },
+    expect: { minProtein: 100, minCalories: 1500 },
   },
   {
     id: "obese-female-bmi35",
@@ -360,6 +360,32 @@ const SCENARIOS: Scenario[] = [
     medical: { hasDiabetes: true },
     expect: { mustHaveWarning: "diabetes-lowcarb", minCalories: 1800 },
   },
+  // ── 12. Regression tests for Commit 3.1 fixes ──────────────────────────
+  {
+    id: "ckd-balanced-elevated-protein",
+    label: "CKD obese patient on balanced — should warn about elevated protein",
+    profile: { age: 55, sex: "male", heightCm: 168, weightKg: 105, activityLevel: "sedentary" },
+    goals: { targetWeightKg: 80, weeklyLossKg: 0.25 },
+    eatingMode: "balanced", goalMode: "fat_loss",
+    medical: { hasCKD: true },
+    expect: { mustHaveWarning: "ckd-elevated-protein" },
+  },
+  {
+    id: "active-child-protein-bump",
+    label: "Very active 11yo — child multiplier should give ≥55g protein",
+    profile: { age: 11, sex: "male", heightCm: 145, weightKg: 38, activityLevel: "very_active" },
+    goals: { targetWeightKg: 38, weeklyLossKg: 0 as any },
+    eatingMode: "balanced", goalMode: "child",
+    expect: { minProtein: 55 },  // 38kg * 1.5 = 57g — should be at least 55
+  },
+  {
+    id: "early-teen-protein-bump",
+    label: "Moderately active 14yo — child multiplier (1.3) gives realistic protein",
+    profile: { age: 14, sex: "female", heightCm: 158, weightKg: 52, activityLevel: "moderately_active" },
+    goals: { targetWeightKg: 52, weeklyLossKg: 0 as any },
+    eatingMode: "balanced", goalMode: "teen_early",
+    expect: { minProtein: 65 },  // 52kg * 1.3 = 67g
+  },
 ]
 
 // ── Run the matrix ───────────────────────────────────────────────────────────
@@ -398,7 +424,7 @@ function runScenario(s: Scenario): ScenarioResult {
   const tdee = calcTDEE(profile)
   const target = calcTargetCalories(profile, goals, s.goalMode)
   const macros = computeMacros(profile, goals, settings, s.goalMode)
-  const warnings = getMacroWarnings(profile, settings, s.goalMode)
+  const warnings = getMacroWarnings(profile, settings, s.goalMode, macros, goals)
 
   const tw = Number(goals.targetWeightKg) || Number(profile.weightKg)
   const actualKcal = macros ? macros.proteinG * 4 + macros.carbsG * 4 + macros.fatG * 9 : null
