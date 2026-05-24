@@ -917,7 +917,7 @@ export default function Settings({ onGoalModeChange }: { onGoalModeChange?: (mod
   const { profile, goals, settings, updateProfile, updateGoals, updateMacroSplit, updateIFProtocol } = useHealthStore()
   const goalMode = loadGoalMode()
   const macros = computeMacros(profile, goals, settings, goalMode)
-  const warnings = getMacroWarnings(profile, settings, goalMode)
+  const warnings = getMacroWarnings(profile, settings, goalMode, macros, goals)
   const { macroSplit, ifProtocol } = settings
 
   const totalPct = macroSplit.fatPct + macroSplit.proteinPct + macroSplit.carbsPct
