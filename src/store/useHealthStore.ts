@@ -48,16 +48,15 @@ export const ACTIVITY_MULTIPLIERS: Record<ActivityLevel, number> = {
 export type WeightLossRate = 0.25 | 0.5 | 0.75 | 1.0
 
 // ── Medical context ──────────────────────────────────────────────────────────
-// Captured during onboarding (one quick screen) and editable later from Settings.
-// The macro engine reads this to silently clamp unsafe modes — e.g. CKD
-// blocks HIGH_PROTEIN_CUT, ED history blocks aggressive deficits, etc.
-// All fields optional — most users will have none of these set.
+// Captured during onboarding and editable later from Settings → Health Context.
+// The engine reads this to surface relevant scientific caveats, but never to
+// silently override user choices — see services/macroWarnings.ts.
 export type MedicalContext = {
   hasDiabetes?: boolean              // Type 1 or insulin-dependent T2
   hasCKD?: boolean                   // Chronic kidney disease stage 3+
   hasEDHistory?: boolean             // Eating disorder, current or recent
-  acknowledgedDisclaimer?: boolean   // Saw and accepted "not medical advice"
-  acknowledgedAt?: number            // Unix ms timestamp of acknowledgment
+  acknowledgedDisclaimer?: boolean
+  acknowledgedAt?: number            // Unix ms timestamp
 }
 
 export type UserProfile = {
@@ -500,8 +499,8 @@ export const DIET_TAG_LABELS: Record<DietTag, string> = {
 export function loadDietConfig(): { mode: DietMode; tag: DietTag } {
   try {
     const raw = localStorage.getItem(KEYS.DIET_CONFIG)
-    return raw ? JSON.parse(raw) : { mode: "keto", tag: "eggetarian" }
-  } catch { return { mode: "keto", tag: "eggetarian" } }
+    return raw ? JSON.parse(raw) : { mode: "balanced", tag: "veg" }
+  } catch { return { mode: "balanced", tag: "veg" } }
 }
 
 export function saveDietConfig(config: { mode: DietMode; tag: DietTag }) {
