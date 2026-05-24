@@ -158,6 +158,31 @@ function DietCard({
   )
 }
 
+function ConditionCheckbox({
+  label, sublabel, checked, onClick,
+}: {
+  label: string; sublabel: string; checked: boolean; onClick: () => void
+}) {
+  return (
+    <button onClick={onClick}
+      className={`w-full text-left p-3.5 rounded-2xl border-2 transition-all mb-2.5
+        ${checked ? "border-teal-500 bg-teal-50" : "border-gray-200 bg-white hover:border-gray-300"}`}>
+      <div className="flex items-start gap-3">
+        <div className={`w-5 h-5 rounded-md border-2 shrink-0 mt-0.5 flex items-center justify-center
+          ${checked ? "bg-teal-600 border-teal-600" : "border-gray-300 bg-white"}`}>
+          {checked && <span className="text-white text-xs font-bold">✓</span>}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className={`text-sm font-bold ${checked ? "text-teal-800" : "text-gray-800"}`}>
+            {label}
+          </div>
+          <div className="text-xs text-gray-400 mt-0.5 leading-snug">{sublabel}</div>
+        </div>
+      </div>
+    </button>
+  )
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 export default function Onboarding({ onComplete }: { onComplete: () => void }) {
@@ -167,8 +192,13 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
   const [goalMode, setGoal]   = useState<GoalMode>("fat_loss")
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [dietTag, setDietTag] = useState<DietTag>("eggetarian")
+  const [medicalContext, setMedicalContext] = useState<{
+    hasDiabetes: boolean
+    hasCKD: boolean
+    hasEDHistory: boolean
+  }>({ hasDiabetes: false, hasCKD: false, hasEDHistory: false })
 
-  const TOTAL_STEPS = 5
+  const TOTAL_STEPS = 6
   const isMaternal  = isMaternalMode(goalMode)
   const isChild     = goalMode === "child" || goalMode === "teen_early"
   const isGeriatric = goalMode === "geriatric"
@@ -180,6 +210,15 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
   function complete() {
     // Save goal mode
     saveGoalMode(goalMode)
+
+    // Persist medical context + disclaimer acknowledgment
+    updateProfile({
+      medicalContext: {
+        ...medicalContext,
+        acknowledgedDisclaimer: true,
+        acknowledgedAt: Date.now(),
+      },
+    })
 
     // Diet config — auto-pick a sensible diet mode based on goal
     const autoMode =
@@ -294,6 +333,66 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
         <button onClick={back} className="flex-1 py-3.5 bg-gray-100 text-gray-500 rounded-2xl font-bold">← Back</button>
         <button onClick={next} className="flex-2 flex-grow py-3.5 bg-teal-600 text-white rounded-2xl font-bold">
           Continue →
+        </button>
+      </div>
+    </div>
+  )
+
+  // ── SCREEN 2.5: Health context ───────────────────────────────────────────────
+  // Lightweight screening. Most users tick "none" in 2 seconds.
+  // If they tick any condition, the engine silently clamps unsafe modes later.
+  const hasAnyCondition =
+    medicalContext.hasDiabetes || medicalContext.hasCKD || medicalContext.hasEDHistory
+
+  function toggleCondition(key: "hasDiabetes" | "hasCKD" | "hasEDHistory") {
+    setMedicalContext(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const screen2_5 = (
+    <div>
+      <h2 className="text-xl font-bold text-gray-900 mb-1">Quick health check</h2>
+      <p className="text-sm text-gray-400 mb-5 leading-snug">
+        This helps us avoid recommendations that wouldn't suit you.
+        Most people skip this step.
+      </p>
+
+      <ConditionCheckbox
+        label="Type 1 or insulin-dependent diabetes"
+        sublabel="We'll avoid keto-style recommendations"
+        checked={medicalContext.hasDiabetes}
+        onClick={() => toggleCondition("hasDiabetes")}
+      />
+      <ConditionCheckbox
+        label="Chronic kidney disease"
+        sublabel="We'll keep protein at moderate levels"
+        checked={medicalContext.hasCKD}
+        onClick={() => toggleCondition("hasCKD")}
+      />
+      <ConditionCheckbox
+        label="Eating disorder (current or recent)"
+        sublabel="We'll avoid aggressive deficits and cut-style targets"
+        checked={medicalContext.hasEDHistory}
+        onClick={() => toggleCondition("hasEDHistory")}
+      />
+
+      {hasAnyCondition && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mt-2 mb-4">
+          <p className="text-xs text-amber-800 leading-snug">
+            <span className="font-bold">Please consult your doctor</span> before using
+            any nutrition app for these conditions. We'll adjust our recommendations,
+            but this isn't a substitute for medical guidance.
+          </p>
+        </div>
+      )}
+
+      <div className="flex gap-3 mt-4">
+        <button onClick={back}
+          className="flex-1 py-3.5 bg-gray-100 text-gray-500 rounded-2xl font-bold">
+          ← Back
+        </button>
+        <button onClick={next}
+          className="flex-2 flex-grow py-3.5 bg-teal-600 text-white rounded-2xl font-bold">
+          {hasAnyCondition ? "Continue →" : "None of these →"}
         </button>
       </div>
     </div>
@@ -483,7 +582,7 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
     </div>
   )
 
-  const screens = [screen1, screen2, screen3, screen4, screen5]
+  const screens = [screen1, screen2, screen2_5, screen3, screen4, screen5]
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-start justify-center overflow-y-auto">
