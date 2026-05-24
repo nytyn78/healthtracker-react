@@ -10,6 +10,8 @@ import {
   loadTaskConfig, saveTaskConfig, loadWaterTarget, saveWaterTarget,
   MedicalContext,
 } from "../store/useHealthStore"
+import { loadGoalMode } from "../services/goalModeConfig"
+import { getMacroWarnings, MacroWarning } from "../services/macroWarnings"
 import { computeMacros, formatHour } from "../services/adaptiveTDEE"
 import GoalModeSelector from "./GoalModeSelector"
 
@@ -822,25 +824,25 @@ function HealthContextSection() {
   return (
     <Section title="Health Context">
       <p className="text-xs text-gray-500 mb-3 leading-snug">
-        We use this to adjust nutrition recommendations safely.
+        We use this to show you relevant clinical caveats — it never silently changes your macros.
         This isn't shared with anyone and isn't a substitute for medical advice.
       </p>
 
       <HealthCheckbox
         label="Type 1 or insulin-dependent diabetes"
-        sublabel="Switches keto modes to low-carb (safer with insulin)"
+        sublabel="Surfaces warnings for keto / very-low-carb choices"
         checked={!!mc.hasDiabetes}
         onClick={() => toggle("hasDiabetes")}
       />
       <HealthCheckbox
         label="Chronic kidney disease"
-        sublabel="Keeps protein at moderate levels (CKD-safe)"
+        sublabel="Surfaces warnings for high-protein targets"
         checked={!!mc.hasCKD}
         onClick={() => toggle("hasCKD")}
       />
       <HealthCheckbox
         label="Eating disorder (current or recent)"
-        sublabel="Uses balanced macros, avoids aggressive cuts"
+        sublabel="Surfaces warnings for restrictive choices and tracking patterns"
         checked={!!mc.hasEDHistory}
         onClick={() => toggle("hasEDHistory")}
       />
@@ -880,9 +882,42 @@ function HealthCheckbox({ label, sublabel, checked, onClick }: {
   )
 }
 
+// ── Macro Warnings Display ───────────────────────────────────────────────────
+// Surfaces clinical caveats for the user's current diet + medical context +
+// goal-mode combination. Drawn from services/macroWarnings.ts. No silent overrides.
+function MacroWarningsDisplay({ warnings }: { warnings: MacroWarning[] }) {
+  if (warnings.length === 0) return null
+
+  const palette: Record<MacroWarning["severity"], string> = {
+    info:      "bg-blue-50 border-blue-200 text-blue-800",
+    caution:   "bg-amber-50 border-amber-200 text-amber-800",
+    important: "bg-rose-50 border-rose-200 text-rose-800",
+  }
+  const icon: Record<MacroWarning["severity"], string> = {
+    info:      "ℹ️",
+    caution:   "⚠️",
+    important: "❗",
+  }
+
+  return (
+    <Section title="Things to Know">
+      <div className="space-y-2">
+        {warnings.map(w => (
+          <div key={w.id} className={`rounded-lg border p-3 ${palette[w.severity]}`}>
+            <div className="text-sm font-bold mb-1">{icon[w.severity]} {w.title}</div>
+            <div className="text-xs leading-snug">{w.body}</div>
+          </div>
+        ))}
+      </div>
+    </Section>
+  )
+}
+
 export default function Settings({ onGoalModeChange }: { onGoalModeChange?: (mode: import("../services/goalModeConfig").GoalMode) => void }) {
   const { profile, goals, settings, updateProfile, updateGoals, updateMacroSplit, updateIFProtocol } = useHealthStore()
-  const macros = computeMacros(profile, goals, settings)
+  const goalMode = loadGoalMode()
+  const macros = computeMacros(profile, goals, settings, goalMode)
+  const warnings = getMacroWarnings(profile, settings, goalMode)
   const { macroSplit, ifProtocol } = settings
 
   const totalPct = macroSplit.fatPct + macroSplit.proteinPct + macroSplit.carbsPct
@@ -991,7 +1026,7 @@ export default function Settings({ onGoalModeChange }: { onGoalModeChange?: (mod
         <div className="mb-3">
           <label className="text-xs text-gray-500 block mb-1">BMR override (optional — from smart scale or DEXA)</label>
           <div className="flex gap-2 items-center">
-            <input type="number" placeholder={`Auto: ${computeMacros(profile, goals, settings)?.bmr ?? "—"} kcal`}
+            <input type="number" placeholder={`Auto: ${computeMacros(profile, goals, settings, goalMode)?.bmr ?? "—"} kcal`}
               className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-teal-500"
               value={profile.bmrOverride ?? ""}
               onChange={e => updateProfile({ bmrOverride: e.target.value === "" ? undefined : Number(e.target.value) })} />
@@ -1037,6 +1072,9 @@ export default function Settings({ onGoalModeChange }: { onGoalModeChange?: (mod
           </div>
         )}
       </Section>
+
+      {/* ── Macro Warnings ── */}
+      <MacroWarningsDisplay warnings={warnings} />
 
       {/* ── Goal Mode ── */}
       <GoalModeSelector onModeChange={onGoalModeChange} />
