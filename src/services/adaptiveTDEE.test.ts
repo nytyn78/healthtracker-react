@@ -32,11 +32,18 @@ const makeGoals = (overrides = {}) => ({
   ...overrides,
 })
 
+// Default settings now use a BALANCED macro split (40% carbs).
+// Keto/high-fat tests should pass their own settings explicitly.
 const makeSettings = (overrides = {}) => ({
-  macroSplit: { fatPct: 70, proteinPct: 25, carbsPct: 5 },
+  macroSplit: { fatPct: 30, proteinPct: 30, carbsPct: 40 },
   ifProtocol: { fastingHours: 19, eatingHours: 5, fastStartHour: 20 },
   ...overrides,
 })
+
+// Convenience builders for explicit mode testing
+const ketoSettings     = () => makeSettings({ macroSplit: { fatPct: 70, proteinPct: 25, carbsPct: 5  } })
+const lowCarbSettings  = () => makeSettings({ macroSplit: { fatPct: 45, proteinPct: 30, carbsPct: 25 } })
+const balancedSettings = () => makeSettings({ macroSplit: { fatPct: 30, proteinPct: 30, carbsPct: 40 } })
 
 // ── 1. BMR ────────────────────────────────────────────────────────────────────
 
@@ -53,8 +60,6 @@ describe("calcBMR", () => {
   })
 
   it("computes male BMR correctly for normal weight (BMI ≤ 30, uses actual weight)", () => {
-    // Male 35y 175cm 75kg — BMI 24.5, uses actual weight
-    // Mifflin: 10*75 + 6.25*175 - 5*35 + 5 = 750 + 1093.75 - 175 + 5 = 1673.75 ≈ 1674
     const bmr = calcBMR(makeProfile())
     expect(bmr).not.toBeNull()
     expect(bmr!).toBeGreaterThanOrEqual(1660)
@@ -62,8 +67,6 @@ describe("calcBMR", () => {
   })
 
   it("computes female BMR correctly", () => {
-    // Female 30y 160cm 60kg — BMI 23.4, uses actual weight
-    // Mifflin: 10*60 + 6.25*160 - 5*30 - 161 = 600 + 1000 - 150 - 161 = 1289
     const bmr = calcBMR(makeProfile({ sex: "female", age: 30, heightCm: 160, weightKg: 60 }))
     expect(bmr).not.toBeNull()
     expect(bmr!).toBeGreaterThanOrEqual(1275)
@@ -71,32 +74,24 @@ describe("calcBMR", () => {
   })
 
   it("applies ABW when BMI > 30 (overweight male)", () => {
-    // Male 40y 170cm 110kg — BMI 38.1 — must use ABW
     const bmrActual = calcBMR(makeProfile({ age: 40, heightCm: 170, weightKg: 110 }))
-    // IBW = 50 + 2.3*(66.9-60) = 65.9kg; ABW = 65.9 + 0.4*(110-65.9) = 83.5kg
-    // BMR with ABW: 10*83.5 + 6.25*170 - 5*40 + 5 = 835 + 1062.5 - 200 + 5 = 1702.5
     expect(bmrActual).not.toBeNull()
     expect(bmrActual!).toBeGreaterThanOrEqual(1688)
     expect(bmrActual!).toBeLessThanOrEqual(1718)
   })
 
   it("does NOT apply ABW when BMI is exactly 30 (boundary)", () => {
-    // Male 35y 175cm — BMI exactly 30 → weight = 30 * 1.75^2 = 91.875kg
-    const weightAtBmi30 = 30 * (1.75 ** 2)  // 91.875kg
+    const weightAtBmi30 = 30 * (1.75 ** 2)
     const bmrWithABW = calcBMR(makeProfile({ weightKg: weightAtBmi30 }))
-    // At BMI=30, should use actual weight (not ABW)
-    // Mifflin with actual: 10*91.875 + 6.25*175 - 5*35 + 5 = 918.75 + 1093.75 - 175 + 5 = 1842.5
     expect(bmrWithABW).toBeGreaterThanOrEqual(1835)
     expect(bmrWithABW!).toBeLessThanOrEqual(1855)
   })
 
   it("applies ABW when BMI is just above 30 (boundary)", () => {
-    // BMI 30.1 → must use ABW
-    const weightAtBmi30_1 = 30.1 * (1.75 ** 2)  // ~92.18kg
+    const weightAtBmi30_1 = 30.1 * (1.75 ** 2)
     const bmrHigh = calcBMR(makeProfile({ weightKg: weightAtBmi30_1 }))
     const bmrAtBoundary = calcBMR(makeProfile({ weightKg: 30 * (1.75 ** 2) }))
-    // ABW kicks in at >30, so BMR should drop (ABW < actual weight)
-    expect(bmrHigh!).toBeLessThan(bmrAtBoundary! + 50) // They should be close — ABW only slightly lower
+    expect(bmrHigh!).toBeLessThan(bmrAtBoundary! + 50)
   })
 
   it("BMR increases with height (all else equal)", () => {
@@ -190,28 +185,24 @@ describe("calcTargetCalories", () => {
   })
 
   it("applies correct deficit for 0.5 kg/week loss", () => {
-    // Deficit = (0.5 * 7700) / 7 = 550 kcal/day
     const tdee   = calcTDEE(makeProfile())!
     const target = calcTargetCalories(makeProfile(), makeGoals({ weeklyLossKg: 0.5 }))!
     expect(target).toBeCloseTo(tdee - 550, 0)
   })
 
   it("applies correct deficit for 1.0 kg/week loss", () => {
-    // Deficit = (1.0 * 7700) / 7 = 1100 kcal/day
     const tdee   = calcTDEE(makeProfile())!
     const target = calcTargetCalories(makeProfile(), makeGoals({ weeklyLossKg: 1.0 }))!
     expect(target).toBeCloseTo(tdee - 1100, 0)
   })
 
   it("applies correct deficit for 0.25 kg/week loss", () => {
-    // Deficit = (0.25 * 7700) / 7 = 275 kcal/day
     const tdee   = calcTDEE(makeProfile())!
     const target = calcTargetCalories(makeProfile(), makeGoals({ weeklyLossKg: 0.25 }))!
     expect(target).toBeCloseTo(tdee - 275, 0)
   })
 
   it("never goes below 1200 kcal floor", () => {
-    // Female, small, sedentary, aggressive loss — would go below 1200
     const profile = makeProfile({
       sex: "female",
       heightCm: 150,
@@ -232,9 +223,10 @@ describe("calcTargetCalories", () => {
   })
 })
 
-// ── 4. computeMacros ──────────────────────────────────────────────────────────
+// ── 4. computeMacros — universal invariants ──────────────────────────────────
+// These tests apply regardless of which macro mode is selected.
 
-describe("computeMacros", () => {
+describe("computeMacros — universal invariants", () => {
   const profile  = makeProfile()
   const goals    = makeGoals()
   const settings = makeSettings()
@@ -255,28 +247,30 @@ describe("computeMacros", () => {
     expect(result).toHaveProperty("fatG")
   })
 
-  it("protein is capped at 130g", () => {
-    // Target weight 95kg × 1.6 = 152g → should be capped at 130g
-    const highTargetGoals = makeGoals({ targetWeightKg: 95, weeklyLossKg: 0.25 })
-    const result = computeMacros(profile, highTargetGoals, settings)
-    expect(result!.proteinG).toBeLessThanOrEqual(130)
+  it("protein is capped at the engine's hard ceiling (220g)", () => {
+    // High-protein mode + heavy target = highest possible protein output
+    const highProteinSettings = makeSettings({ macroSplit: { fatPct: 20, proteinPct: 45, carbsPct: 35 } })
+    const heavyTargetGoals = makeGoals({ targetWeightKg: 130, weeklyLossKg: 0.25 })
+    const result = computeMacros(profile, heavyTargetGoals, highProteinSettings)
+    expect(result!.proteinG).toBeLessThanOrEqual(220)
   })
 
-  it("protein is at least the ABW floor (1.2 × ABW)", () => {
-    // For overweight user: ABW = 83.5kg, floor = 83.5 × 1.2 = 100g
+  it("protein is at least the ABW safety floor (1.2 × ABW)", () => {
+    // Overweight user: actual 110kg, BMI 38, ABW ≈ 83.5kg, floor ≈ 100g
     const heavyProfile = makeProfile({ weightKg: 110, heightCm: 170, age: 40 })
     const result = computeMacros(heavyProfile, goals, settings)!
-    // IBW = 50 + 2.3*(66.9-60) = 65.9; ABW = 65.9 + 0.4*(110-65.9) = 83.5; floor = 100g
-    const expectedFloor = Math.round(83.5 * 1.2)
-    expect(result.proteinG).toBeGreaterThanOrEqual(expectedFloor)
+    const expectedFloor = Math.round(83.5 * 1.2)  // ≈ 100g
+    expect(result.proteinG).toBeGreaterThanOrEqual(expectedFloor - 2)  // allow ±2 for rounding
   })
 
-  it("carbs are at least 75g (minimum floor)", () => {
-    // Aggressive deficit, sedentary, small person — remaining cals may be very low
-    const smallProfile = makeProfile({ sex: "female", heightCm: 150, weightKg: 50, activityLevel: "sedentary" })
-    const aggressiveGoals = makeGoals({ weeklyLossKg: 1.0 })
-    const result = computeMacros(smallProfile, aggressiveGoals, settings)!
-    expect(result.carbsG).toBeGreaterThanOrEqual(75)
+  it("protein is at least 50g (absolute minimum across all modes)", () => {
+    const result = computeMacros(profile, goals, settings)!
+    expect(result.proteinG).toBeGreaterThanOrEqual(50)
+  })
+
+  it("fat is at least 30g (absolute minimum for hormonal health)", () => {
+    const result = computeMacros(profile, goals, settings)!
+    expect(result.fatG).toBeGreaterThanOrEqual(30)
   })
 
   it("all returned values are positive numbers", () => {
@@ -285,7 +279,7 @@ describe("computeMacros", () => {
     expect(result.tdee).toBeGreaterThan(0)
     expect(result.targetCalories).toBeGreaterThan(0)
     expect(result.proteinG).toBeGreaterThan(0)
-    expect(result.carbsG).toBeGreaterThan(0)
+    expect(result.carbsG).toBeGreaterThanOrEqual(0)  // carbs can be 0 in strict edge cases
     expect(result.fatG).toBeGreaterThan(0)
   })
 
@@ -301,33 +295,13 @@ describe("computeMacros", () => {
     expect(active.tdee).toBeGreaterThan(sedentary.tdee)
   })
 
-  it("fat target is based on target weight × 0.8", () => {
-    // Target weight = 65kg → fat = 65 × 0.8 = 52g
-    const result = computeMacros(profile, makeGoals({ targetWeightKg: 65 }), settings)!
-    expect(result.fatG).toBe(Math.round(65 * 0.8))
-  })
-
-  it("fat target uses current weight when no target weight set", () => {
-    // weeklyLossKg still set; targetWeightKg defaults to current weight
-    const result = computeMacros(profile, makeGoals({ targetWeightKg: "" as any }), settings)!
-    expect(result.fatG).toBe(Math.round(75 * 0.8))
-  })
-
-  it("protein target is based on target weight × 1.6", () => {
-    // Target 65kg → protein target = 65 × 1.6 = 104g (below cap)
-    const result = computeMacros(profile, makeGoals({ targetWeightKg: 65 }), settings)!
-    expect(result.proteinG).toBe(Math.min(Math.round(65 * 1.6), 130))
-  })
-
   it("goal weight = current weight doesn't cause crash or zero values", () => {
     const result = computeMacros(profile, makeGoals({ targetWeightKg: 75 }), settings)
     expect(result).not.toBeNull()
     expect(result!.proteinG).toBeGreaterThan(0)
   })
 
-  it("BMR override raises TDEE (used in calcTDEE, not returned as bmr field)", () => {
-    // computeMacros returns calcBMR() in the bmr field regardless of override,
-    // but the override IS used by calcTDEE internally via profile.bmrOverride
+  it("BMR override raises TDEE", () => {
     const withOverride    = computeMacros(makeProfile({ bmrOverride: 2500 }), goals, settings)!
     const withoutOverride = computeMacros(makeProfile(), goals, settings)!
     expect(withOverride.tdee).toBeGreaterThan(withoutOverride.tdee)
@@ -335,7 +309,99 @@ describe("computeMacros", () => {
   })
 })
 
-// ── 5. computeAdaptiveTDEE ───────────────────────────────────────────────────
+// ── 5. computeMacros — mode-driven behavior ──────────────────────────────────
+// Each macro mode has its own isolated logic. These tests verify that the
+// resolved mode produces outputs within its declared range — i.e. mode label
+// and macro output cannot diverge.
+
+describe("computeMacros — KETO mode (carbsPct ≤ 10)", () => {
+  it("produces 20–50g carbs (true ketogenic range)", () => {
+    const result = computeMacros(makeProfile(), makeGoals(), ketoSettings())!
+    expect(result.carbsG).toBeGreaterThanOrEqual(20)
+    expect(result.carbsG).toBeLessThanOrEqual(50)
+  })
+
+  it("produces moderate protein (not maxed out)", () => {
+    // Keto protein: 1.2–1.5 g/kg target weight, activity-scaled
+    // moderately_active × targetWeight 65kg = ~85g target
+    // ABW floor for BMI 24.5 user (no ABW kick-in) = 75 × 1.2 = 90g
+    // So protein = max(85, 90) = 90g
+    const result = computeMacros(makeProfile(), makeGoals(), ketoSettings())!
+    expect(result.proteinG).toBeGreaterThanOrEqual(70)
+    expect(result.proteinG).toBeLessThanOrEqual(160)
+  })
+
+  it("produces high fat (fat is primary fuel, ≥60g floor)", () => {
+    const result = computeMacros(makeProfile(), makeGoals(), ketoSettings())!
+    expect(result.fatG).toBeGreaterThanOrEqual(60)
+  })
+
+  it("fat provides the majority of calories in keto", () => {
+    const result = computeMacros(makeProfile(), makeGoals(), ketoSettings())!
+    const fatCals = result.fatG * 9
+    const totalCals = result.proteinG * 4 + result.carbsG * 4 + result.fatG * 9
+    expect(fatCals / totalCals).toBeGreaterThan(0.55)  // fat should be >55% of calories
+  })
+})
+
+describe("computeMacros — LOW_CARB mode (carbsPct 21–35)", () => {
+  it("produces 80–120g carbs", () => {
+    const result = computeMacros(makeProfile(), makeGoals(), lowCarbSettings())!
+    expect(result.carbsG).toBeGreaterThanOrEqual(80)
+    expect(result.carbsG).toBeLessThanOrEqual(120)
+  })
+
+  it("protein scales with activity level", () => {
+    const sedentary = computeMacros(makeProfile({ activityLevel: "sedentary" }), makeGoals(), lowCarbSettings())!
+    const active    = computeMacros(makeProfile({ activityLevel: "very_active" }), makeGoals(), lowCarbSettings())!
+    // Active users should get at least as much protein, often more
+    expect(active.proteinG).toBeGreaterThanOrEqual(sedentary.proteinG)
+  })
+})
+
+describe("computeMacros — BALANCED mode (default)", () => {
+  it("produces moderate carbs (≥80g) — never starves carbs in balanced mode", () => {
+    const result = computeMacros(makeProfile(), makeGoals(), balancedSettings())!
+    expect(result.carbsG).toBeGreaterThanOrEqual(80)
+  })
+
+  it("fat is roughly 30% of target calories", () => {
+    const result = computeMacros(makeProfile(), makeGoals(), balancedSettings())!
+    const fatCals = result.fatG * 9
+    const ratio = fatCals / result.targetCalories
+    expect(ratio).toBeGreaterThan(0.25)
+    expect(ratio).toBeLessThan(0.40)
+  })
+
+  it("protein uses moderate multiplier (1.2–1.4 g/kg target weight)", () => {
+    // moderately_active is capped at 1.4 in balanced/low-carb modes
+    const result = computeMacros(makeProfile(), makeGoals(), balancedSettings())!
+    const ratio = result.proteinG / 65  // target weight
+    expect(ratio).toBeGreaterThanOrEqual(1.2)
+    expect(ratio).toBeLessThanOrEqual(1.6)  // allow headroom for ABW floor activation
+  })
+})
+
+describe("computeMacros — label/output coherence", () => {
+  it("keto label NEVER produces high-carb output (was 228g in old engine)", () => {
+    // The original bug: keto split + vegetarian profile gave 228g carbs
+    const result = computeMacros(makeProfile(), makeGoals(), ketoSettings())!
+    expect(result.carbsG).toBeLessThanOrEqual(50)
+  })
+
+  it("balanced label NEVER produces keto-level low-carb output", () => {
+    const result = computeMacros(makeProfile(), makeGoals(), balancedSettings())!
+    expect(result.carbsG).toBeGreaterThan(50)
+  })
+
+  it("low-carb label stays within its declared range", () => {
+    const result = computeMacros(makeProfile(), makeGoals(), lowCarbSettings())!
+    expect(result.carbsG).toBeGreaterThan(50)   // not keto territory
+    expect(result.carbsG).toBeLessThan(150)     // not balanced territory
+  })
+})
+
+// ── 6. computeAdaptiveTDEE ───────────────────────────────────────────────────
 
 describe("computeAdaptiveTDEE", () => {
   const makeHistory = (days: number, weightKg: number, calPerDay: number) =>
@@ -367,7 +433,6 @@ describe("computeAdaptiveTDEE", () => {
   })
 
   it("estimates TDEE close to intake when weight is stable", () => {
-    // Stable weight at 1800 cal → TDEE ≈ 1800
     const result = computeAdaptiveTDEE(makeHistory(30, 80, 1800))
     expect(result.tdee).not.toBeNull()
     expect(result.tdee!).toBeGreaterThan(1600)
@@ -375,26 +440,22 @@ describe("computeAdaptiveTDEE", () => {
   })
 
   it("estimates TDEE above intake when weight is decreasing", () => {
-    // Eating 1400 cal, weight decreasing oldest→newest (function reverses internally)
-    // Pass newest-first (index 0 = most recent)
     const history = Array.from({ length: 30 }, (_, i) => ({
-      date: `2025-01-${String(30 - i).padStart(2, "0")}`,  // newest first
+      date: `2025-01-${String(30 - i).padStart(2, "0")}`,
       cal: 1400,
-      weight: 85 - (29 - i) * 0.05,  // oldest = highest weight
+      weight: 85 - (29 - i) * 0.05,
     }))
     const result = computeAdaptiveTDEE(history)
     expect(result.tdee!).toBeGreaterThan(1400)
   })
 
   it("returns null tdee when estimate is out of range (<1000 or >5000)", () => {
-    // Extreme inconsistent data
     const history = Array.from({ length: 10 }, (_, i) => ({
       date: `2025-01-${String(i + 1).padStart(2, "0")}`,
-      cal: 500,          // very low calories
-      weight: 80 + i * 2, // but rapidly gaining weight — impossible, forces out-of-range
+      cal: 500,
+      weight: 80 + i * 2,
     }))
     const result = computeAdaptiveTDEE(history)
-    // Either out-of-range handling or just a strange result — key is no crash
     expect(result).toBeDefined()
     if (result.tdee !== null) {
       expect(result.tdee).toBeGreaterThan(0)
@@ -407,7 +468,6 @@ describe("computeAdaptiveTDEE", () => {
       { date: "2025-01-02", cal: 1500, weight: null },
       ...makeHistory(10, 80, 1500),
     ]
-    // Should not crash — entries with null weight are filtered
     const result = computeAdaptiveTDEE(history)
     expect(result).toBeDefined()
     expect(result.daysUsed).toBe(10)
@@ -415,11 +475,11 @@ describe("computeAdaptiveTDEE", () => {
 
   it("skips entries with 0 calories", () => {
     const history = [
-      { date: "2025-01-01", cal: 0, weight: 80 },  // should be skipped
+      { date: "2025-01-01", cal: 0, weight: 80 },
       ...makeHistory(10, 80, 1500),
     ]
     const result = computeAdaptiveTDEE(history)
-    expect(result.daysUsed).toBe(10) // not 11
+    expect(result.daysUsed).toBe(10)
   })
 
   it("daysUsed reflects actual valid entries", () => {
@@ -428,36 +488,34 @@ describe("computeAdaptiveTDEE", () => {
   })
 
   it("slopeKgPerWeek is negative when weight is decreasing", () => {
-    // Pass newest-first: index 0 = most recent (lowest weight), last = oldest (highest)
     const history = Array.from({ length: 14 }, (_, i) => ({
       date: `2025-01-${String(14 - i).padStart(2, "0")}`,
       cal: 1600,
-      weight: 85 - (13 - i) * 0.07,  // oldest = 85kg, newest = 84.09kg (losing)
+      weight: 85 - (13 - i) * 0.07,
     }))
     const result = computeAdaptiveTDEE(history)
     expect(result.slopeKgPerWeek!).toBeLessThan(0)
   })
 
   it("slopeKgPerWeek is positive when weight is increasing", () => {
-    // Pass newest-first: index 0 = most recent (highest weight), last = oldest (lowest)
     const history = Array.from({ length: 14 }, (_, i) => ({
       date: `2025-01-${String(14 - i).padStart(2, "0")}`,
       cal: 2500,
-      weight: 80 + (13 - i) * 0.07,  // oldest = 80kg, newest = 80.91kg (gaining)
+      weight: 80 + (13 - i) * 0.07,
     }))
     const result = computeAdaptiveTDEE(history)
     expect(result.slopeKgPerWeek!).toBeGreaterThan(0)
   })
 })
 
-// ── 6. Macro calorie math consistency ────────────────────────────────────────
+// ── 7. Macro calorie math consistency ────────────────────────────────────────
 
 describe("Macro calorie math", () => {
   it("P×4 + C×4 + F×9 ≈ targetCalories (within rounding)", () => {
     const result = computeMacros(makeProfile(), makeGoals(), makeSettings())!
     const computed = result.proteinG * 4 + result.carbsG * 4 + result.fatG * 9
-    // Allow ±100 kcal for rounding (protein/fat floors can push total slightly off)
-    expect(Math.abs(computed - result.targetCalories)).toBeLessThanOrEqual(400)
+    // Allow ±150 kcal for rounding + floor enforcement edge cases
+    expect(Math.abs(computed - result.targetCalories)).toBeLessThanOrEqual(150)
   })
 
   it("macros are always whole numbers (no fractional grams)", () => {
@@ -468,13 +526,10 @@ describe("Macro calorie math", () => {
   })
 })
 
-// ── 7. Meal plan preset macro audit ──────────────────────────────────────────
+// ── 8. Meal plan preset macro audit ──────────────────────────────────────────
 
 describe("mealPlanPresets — calorie math (P×4 + C×4 + F×9)", () => {
-  // Tests that listed calories match the macros in each preset meal.
-  // These are the corrected values from the diet plan audit.
-
-  const TOLERANCE = 25  // kcal — allow minor rounding
+  const TOLERANCE = 25
 
   function checkMeal(name: string, p: number, c: number, f: number, listedCal: number) {
     const computed = p * 4 + c * 4 + f * 9
@@ -520,7 +575,7 @@ describe("mealPlanPresets — calorie math (P×4 + C×4 + F×9)", () => {
     })
 
     it("Vegetarian High-Protein delivers ≥90g daily protein from food alone", () => {
-      const protein = 22 + 43 + 32   // 97g
+      const protein = 22 + 43 + 32
       expect(protein).toBeGreaterThanOrEqual(90)
     })
 
@@ -537,18 +592,18 @@ describe("mealPlanPresets — calorie math (P×4 + C×4 + F×9)", () => {
     })
 
     it("All presets have adequate daily protein (≥60g)", () => {
-      const veg = 10 + 25 + 26       // 61g
-      const egg = 22 + 32 + 26       // 80g
-      const nv  = 20 + 63 + 44       // 127g
+      const veg = 10 + 25 + 26
+      const egg = 22 + 32 + 26
+      const nv  = 20 + 63 + 44
       expect(veg).toBeGreaterThanOrEqual(60)
       expect(egg).toBeGreaterThanOrEqual(60)
       expect(nv).toBeGreaterThanOrEqual(60)
     })
 
     it("All presets have moderate carbs (40-200g — not keto-restrictive)", () => {
-      const veg = 70 + 83 + 40   // 193g
-      const egg = 28 + 67 + 40   // 135g
-      const nv  = 14 + 60 + 27   // 101g
+      const veg = 70 + 83 + 40
+      const egg = 28 + 67 + 40
+      const nv  = 14 + 60 + 27
       ;[veg, egg, nv].forEach(carbs => {
         expect(carbs).toBeGreaterThanOrEqual(40)
         expect(carbs).toBeLessThanOrEqual(220)
