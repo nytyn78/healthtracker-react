@@ -37,6 +37,16 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Upload engine matrix report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: engine-matrix-report
+          path: |
+            src/services/engineMatrix.report.md
+            src/services/engineMatrix.report.json
+          retention-days: 90
+
       - name: Build
         run: npm run build
 
