@@ -75,6 +75,7 @@ export function computeAdaptiveTDEE(history: HistoryEntry[]): TDEEResult {
 // ── Mifflin-St Jeor BMR / TDEE ────────────────────────────────────────────────
 import type { UserProfile, UserGoals, AppSettings, ComputedMacros } from "../store/useHealthStore"
 import { ACTIVITY_MULTIPLIERS } from "../store/useHealthStore"
+import { GoalMode, GOAL_MODE_FLAGS, isPregnancyMode } from "./goalModeConfig"
 
 export function calcBMR(profile: UserProfile): number | null {
   const { age, sex, heightCm, weightKg } = profile
@@ -91,11 +92,48 @@ export function calcTDEE(profile: UserProfile): number | null {
   return Math.round(bmr * ACTIVITY_MULTIPLIERS[profile.activityLevel])
 }
 
-export function calcTargetCalories(profile: UserProfile, goals: UserGoals): number | null {
+export function calcTargetCalories(
+  profile: UserProfile,
+  goals: UserGoals,
+  goalMode?: GoalMode,
+): number | null {
   const tdee = calcTDEE(profile)
   if (!tdee) return null
-  const dailyDeficit = (goals.weeklyLossKg * 7700) / 7
-  return Math.round(Math.max(tdee - dailyDeficit, 1200))
+
+  // ── Goal-mode calorie adjustment ───────────────────────────────────────────
+  // Pregnancy / breastfeeding need extra calories regardless of dietary choice.
+  // This is physiology, not preference — applied silently because the body
+  // requires it. Values from IOM 2005 dietary guidelines.
+  //   pregnancy_t2:  +300  kcal
+  //   pregnancy_t3:  +450  kcal
+  //   breastfeeding: +450  kcal
+  //   pre_conception: -300 kcal if overweight (max 0.5 kg/week)
+  //   recomposition: -250  kcal (small built-in deficit)
+  const calorieAdjustment = goalMode ? GOAL_MODE_FLAGS[goalMode]?.calorieAdjustment ?? 0 : 0
+
+  // ── Weight-loss deficit ────────────────────────────────────────────────────
+  // Capped by mode-specific maximum (breastfeeding 0.3 kg/wk, geriatric 0.25,
+  // pregnancy null = no deficits allowed at all).
+  const maxLoss = goalMode ? GOAL_MODE_FLAGS[goalMode]?.maxWeightLossPerWeekKg : null
+  const cappedWeeklyLoss =
+    maxLoss === null && goalMode && isPregnancyMode(goalMode)
+      ? 0  // pregnancy: no deficits ever
+      : maxLoss !== undefined && maxLoss !== null
+        ? Math.min(goals.weeklyLossKg, maxLoss)
+        : goals.weeklyLossKg
+  const dailyDeficit = (cappedWeeklyLoss * 7700) / 7
+
+  // ── Floor selection ────────────────────────────────────────────────────────
+  // Standard adult floor: 1200 kcal (universally accepted minimum)
+  // Breastfeeding:        1800 kcal (BFN/AAP — below this, milk supply drops)
+  // Pregnancy T2/T3:      1700 kcal (lower bound for adequate nutrition)
+  // Geriatric:            1400 kcal (sarcopenia risk below this)
+  let floor = 1200
+  if (goalMode === "breastfeeding") floor = 1800
+  else if (goalMode === "pregnancy_t2" || goalMode === "pregnancy_t3") floor = 1700
+  else if (goalMode === "geriatric") floor = 1400
+
+  return Math.round(Math.max(tdee + calorieAdjustment - dailyDeficit, floor))
 }
 
 // ── Adjusted Body Weight (ABW) ────────────────────────────────────────────────
@@ -221,7 +259,8 @@ const FAT_FLOOR: Record<MacroMode, number> = {
 export function computeMacros(
   profile: UserProfile,
   goals: UserGoals,
-  settings: AppSettings
+  settings: AppSettings,
+  goalMode?: GoalMode,
 ): ComputedMacros | null {
   const bmr  = calcBMR(profile)
   const tdee = calcTDEE(profile)
@@ -241,37 +280,16 @@ export function computeMacros(
   // ABW: safety floor reference weight only — not the recommendation basis.
   const abw = calcABW(w, h, profile.sex)
 
-  const rawTargetCalories = calcTargetCalories(profile, goals)
+  const rawTargetCalories = calcTargetCalories(profile, goals, goalMode)
   if (!rawTargetCalories) return null
 
   // ── Step 1: Resolve mode ───────────────────────────────────────────────────
-  // From this point on, macroMode is the only source of truth.
-  // All macro logic below is isolated per mode — nothing shared globally.
-  let macroMode = resolveMacroMode(settings.macroSplit)
-
-  // ── Step 1b: Medical context safety clamps ────────────────────────────────
-  // Silently override unsafe modes for users who declared conditions during
-  // onboarding. The user's macroSplit preference is preserved in storage;
-  // only the *resolved* mode is changed for the calculation.
-  //
-  // CKD: high-protein modes contraindicated (1.6+ g/kg accelerates decline).
-  // ED history: aggressive deficits / cut-style macros can trigger relapse.
-  // Diabetes: keto can interact dangerously with insulin/sulfonylureas
-  //   without medical supervision — soften to LOW_CARB instead.
-  const mc = profile.medicalContext
-  if (mc?.hasCKD) {
-    if (macroMode === "HIGH_PROTEIN_CUT" || macroMode === "RECOMPOSITION") {
-      macroMode = "LOW_CARB"
-    }
-  }
-  if (mc?.hasEDHistory) {
-    macroMode = "BALANCED"
-  }
-  if (mc?.hasDiabetes) {
-    if (macroMode === "KETO" || macroMode === "VERY_LOW_CARB") {
-      macroMode = "LOW_CARB"
-    }
-  }
+  // The user's macroSplit preference is the single source of truth.
+  // No silent overrides — if a user's choice has clinical caveats (CKD,
+  // diabetes, ED history, maternal modes), those are surfaced as
+  // *warnings* via services/macroWarnings.ts so the user can make
+  // informed decisions rather than being silently overridden.
+  const macroMode = resolveMacroMode(settings.macroSplit)
 
   // ── Step 2: Clamp calories to mode-specific floor ──────────────────────────
   const targetCalories = Math.max(rawTargetCalories, CALORIE_FLOOR[macroMode])
