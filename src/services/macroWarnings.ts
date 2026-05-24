@@ -10,7 +10,7 @@
 // Sources cited where appropriate. None of this is medical advice — these are
 // flags for the user to discuss with their clinician.
 
-import type { UserProfile, AppSettings } from "../store/useHealthStore"
+import type { UserProfile, UserGoals, AppSettings, ComputedMacros } from "../store/useHealthStore"
 import type { GoalMode } from "./goalModeConfig"
 import { isPregnancyMode, isMaternalMode } from "./goalModeConfig"
 
@@ -39,10 +39,17 @@ export function getMacroWarnings(
   profile: UserProfile,
   settings: AppSettings,
   goalMode?: GoalMode,
+  macros?: ComputedMacros | null,
+  goals?: UserGoals,
 ): MacroWarning[] {
   const warnings: MacroWarning[] = []
   const macroMode = resolveMode(settings.macroSplit)
   const mc = profile.medicalContext
+
+  // Resolve target weight for per-kg ratios (used in CKD elevated-protein check)
+  const targetWeight = goals?.targetWeightKg !== "" && goals && Number(goals.targetWeightKg) > 0
+    ? Math.min(Number(goals.targetWeightKg), Number(profile.weightKg))
+    : Number(profile.weightKg)
 
   // ── Maternal mode warnings ─────────────────────────────────────────────────
   if (goalMode && isMaternalMode(goalMode)) {
@@ -125,6 +132,27 @@ export function getMacroWarnings(
               "kidney function. Your doctor should monitor eGFR and electrolytes if you pursue this.",
       })
     }
+
+    // Elevated-protein check — fires for CKD patients on ANY mode whenever
+    // prescribed protein exceeds ~0.9 g/kg target weight. Catches cases where
+    // a balanced/low-carb plan still over-prescribes protein (e.g. when ABW
+    // floor is active for an obese CKD patient).
+    // Only fires if we don't already have a higher-severity CKD warning above.
+    if (macros && targetWeight > 0) {
+      const proteinPerKg = macros.proteinG / targetWeight
+      const alreadyWarned = warnings.some(w => w.id === "ckd-high-protein" || w.id === "ckd-keto")
+      if (!alreadyWarned && proteinPerKg > 0.9) {
+        warnings.push({
+          id: "ckd-elevated-protein",
+          severity: "caution",
+          title: "Protein above CKD guidance",
+          body: `Your plan prescribes ${macros.proteinG}g protein (${proteinPerKg.toFixed(2)} g/kg). ` +
+                "For CKD stages 3-5 (non-dialysis), most nephrology guidelines recommend 0.6-0.8 g/kg. " +
+                "Discuss your specific protein target with your kidney doctor — they may want a " +
+                "different number than the app's default.",
+        })
+      }
+    }
   }
 
   if (mc?.hasEDHistory) {
@@ -148,6 +176,25 @@ export function getMacroWarnings(
         body: "If logging calories or macros starts to feel preoccupying or distressing, please pause " +
               "and reach out to your treatment team. This app can be useful or harmful depending on " +
               "context — only you (and your team) can tell which it is for you right now.",
+      })
+    }
+  }
+
+  // ── Small-user BALANCED floor escape ──────────────────────────────────────
+  // BALANCED mode enforces an 80g carb floor + 30%-of-cals fat anchor. For very
+  // small users on aggressive cuts, these floors can push actual prescribed
+  // calories above the target. When the computed kcal exceeds target by >50,
+  // suggest the user try low-carb or keto for a tighter fit.
+  if (macros && macroMode === "BALANCED") {
+    const computedKcal = macros.proteinG * 4 + macros.carbsG * 4 + macros.fatG * 9
+    if (computedKcal > macros.targetCalories + 50) {
+      warnings.push({
+        id: "balanced-floor-escape",
+        severity: "info",
+        title: "Your calorie target is tight for a balanced split",
+        body: `At ${macros.targetCalories} kcal/day, our balanced macros come out to about ` +
+              `${computedKcal} kcal — slightly over your target. Try low-carb or keto for ` +
+              "a tighter fit, or accept the small overshoot if balanced feels more sustainable.",
       })
     }
   }
