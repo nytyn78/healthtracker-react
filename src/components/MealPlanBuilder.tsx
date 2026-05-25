@@ -361,7 +361,7 @@ export default function MealPlanBuilder() {
               className="flex items-center gap-1.5 bg-white/15 border border-white/25 px-3 py-1.5 rounded-xl text-xs font-bold">
               👨‍🍳 Send today's plan to cook
             </button>
-            <button onClick={handleShareRecipe}
+            <button onClick={handleShareGrocery}
               className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-xs font-bold">
               🛒 Share grocery list
             </button>
