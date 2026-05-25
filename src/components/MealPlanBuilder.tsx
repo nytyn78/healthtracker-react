@@ -283,6 +283,14 @@ export default function MealPlanBuilder() {
     }
   }
 
+  async function handleShareGrocery() {
+    const text = formatGroceryListForShare(plan.map(toShareable))
+    const result = await shareOrCopy(text, "Weekly Grocery List")
+    const msg = result === "clipboard" ? "Copied!" : result === "native" ? "Shared!" : "Opening WhatsApp…"
+    setShareToast(msg)
+    setTimeout(() => setShareToast(null), 2500)
+  }
+
   // Send today's full meal plan to a cook — bundles eating window + all today's meals
   // + ingredients + method + rules + daily macros into one WhatsApp message.
   async function handleShareTodaysCookMessage() {
