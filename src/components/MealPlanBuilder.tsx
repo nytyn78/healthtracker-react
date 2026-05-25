@@ -4,13 +4,14 @@ import {
   loadDietConfig, saveDietConfig, DietMode, DIET_MODE_LABELS,
   useHealthStore,
 } from "../store/useHealthStore"
-import { computeMacros } from "../services/adaptiveTDEE"
+import { computeMacros, resolveMacroMode } from "../services/adaptiveTDEE"
 import { loadGoalMode } from "../services/goalModeConfig"
 import { PRESETS, PresetKey } from "../services/mealPlanPresets"
 import MealPlanSync from "./MealPlanSync"
 import {
   formatGroceryListForShare,
   formatRecipeForShare,
+  formatDailyCookMessageForShare,
   shareOrCopy,
   ShareableMeal,
 } from "../services/shareUtils"
@@ -282,9 +283,40 @@ export default function MealPlanBuilder() {
     }
   }
 
-  async function handleShareGrocery() {
-    const text = formatGroceryListForShare(plan.map(toShareable))
-    const result = await shareOrCopy(text, "Weekly Grocery List")
+  // Send today's full meal plan to a cook — bundles eating window + all today's meals
+  // + ingredients + method + rules + daily macros into one WhatsApp message.
+  async function handleShareTodaysCookMessage() {
+    // Today's meals = meals tagged with today's day name + meals tagged "any day"
+    const todayName = new Date().toLocaleDateString("en-IN", { weekday: "long" })
+    const todaysMeals = plan.filter(m => !m.day || m.day === todayName)
+
+    if (todaysMeals.length === 0) {
+      setShareToast("No meals planned for today — add some first")
+      setTimeout(() => setShareToast(null), 2500)
+      return
+    }
+
+    // Compose eating window from current IF protocol settings
+    const { fastingHours, fastStartHour } = settings.ifProtocol
+    const eatStart = (fastStartHour + (24 - fastingHours)) % 24
+    const eatEnd = fastStartHour
+    const formatHour = (h: number) => {
+      const period = h >= 12 ? "PM" : "AM"
+      const hour = h % 12 === 0 ? 12 : h % 12
+      return `${hour} ${period}`
+    }
+    const eatingWindow = `${formatHour(eatStart)} – ${formatHour(eatEnd)}`
+
+    const text = formatDailyCookMessageForShare(
+      todaysMeals.map(toShareable),
+      {
+        dayLabel:     todayName,
+        eatingWindow,
+        macroMode:    resolveMacroMode(settings.macroSplit),
+      },
+    )
+
+    const result = await shareOrCopy(text, `${todayName}'s Meal Plan`)
     const msg = result === "clipboard" ? "Copied!" : result === "native" ? "Shared!" : "Opening WhatsApp…"
     setShareToast(msg)
     setTimeout(() => setShareToast(null), 2500)
@@ -324,10 +356,16 @@ export default function MealPlanBuilder() {
         <div className="text-base font-bold">Your Weekly Meals</div>
         <div className="text-xs opacity-60 mt-0.5">{plan.length} meal{plan.length !== 1 ? "s" : ""} saved</div>
         {plan.length > 0 && (
-          <button onClick={handleShareGrocery}
-            className="mt-3 flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-xs font-bold">
-            🛒 Share grocery list
-          </button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button onClick={handleShareTodaysCookMessage}
+              className="flex items-center gap-1.5 bg-white/15 border border-white/25 px-3 py-1.5 rounded-xl text-xs font-bold">
+              👨‍🍳 Send today's plan to cook
+            </button>
+            <button onClick={handleShareGrocery}
+              className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-xs font-bold">
+              🛒 Share grocery list
+            </button>
+          </div>
         )}
       </div>
 
