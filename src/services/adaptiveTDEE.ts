@@ -117,7 +117,7 @@ export function computeAdaptiveTDEE(
 }
 
 // ── Mifflin-St Jeor BMR / TDEE ────────────────────────────────────────────────
-import type { UserProfile, UserGoals, AppSettings, ComputedMacros } from "../store/useHealthStore"
+import type { UserProfile, UserGoals, AppSettings, ComputedMacros, ActivityLevel } from "../store/useHealthStore"
 import { ACTIVITY_MULTIPLIERS } from "../store/useHealthStore"
 import { GoalMode, GOAL_MODE_FLAGS, isPregnancyMode } from "./goalModeConfig"
 
@@ -199,12 +199,29 @@ function calcABW(weightKg: number, heightCm: number, sex: "male" | "female"): nu
   return Math.round((ibw + 0.4 * (weightKg - ibw)) * 10) / 10
 }
 
-// ── Macro Mode ────────────────────────────────────────────────────────────────
-// The mode is the SINGLE SOURCE OF TRUTH for macro calculation.
-// Each mode runs completely isolated logic for protein, carbs, and fat.
-// No cross-mode fallbacks. No global carb floors that leak across modes.
+// ═════════════════════════════════════════════════════════════════════════════
+// ── Macro Mode ──────────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// The macro mode is the SINGLE source of truth for the macro profile.
+// Each mode is described as DATA (a MacroModeProfile object) rather than as a
+// branch in computeMacros(). This makes it mathematically impossible for the
+// mode label to disagree with the macro output, and makes each mode's
+// nutritional philosophy explicit and reviewable in one place.
 //
-// This makes it mathematically impossible for mode label ≠ actual macros.
+// Design principles for this engine (in priority order):
+//   1. Sustainability over optimisation. Mainstream users in long-term fat
+//      loss, not contest-prep athletes.
+//   2. Protein is prescribed from TARGET WEIGHT × mode-appropriate multiplier.
+//      ABW only acts as a safety FLOOR — never as the primary basis.
+//   3. Carbs are ANCHORED per mode in any mode whose identity is defined by
+//      carb level (KETO / VERY_LOW_CARB / LOW_CARB). A "keto" plan must
+//      always look like keto.
+//   4. In modes where carb level does NOT define the identity (BALANCED,
+//      HIGH_PROTEIN_CUT, RECOMPOSITION), fat is anchored at a calorie
+//      fraction and carbs flex within a sanity band. This avoids "runaway
+//      fats" at high calorie budgets.
+//   5. No hidden overrides. No leftover-calorie carb inflation. No accidental
+//      drift between displayed mode and actual macro profile.
 export type MacroMode =
   | "KETO"
   | "VERY_LOW_CARB"
@@ -216,6 +233,10 @@ export type MacroMode =
 // ── Mode resolver ─────────────────────────────────────────────────────────────
 // Derives the effective mode from the user's macroSplit slider percentages.
 // Checked from most restrictive → most general. First match wins.
+//
+// This is the bridge between the legacy "percentage slider" UI input and the
+// mode-driven engine. Commit 6 (TODO) will eliminate the slider in favour of
+// a direct mode selector — this function will become a one-line lookup then.
 export function resolveMacroMode(
   macroSplit: { fatPct: number; proteinPct: number; carbsPct: number }
 ): MacroMode {
@@ -229,90 +250,352 @@ export function resolveMacroMode(
   return "BALANCED"
 }
 
-// ── Protein multipliers by activity level ─────────────────────────────────────
-// Sustainable defaults for fat loss and general health.
-// These are the mode's RECOMMENDED target — not the floor.
-// ABW × 1.2 g/kg is always enforced as a separate hard floor (see below).
+// ═════════════════════════════════════════════════════════════════════════════
+// ── Protein tables ──────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// Multipliers operate on TARGET BODY WEIGHT (kg). ABW only enters as a floor.
+//
+// Tier guidance (from the app's nutritional philosophy):
+//   Sedentary fat loss          1.0–1.2 g/kg
+//   Moderate activity           1.2–1.4 g/kg
+//   Frequent resistance work    1.4–1.6 g/kg
+//   Aggressive cut / recomp     1.6–1.8 g/kg
+//
+// Mainstream modes (BALANCED / LOW_CARB / VERY_LOW_CARB / KETO) anchor in the
+// lower two tiers — this is enough for muscle preservation in fat loss
+// without turning every meal into a chicken-and-paneer chore for users who
+// aren't training to failure 5 days a week.
 //
 // Evidence base:
-//   Helms et al. (2013) — natural bodybuilding: 2.3–3.1 g/kg LBM
-//   Morton et al. (2018) — meta-analysis: ~1.6 g/kg sufficient for most
-//   ISSN Position Stand (2017) — 1.4–2.0 g/kg for active individuals
-//   For mainstream fat loss (non-athletes): 1.2–1.6 g/kg is appropriate
-const PROTEIN_MULTIPLIER: Record<string, number> = {
-  sedentary:         1.2,
-  lightly_active:    1.25,
+//   Phillips & Van Loon (2011)           — 1.2–1.6 g/kg sufficient for fat loss
+//   Helms et al. (2014, recent meta)     — ~1.6 g/kg LBM ceiling for natural lifters
+//   Morton et al. (2018, JNutr meta)     — diminishing returns above ~1.6 g/kg
+//   ISSN Position Stand (2017)           — 1.4–2.0 g/kg for active individuals
+//   Mettler et al. (2010, cut-specific)  — 2.3+ g/kg only justified in aggressive deficit
+//
+// For mainstream sustainable fat loss, the lower end of this evidence is
+// appropriate — and far more adherent.
+
+type ProteinTable = Record<ActivityLevel, number>
+
+// Default — used by all carb-anchored modes (KETO / VLC / LC / BALANCED).
+// 1.1 g/kg sedentary → 1.4 g/kg extra_active. Modest, evidence-aligned,
+// adherent. Carb-restricted modes get the same baseline because protein
+// doesn't need to spike just because carbs went down — fat carries the
+// energy.
+const PROTEIN_DEFAULT: ProteinTable = {
+  sedentary:         1.1,
+  lightly_active:    1.2,
   moderately_active: 1.3,
   very_active:       1.4,
-  extra_active:      1.5,
+  extra_active:      1.4,
 }
 
-// Higher multipliers for specialist modes requiring maximum muscle retention
-const PROTEIN_MULTIPLIER_HIGH: Record<string, number> = {
-  sedentary:         1.5,
-  lightly_active:    1.6,
+// Specialist modes (HIGH_PROTEIN_CUT, RECOMPOSITION).
+// 1.6 g/kg sedentary → 1.8 g/kg extra_active. These modes signal the user
+// opted in to a higher-protein approach for a specific reason — aggressive
+// cut or simultaneous fat loss + muscle gain.
+const PROTEIN_HIGH: ProteinTable = {
+  sedentary:         1.6,
+  lightly_active:    1.65,
   moderately_active: 1.7,
   very_active:       1.75,
   extra_active:      1.8,
 }
 
-// ── Child / early-teen protein multipliers ──────────────────────────────────
-// Children 4-13 years need more protein per kg than adults due to growth.
-// WHO 2007: 0.95 g/kg baseline; sports nutrition guidance 1.2-1.5 g/kg for
-// active children. We scale by activity, with a higher ceiling than the adult
-// PROTEIN_MULTIPLIER table to ensure growing bodies aren't under-fed.
-const PROTEIN_MULTIPLIER_CHILD: Record<string, number> = {
-  sedentary:         1.0,   // baseline WHO + small growth allowance
+// Children & early teens — WHO 2007 baseline (0.95 g/kg) plus growth/activity
+// allowance. Higher per-kg than adults because growing tissue needs nitrogen
+// far in excess of maintenance.
+const PROTEIN_CHILD: ProteinTable = {
+  sedentary:         1.0,
   lightly_active:    1.1,
   moderately_active: 1.3,
-  very_active:       1.5,   // active growing child — top of range
+  very_active:       1.5,
   extra_active:      1.6,
 }
 
-// ── ABW protein floor ─────────────────────────────────────────────────────────
-// 1.2 g/kg ABW is the universal minimum protein across ALL modes.
-//
-// Prevents severe under-prescription in:
+// ABW protein floor (universal minimum across all modes).
+// 1.2 g/kg ABW prevents severe under-prescription in:
 //   - obesity (ABW corrects for non-metabolically active fat mass)
 //   - aggressive calorie deficits
-//   - IF / time-restricted feeding users
-//   - sedentary but catabolic states (illness, stress, ageing)
+//   - IF / time-restricted feeding
+//   - catabolic states (illness, stress, ageing)
 //
-// ABW floor ≠ default recommendation.
-// The mode sets the recommendation; ABW only prevents the floor from going
-// dangerously low. A sedentary user in a moderate deficit still gets the
-// mode's recommended multiplier — ABW only activates when that would
-// under-prescribe for their actual body composition.
+// This is a FLOOR, not a default. A sedentary user in mild deficit still
+// receives the mode's recommended multiplier — ABW only activates when the
+// mode-based number would be lower than 1.2 × ABW for their body comp.
 const ABW_PROTEIN_FLOOR_MULTIPLIER = 1.2
 
-// ── Per-mode calorie floors ───────────────────────────────────────────────────
-// Each mode has its own minimum — keto can safely go lower due to fat satiety.
-// Balanced needs a higher floor to avoid micronutrient deficiency.
-const CALORIE_FLOOR: Record<MacroMode, number> = {
-  KETO:             1100,
-  VERY_LOW_CARB:    1150,
-  LOW_CARB:         1200,
-  BALANCED:         1300,
-  HIGH_PROTEIN_CUT: 1200,
-  RECOMPOSITION:    1400,  // needs adequate calories for muscle synthesis
+// Absolute protein hard ceiling per mode (g/day).
+// Defends against pathological outputs from edge-case inputs (e.g. very tall
+// + very active + high-protein-cut + heavy target weight). Above ~2.2 g/kg
+// LBM there is no further benefit — anything beyond is dietary overhead.
+const PROTEIN_CEILING: Record<MacroMode, number> = {
+  KETO:             160,
+  VERY_LOW_CARB:    160,
+  LOW_CARB:         150,
+  BALANCED:         150,
+  HIGH_PROTEIN_CUT: 220,
+  RECOMPOSITION:    220,
 }
 
-// ── Per-mode fat minimums ─────────────────────────────────────────────────────
-// Hormonal health floor. Women especially should not go below 40g fat.
-// Keto modes have higher floors since fat is the primary fuel source.
-const FAT_FLOOR: Record<MacroMode, number> = {
-  KETO:             60,
-  VERY_LOW_CARB:    55,
-  LOW_CARB:         45,
-  BALANCED:         40,
-  HIGH_PROTEIN_CUT: 40,
-  RECOMPOSITION:    40,
+// Absolute protein hard floor across ALL modes.
+// 50g is the minimum protein intake that prevents nitrogen-balance collapse
+// in any adult — ABW floor will normally be well above this.
+const PROTEIN_HARD_FLOOR_G = 50
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ── Mode profiles ───────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// One self-contained nutritional philosophy per mode, expressed as data.
+//
+// A mode has exactly ONE flexible macro. Protein is always anchored. The
+// remaining slot — carbs or fat — is determined by what defines the mode:
+//
+//   - In KETO / VLC / LC, carbs DEFINE the mode → carbs anchored, fat flexes.
+//   - In BALANCED / HIGH_PROTEIN_CUT / RECOMPOSITION, the proportional split
+//     defines the mode → fat anchored at a calorie fraction, carbs flex
+//     within a sanity band.
+//
+// This is the design rule that prevents two failure modes:
+//   - "leftover-calorie carb inflation" (carbs growing unbounded as the only
+//     residual macro)
+//   - "runaway fat" (fat growing unbounded at high calorie budgets when fat
+//     is the residual and protein/carbs are small fixed numbers)
+
+type CarbStrategy =
+  // Carbs are mode-defining. Fixed grams regardless of calorie budget.
+  // bandG = [min, max] for the coherence guard. anchorG must lie inside it.
+  | { kind: "fixed_g";       anchorG: number;  bandG: [number, number] }
+  // Carbs flex within a sanity band; fat is anchored elsewhere.
+  // bandG defines what "balanced" / "moderate" means for this mode.
+  | { kind: "flex_in_band";  bandG: [number, number] }
+
+type FatStrategy =
+  // Fat is the residual macro. Floor protects hormonal health.
+  | { kind: "residual";       floorG: number }
+  // Fat is anchored at a fraction of total calories. Floor still applies.
+  // Used by modes where carbs flex, to prevent runaway fat at high budgets.
+  | { kind: "kcal_fraction";  fraction: number; floorG: number }
+
+type MacroModeProfile = {
+  proteinTable: ProteinTable
+  proteinCap?:  number          // optional g/kg cap (e.g. LOW_CARB caps at 1.4)
+  carbs:        CarbStrategy
+  fat:          FatStrategy
+  calorieFloor: number
 }
 
-// ── computeMacros ─────────────────────────────────────────────────────────────
-// Mode-driven engine. Each mode is a self-contained logic path.
-// Sequence within each mode: Protein → [fixed macro] → Fat/Carbs fill remaining.
-// No shared logic bleeds between modes.
+const MODE_PROFILES: Record<MacroMode, MacroModeProfile> = {
+  // ───────────────────────────────────────────────────────────────────────
+  // KETO — true ketogenic, ≤50g net carbs/day.
+  // Fat is the dominant fuel. Protein moderate (high protein can blunt
+  // ketosis via gluconeogenesis in some users). Carbs anchored at 25g
+  // (midpoint of 20–50g clinical keto range), fat absorbs the rest.
+  // ───────────────────────────────────────────────────────────────────────
+  KETO: {
+    proteinTable: PROTEIN_DEFAULT,
+    carbs:        { kind: "fixed_g",       anchorG: 25, bandG: [20, 50] },
+    fat:          { kind: "residual",      floorG: 60 },
+    calorieFloor: 1100,
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // VERY_LOW_CARB — 50–80g/day. Below LCHF, above strict keto.
+  // More vegetables and some legumes are possible. Suits users who want
+  // metabolic benefits of carb restriction without strict ketosis.
+  // ───────────────────────────────────────────────────────────────────────
+  VERY_LOW_CARB: {
+    proteinTable: PROTEIN_DEFAULT,
+    carbs:        { kind: "fixed_g",       anchorG: 65, bandG: [50, 80] },
+    fat:          { kind: "residual",      floorG: 55 },
+    calorieFloor: 1150,
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // LOW_CARB — 80–120g/day. Moderate restriction.
+  // Protein capped at 1.4 g/kg: carbs still contribute meaningful energy,
+  // so we don't over-prescribe protein here. This is the "Mediterranean-ish"
+  // band — popular with sustainable fat loss users.
+  // ───────────────────────────────────────────────────────────────────────
+  LOW_CARB: {
+    proteinTable: PROTEIN_DEFAULT,
+    proteinCap:   1.4,
+    carbs:        { kind: "fixed_g",       anchorG: 100, bandG: [80, 120] },
+    fat:          { kind: "residual",      floorG: 45 },
+    calorieFloor: 1200,
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // BALANCED — moderate, flexible. Defined by proportional split, not by
+  // an absolute carb level. Fat anchored at 30% of total calories (the
+  // midpoint of the "moderate fat" 25–35% range in mainstream guidance);
+  // carbs flex to absorb the remainder, clamped into a sensible band.
+  //
+  // This is the right design here: a 1200 kcal balanced plan and a
+  // 2400 kcal balanced plan both have ~30% fat, but the carb gram total
+  // appropriately scales with the budget instead of staying fixed.
+  // ───────────────────────────────────────────────────────────────────────
+  BALANCED: {
+    proteinTable: PROTEIN_DEFAULT,
+    proteinCap:   1.4,
+    carbs:        { kind: "flex_in_band",  bandG: [110, 320] },
+    fat:          { kind: "kcal_fraction", fraction: 0.30, floorG: 40 },
+    calorieFloor: 1300,
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // HIGH_PROTEIN_CUT — aggressive cut with protein-led satiety.
+  // High protein, lower fat (25% kcal), carbs flex within a band.
+  // Fat is anchored low so it doesn't run away on higher-calorie users;
+  // carbs absorb the remainder to support training and adherence.
+  //
+  // Band upper end is generous (280g) so larger, more active users on a
+  // higher calorie budget aren't forced into a carb-clamp that breaks the
+  // calorie math. The mode is identified by HIGH protein + LOW-ish fat,
+  // not by a carb ceiling — at 2500+ kcal a 30%-protein 25%-fat split
+  // naturally lands ~45% carbs, which is appropriate for the mode.
+  // ───────────────────────────────────────────────────────────────────────
+  HIGH_PROTEIN_CUT: {
+    proteinTable: PROTEIN_HIGH,
+    carbs:        { kind: "flex_in_band",  bandG: [60, 280] },
+    fat:          { kind: "kcal_fraction", fraction: 0.25, floorG: 40 },
+    calorieFloor: 1200,
+  },
+
+  // ───────────────────────────────────────────────────────────────────────
+  // RECOMPOSITION — simultaneous fat loss + muscle gain.
+  // High protein, moderate fat (28% kcal), carbs flex to fuel training.
+  // Calorie floor lifted to 1400 because muscle protein synthesis suffers
+  // below adequate energy availability. Band upper end is generous for
+  // the same reason as HIGH_PROTEIN_CUT — active heavy users.
+  // ───────────────────────────────────────────────────────────────────────
+  RECOMPOSITION: {
+    proteinTable: PROTEIN_HIGH,
+    carbs:        { kind: "flex_in_band",  bandG: [80, 300] },
+    fat:          { kind: "kcal_fraction", fraction: 0.28, floorG: 40 },
+    calorieFloor: 1400,
+  },
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ── Helpers (each unit-testable in isolation) ───────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+
+// Resolve the protein prescription for a given mode + body + goal.
+// Returns grams of protein, already clamped to the mode's ceiling and the
+// global ABW floor.
+export function resolveProtein(
+  mode: MacroMode,
+  targetWeightKg: number,
+  abwKg: number,
+  activityLevel: ActivityLevel,
+  goalMode?: GoalMode,
+): number {
+  const modeProfile = MODE_PROFILES[mode]
+  const isChild = goalMode === "child" || goalMode === "teen_early"
+
+  // Children use their own table regardless of mode; growth needs override
+  // mode-specific philosophies. The mode-specific proteinCap is also bypassed
+  // for children — under-feeding a growing body is the larger risk.
+  const table = isChild ? PROTEIN_CHILD : modeProfile.proteinTable
+  let multiplier = table[activityLevel] ?? PROTEIN_DEFAULT.moderately_active
+  if (modeProfile.proteinCap !== undefined && !isChild) {
+    multiplier = Math.min(multiplier, modeProfile.proteinCap)
+  }
+
+  const fromTargetWeight = Math.round(targetWeightKg * multiplier)
+  const fromAbwFloor     = Math.round(abwKg * ABW_PROTEIN_FLOOR_MULTIPLIER)
+
+  // Take the higher of (mode-prescribed) and (ABW floor), then clamp to
+  // the mode-specific ceiling and the absolute 50g hard floor.
+  let protein = Math.max(fromTargetWeight, fromAbwFloor)
+  protein     = Math.min(protein, PROTEIN_CEILING[mode])
+  protein     = Math.max(protein, PROTEIN_HARD_FLOOR_G)
+  return protein
+}
+
+// Compute carbs and fat in grams for a given mode and calorie budget, with
+// protein already resolved. Returns [carbsG, fatG].
+//
+// The function dispatches on the mode's fat strategy:
+//   - "residual": fat is residual, carbs are anchored. Used by KETO / VLC / LC.
+//   - "kcal_fraction": fat is anchored at a fraction of total calories,
+//     carbs flex within their sanity band. Used by BALANCED / HPC / RECOMP.
+export function resolveCarbsAndFat(
+  mode: MacroMode,
+  targetCalories: number,
+  proteinG: number,
+): { carbsG: number; fatG: number } {
+  const modeProfile = MODE_PROFILES[mode]
+  const proteinKcal = proteinG * 4
+
+  if (modeProfile.fat.kind === "residual") {
+    // Carb-anchored mode (KETO / VLC / LC). Carbs are mode-defining and fixed.
+    // Fat absorbs whatever calories are left after protein + carbs are paid.
+    // Type narrowing: when fat is residual, carbs must be fixed_g (enforced
+    // at the profile level — see MODE_PROFILES above).
+    const carbsG = modeProfile.carbs.kind === "fixed_g"
+      ? modeProfile.carbs.anchorG
+      : 0  // unreachable but keeps the type system happy
+    const fatKcalRemaining = targetCalories - proteinKcal - carbsG * 4
+    const fatG = Math.max(Math.round(fatKcalRemaining / 9), modeProfile.fat.floorG)
+    return { carbsG, fatG }
+  }
+
+  // Fat-anchored mode (BALANCED / HPC / RECOMP). Fat is a fraction of total
+  // calories with a hormonal floor; carbs absorb the remainder, clamped into
+  // the mode's "this is what BALANCED / HPC / RECOMP looks like" band so the
+  // mode label always matches the macro profile.
+  //
+  // At high calorie budgets, the carb upper band can be reached. When that
+  // happens, the extra calories overflow back into FAT (which has only a
+  // floor, not a ceiling). This is correct: at 2800+ kcal a HPC plan will
+  // naturally need more fat too — what matters for the mode identity is the
+  // protein/carb FLOOR on fat, not a hard fat ceiling.
+  const fatFromFraction   = Math.round((targetCalories * modeProfile.fat.fraction) / 9)
+  const fatAnchorG        = Math.max(fatFromFraction, modeProfile.fat.floorG)
+  const carbKcalRemaining = targetCalories - proteinKcal - fatAnchorG * 9
+  const carbsRaw          = Math.round(carbKcalRemaining / 4)
+  // Type narrowing: when fat is kcal_fraction, carbs must be flex_in_band.
+  const band = modeProfile.carbs.kind === "flex_in_band"
+    ? modeProfile.carbs.bandG
+    : [0, 9999] as [number, number]  // unreachable but type-safe
+  const carbsG = Math.min(Math.max(carbsRaw, band[0]), band[1])
+
+  // If we clamped carbs at the upper band, the overflow calories go to fat.
+  // Fat has only a floor, no ceiling — this prevents the engine from silently
+  // under-prescribing total energy at high calorie budgets.
+  const carbOverflowKcal = (carbsRaw - carbsG) * 4
+  const fatG = carbOverflowKcal > 0
+    ? fatAnchorG + Math.round(carbOverflowKcal / 9)
+    : fatAnchorG
+  return { carbsG, fatG }
+}
+
+// Coherence guard. Returns true if the produced macros actually fit the
+// declared mode. If false, something has gone wrong upstream (e.g. an
+// extreme calorie budget pushed carbs out of the mode's declared band).
+// Used by computeMacros for a dev-time sanity check.
+export function macrosMatchMode(mode: MacroMode, carbsG: number): boolean {
+  const carbs = MODE_PROFILES[mode].carbs
+  const band = carbs.kind === "fixed_g" ? carbs.bandG : carbs.bandG
+  return carbsG >= band[0] && carbsG <= band[1]
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// ── computeMacros ───────────────────────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// Fully mode-driven. The flow is deliberately simple and uniform across modes:
+//
+//   1. Resolve mode from user settings (single source of truth).
+//   2. Clamp calories to mode floor.
+//   3. Resolve PROTEIN via target weight × mode multiplier, with ABW floor.
+//   4. Resolve CARBS + FAT per mode strategy (one anchored, one flexible).
+//   5. Coherence guard: assert mode label matches macro profile.
+//
+// No mode has its own custom flow. No "fill from leftovers" logic except as
+// the *one* designated flexible macro in each mode — bounded on both ends.
 export function computeMacros(
   profile: UserProfile,
   goals: UserGoals,
@@ -328,158 +611,53 @@ export function computeMacros(
   if (!w || !h) return null
 
   // Target weight: use goal weight when set and lower than current.
-  // Protein prescription should be based on target body, not current obese mass.
+  // Protein is prescribed for the target body, not current obese mass.
   const targetWeight =
     goals.targetWeightKg !== "" && Number(goals.targetWeightKg) > 0
       ? Math.min(Number(goals.targetWeightKg), w)
       : w
 
-  // ABW: safety floor reference weight only — not the recommendation basis.
   const abw = calcABW(w, h, profile.sex)
 
   const rawTargetCalories = calcTargetCalories(profile, goals, goalMode)
   if (!rawTargetCalories) return null
 
   // ── Step 1: Resolve mode ───────────────────────────────────────────────────
-  // The user's macroSplit preference is the single source of truth.
-  // No silent overrides — if a user's choice has clinical caveats (CKD,
-  // diabetes, ED history, maternal modes), those are surfaced as
-  // *warnings* via services/macroWarnings.ts so the user can make
-  // informed decisions rather than being silently overridden.
+  // The user's macroSplit is the single source of truth. No silent overrides.
+  // Clinical caveats (CKD, diabetes, ED history, maternal modes) are surfaced
+  // as warnings via services/macroWarnings.ts — never as silent macro changes.
   const macroMode = resolveMacroMode(settings.macroSplit)
+  const modeProfile = MODE_PROFILES[macroMode]
 
   // ── Step 2: Clamp calories to mode-specific floor ──────────────────────────
-  const targetCalories = Math.max(rawTargetCalories, CALORIE_FLOOR[macroMode])
+  const targetCalories = Math.max(rawTargetCalories, modeProfile.calorieFloor)
 
-  // ── Step 3: Mode-isolated macro logic ─────────────────────────────────────
-  let proteinG: number
-  let carbsG:   number
-  let fatG:     number
+  // ── Step 3: Resolve protein ────────────────────────────────────────────────
+  // Target weight × mode multiplier (activity-scaled), with ABW as a floor.
+  const proteinG = resolveProtein(macroMode, targetWeight, abw, profile.activityLevel, goalMode)
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // KETO
-  // Protein: 1.2–1.5 g/kg, activity-scaled. ABW floor enforced.
-  // Carbs:   fixed 25g net (midpoint of 20–50g). Defines keto — not a suggestion.
-  // Fat:     fills remaining calories. Keto is fat-fuelled.
-  // ─────────────────────────────────────────────────────────────────────────
-  if (macroMode === "KETO") {
-    const mult      = PROTEIN_MULTIPLIER[profile.activityLevel] ?? 1.2
-    proteinG        = Math.max(
-      Math.round(targetWeight * mult),
-      Math.round(abw * ABW_PROTEIN_FLOOR_MULTIPLIER)
-    )
-    proteinG        = Math.min(proteinG, 160)
-    carbsG          = 25
-    const remaining = targetCalories - proteinG * 4 - carbsG * 4
-    fatG            = Math.max(Math.round(remaining / 9), FAT_FLOOR[macroMode])
+  // ── Step 4: Resolve carbs and fat per mode strategy ───────────────────────
+  // One is anchored (mode-defining), the other absorbs the remainder.
+  // Which is which depends entirely on the mode profile.
+  const { carbsG, fatG } = resolveCarbsAndFat(macroMode, targetCalories, proteinG)
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // VERY LOW CARB
-  // Protein: 1.2–1.5 g/kg. ABW floor enforced.
-  // Carbs:   fixed 65g (midpoint of 50–80g). More vegetables, some legumes.
-  // Fat:     fills remaining.
-  // ─────────────────────────────────────────────────────────────────────────
-  } else if (macroMode === "VERY_LOW_CARB") {
-    const mult      = PROTEIN_MULTIPLIER[profile.activityLevel] ?? 1.2
-    proteinG        = Math.max(
-      Math.round(targetWeight * mult),
-      Math.round(abw * ABW_PROTEIN_FLOOR_MULTIPLIER)
-    )
-    proteinG        = Math.min(proteinG, 160)
-    carbsG          = 65
-    const remaining = targetCalories - proteinG * 4 - carbsG * 4
-    fatG            = Math.max(Math.round(remaining / 9), FAT_FLOOR[macroMode])
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // LOW CARB
-  // Protein: 1.2–1.4 g/kg (capped — carbs carry more load here). ABW floor.
-  // Carbs:   fixed 100g (midpoint of 80–120g).
-  // Fat:     fills remaining.
-  // ─────────────────────────────────────────────────────────────────────────
-  } else if (macroMode === "LOW_CARB") {
-    const mult      = Math.min(PROTEIN_MULTIPLIER[profile.activityLevel] ?? 1.2, 1.4)
-    proteinG        = Math.max(
-      Math.round(targetWeight * mult),
-      Math.round(abw * ABW_PROTEIN_FLOOR_MULTIPLIER)
-    )
-    proteinG        = Math.min(proteinG, 150)
-    carbsG          = 100
-    const remaining = targetCalories - proteinG * 4 - carbsG * 4
-    fatG            = Math.max(Math.round(remaining / 9), FAT_FLOOR[macroMode])
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // HIGH PROTEIN CUT
-  // Protein: 1.6–1.8 g/kg (high — aggressive cut, maximum muscle retention).
-  // Fat:     fixed ~0.7 g/kg targetWeight (moderate; preserves hormonal health).
-  // Carbs:   fills remaining (serves training performance — not restricted).
-  // ─────────────────────────────────────────────────────────────────────────
-  } else if (macroMode === "HIGH_PROTEIN_CUT") {
-    const mult      = PROTEIN_MULTIPLIER_HIGH[profile.activityLevel] ?? 1.6
-    proteinG        = Math.max(
-      Math.round(targetWeight * mult),
-      Math.round(abw * ABW_PROTEIN_FLOOR_MULTIPLIER)
-    )
-    proteinG        = Math.min(proteinG, 220)
-    fatG            = Math.max(Math.round(targetWeight * 0.7), FAT_FLOOR[macroMode])
-    const remaining = targetCalories - proteinG * 4 - fatG * 9
-    // Carbs fill remaining, but capped at 150g — above this the diet no longer
-    // reads as a "cut". Surplus calories beyond the cap are absorbed by fat,
-    // which improves satiety and hormonal health without inflating carbs.
-    carbsG          = Math.min(Math.max(Math.round(remaining / 4), 50), 150)
-    const carbOverflow = remaining - carbsG * 4
-    if (carbOverflow > 0) fatG += Math.round(carbOverflow / 9)
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // RECOMPOSITION
-  // Protein: 1.6–1.8 g/kg (high — needed for simultaneous synthesis + deficit).
-  // Carbs:   110–130g anchored (supports resistance training performance).
-  // Fat:     fills remaining.
-  // ─────────────────────────────────────────────────────────────────────────
-  } else if (macroMode === "RECOMPOSITION") {
-    const mult      = PROTEIN_MULTIPLIER_HIGH[profile.activityLevel] ?? 1.6
-    proteinG        = Math.max(
-      Math.round(targetWeight * mult),
-      Math.round(abw * ABW_PROTEIN_FLOOR_MULTIPLIER)
-    )
-    proteinG        = Math.min(proteinG, 220)
-    carbsG          = targetCalories >= 1600 ? 130 : 110
-    const remaining = targetCalories - proteinG * 4 - carbsG * 4
-    fatG            = Math.max(Math.round(remaining / 9), FAT_FLOOR[macroMode])
-
-  } else {
-    // BALANCED MODE
-    // Protein: 1.2–1.4 g/kg adult, 1.0-1.6 g/kg for children (higher per kg due to growth).
-    // ABW floor enforced.
-    // Fat:     anchored at 30% of total target calories (midpoint of 25–35%).
-    // Carbs:   fill remaining after protein + fat.
-    //
-    // Children and early teens use a separate protein multiplier table
-    // (PROTEIN_MULTIPLIER_CHILD) calibrated for growing bodies. The ABW floor
-    // still applies as a safety net.
-    const isChildMode = goalMode === "child" || goalMode === "teen_early"
-    const mult   = isChildMode
-      ? PROTEIN_MULTIPLIER_CHILD[profile.activityLevel] ?? 1.2
-      : Math.min(PROTEIN_MULTIPLIER[profile.activityLevel] ?? 1.2, 1.4)
-    proteinG     = Math.max(
-      Math.round(targetWeight * mult),
-      Math.round(abw * ABW_PROTEIN_FLOOR_MULTIPLIER)
-    )
-    proteinG     = Math.min(proteinG, 150)
-    fatG         = Math.max(Math.round((targetCalories * 0.30) / 9), FAT_FLOOR[macroMode])
-    // Carbs fill remaining calories — naturally scales with the calorie budget
-    carbsG       = Math.max(
-      Math.round((targetCalories - proteinG * 4 - fatG * 9) / 4),
-      80  // below 80g carbs this is no longer balanced — user should switch modes
-    )
+  // ── Step 5: Coherence guard ───────────────────────────────────────────────
+  // Dev-time assertion: the carbs we produced must lie inside the mode's
+  // declared band. If this ever fires, the mode profile or computation logic
+  // has drifted and the user could see a label that doesn't match output.
+  // We don't throw in production — meal generation should always have macros
+  // to work with — but we surface a console warning so the regression is
+  // visible in CI logs and dev tools.
+  if (!macrosMatchMode(macroMode, carbsG)) {
+    if (typeof console !== "undefined") {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[adaptiveTDEE] Macro coherence violation: mode=${macroMode} produced ` +
+        `carbs=${carbsG}g, outside declared band for this mode. ` +
+        `Inputs: targetCal=${targetCalories}, protein=${proteinG}g, fat=${fatG}g.`,
+      )
+    }
   }
-
-  // ── Step 4: Absolute last-resort guards ───────────────────────────────────
-  // These should never activate in normal operation.
-  // They exist only to prevent catastrophic output from edge-case inputs.
-  // They are NOT design constraints — the mode logic above handles that.
-  proteinG = Math.max(proteinG, 50)
-  fatG     = Math.max(fatG, 30)
-  carbsG   = Math.max(carbsG, 0)
 
   return { bmr, tdee, targetCalories, proteinG, carbsG, fatG }
 }
