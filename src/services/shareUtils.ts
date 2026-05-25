@@ -1,6 +1,20 @@
 // ── shareUtils.ts ──────────────────────────────────────────────────────────────
 // Sharing utilities. Primary channel: WhatsApp.
 // Falls back to Web Share API (mobile) then clipboard (desktop).
+//
+// Five export functions:
+//   - formatDailySummaryForShare       — daily tracker summary (calories vs target, etc.)
+//   - formatGroceryListForShare        — weekly grocery list, deduplicated
+//   - formatRecipeForShare             — single meal's ingredients + steps
+//   - formatDailyCookMessageForShare   — NEW: full daily cook-ready message bundling
+//                                         eating window + all meals + rules + macros
+//   - shareViaWhatsApp / shareOrCopy   — core delivery helpers
+
+import type { MacroMode } from "./adaptiveTDEE"
+
+// ────────────────────────────────────────────────────────────────────────────
+// DAILY SUMMARY
+// ────────────────────────────────────────────────────────────────────────────
 
 export type DailySummary = {
   date:       string   // YYYY-MM-DD
@@ -55,9 +69,9 @@ export function formatDailySummaryForShare(s: DailySummary): string {
   return lines.join("\n")
 }
 
-// ── Grocery list share ────────────────────────────────────────────────────────
-// Collects all ingredients across all meals, deduplicates by ingredient name,
-// and formats a clean WhatsApp-friendly shopping list.
+// ────────────────────────────────────────────────────────────────────────────
+// SHAREABLE MEAL TYPE — used by grocery, recipe, and cook-message formatters
+// ────────────────────────────────────────────────────────────────────────────
 
 export type ShareableMeal = {
   name: string
@@ -69,6 +83,10 @@ export type ShareableMeal = {
   cal: number
   time?: string
 }
+
+// ────────────────────────────────────────────────────────────────────────────
+// GROCERY LIST (weekly) — keep existing dedup behavior, no breaking changes
+// ────────────────────────────────────────────────────────────────────────────
 
 export function formatGroceryListForShare(meals: ShareableMeal[]): string {
   if (meals.length === 0) return "No meals in your plan yet."
@@ -116,8 +134,9 @@ export function formatGroceryListForShare(meals: ShareableMeal[]): string {
   return lines.join("\n")
 }
 
-// ── Recipe share ──────────────────────────────────────────────────────────────
-// Formats a single meal's ingredients + steps for WhatsApp.
+// ────────────────────────────────────────────────────────────────────────────
+// SINGLE RECIPE SHARE — unchanged
+// ────────────────────────────────────────────────────────────────────────────
 
 export function formatRecipeForShare(meal: ShareableMeal): string {
   const lines: string[] = [
@@ -149,14 +168,224 @@ export function formatRecipeForShare(meal: ShareableMeal): string {
   return lines.filter(l => l !== undefined).join("\n")
 }
 
-// ── Core share helpers ────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────────────────
+// MACRO-MODE-DERIVED RULES — what NOT to do, what TO do, per diet style
+// ────────────────────────────────────────────────────────────────────────────
+//
+// The "rules" section is meant for forwarding the cook message to a household
+// cook so they understand the dietary boundaries. Derived from the user's
+// resolved MacroMode. Users can override with custom rules in Settings.
+//
+// Format: { donts: string[], dos: string[] } — both bullet-ready strings.
+
+export type CookRules = {
+  donts: string[]
+  dos:   string[]
+}
+
+export function deriveRulesForMacroMode(mode: MacroMode): CookRules {
+  switch (mode) {
+    case "KETO":
+      return {
+        donts: [
+          "No rice, roti, dal, sugar",
+          "No starchy vegetables (potato, sweet potato, corn)",
+          "No fruit except a few berries",
+          "No vegetable oils — use ghee or butter only",
+        ],
+        dos: [
+          "Use ghee, butter, coconut oil",
+          "Green leafy vegetables welcome",
+          "Salt to taste — keto needs more sodium",
+        ],
+      }
+    case "VERY_LOW_CARB":
+      return {
+        donts: [
+          "No rice, roti, sugar",
+          "Limit dal to ½ katori per meal",
+          "No vegetable oils — use ghee or butter only",
+        ],
+        dos: [
+          "Use ghee, butter, olive oil",
+          "Green leafy vegetables welcome",
+        ],
+      }
+    case "LOW_CARB":
+      return {
+        donts: [
+          "No sugar",
+          "Limit rice/roti to 1 portion per meal",
+          "No vegetable oils for deep-frying",
+        ],
+        dos: [
+          "Use ghee, butter, olive oil",
+          "Plenty of vegetables",
+        ],
+      }
+    case "HIGH_PROTEIN_CUT":
+      return {
+        donts: [
+          "No deep-fried foods",
+          "No added sugar",
+          "Limit fats — keep portions modest",
+        ],
+        dos: [
+          "Lean protein priority (chicken, fish, paneer, dal)",
+          "Vegetables fill the plate",
+          "Use minimum oil — 1-2 tsp per meal",
+        ],
+      }
+    case "RECOMPOSITION":
+      return {
+        donts: [
+          "No added sugar",
+          "No deep-fried foods",
+        ],
+        dos: [
+          "Protein with every meal",
+          "Carbs around workouts",
+          "Use ghee or olive oil moderately",
+        ],
+      }
+    case "BALANCED":
+    default:
+      return {
+        donts: [
+          "No added sugar in cooking",
+          "No deep-fried foods",
+        ],
+        dos: [
+          "Use any traditional oil moderately",
+          "Vegetables with every meal",
+        ],
+      }
+  }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// DAILY COOK MESSAGE — bundles eating window + all meals + rules + totals
+// ────────────────────────────────────────────────────────────────────────────
+//
+// This is the message you'd forward to a household cook on WhatsApp. Includes:
+//   - Day header
+//   - Eating window (if IF is active)
+//   - Each meal: time, name, macros, ingredients, method
+//   - Whey shake / supplement reminder (optional)
+//   - Rules section (derived from MacroMode, or user-overridden)
+//   - Daily macro totals
+//
+// English-only. Bilingual output is a deferred feature (see TODO.md).
+
+export type CookMessageOptions = {
+  dayLabel?:       string       // e.g. "Monday" or "Today"
+  eatingWindow?:   string       // e.g. "12 PM – 8 PM"
+  macroMode?:      MacroMode    // for auto-deriving rules
+  customRules?:    CookRules    // overrides macroMode-derived rules if set
+  shakeReminder?:  string       // e.g. "Whey shake — 4 PM, 1 scoop + 300ml water"
+  appName?:        string       // footer signature, defaults to "HealthTracker"
+}
+
+export function formatDailyCookMessageForShare(
+  meals: ShareableMeal[],
+  options: CookMessageOptions = {},
+): string {
+  const {
+    dayLabel        = "Today",
+    eatingWindow,
+    macroMode       = "BALANCED",
+    customRules,
+    shakeReminder,
+    appName         = "HealthTracker",
+  } = options
+
+  if (meals.length === 0) {
+    return `No meals planned for ${dayLabel}. Add meals to your plan first.`
+  }
+
+  const line = "─────────────────────"
+  const lines: string[] = []
+
+  // ── Header ──────────────────────────────────────────────────────────────
+  lines.push(`🍳 *${dayLabel}'s Meal Plan*`)
+  if (eatingWindow) {
+    lines.push(`⏰ *Eating window: ${eatingWindow}*`)
+  }
+  lines.push(line)
+  lines.push("")
+
+  // ── Each meal ───────────────────────────────────────────────────────────
+  meals.forEach((meal, idx) => {
+    lines.push(`🍽 *Meal ${idx + 1}${meal.time ? ` — ${meal.time}` : ""}*`)
+    lines.push(`*${meal.name}*`)
+    lines.push(`📊 P ${meal.protein}g · C ${meal.carbs}g · F ${meal.fat}g · ${meal.cal} kcal`)
+    lines.push(line)
+    lines.push("")
+
+    if (meal.ingredients.length > 0) {
+      lines.push(`📦 *Ingredients*`)
+      meal.ingredients.forEach(ing => lines.push(`  • ${ing}`))
+      lines.push("")
+    }
+
+    if (meal.steps.length > 0) {
+      lines.push(`👨‍🍳 *Method*`)
+      meal.steps.forEach((step, i) => lines.push(`  ${i + 1}. ${step}`))
+      lines.push("")
+    }
+  })
+
+  // ── Shake / supplement reminder ─────────────────────────────────────────
+  if (shakeReminder) {
+    lines.push(line)
+    lines.push(`🥤 *${shakeReminder}*`)
+    lines.push("")
+  }
+
+  // ── Rules section ───────────────────────────────────────────────────────
+  const rules = customRules ?? deriveRulesForMacroMode(macroMode)
+  if (rules.donts.length > 0 || rules.dos.length > 0) {
+    lines.push(line)
+    lines.push(`⚠️ *Important*`)
+    rules.donts.forEach(d => lines.push(`❌ ${d}`))
+    rules.dos.forEach(d   => lines.push(`✅ ${d}`))
+    lines.push("")
+  }
+
+  // ── Daily totals ────────────────────────────────────────────────────────
+  const totals = meals.reduce(
+    (acc, m) => ({
+      protein: acc.protein + (m.protein || 0),
+      carbs:   acc.carbs   + (m.carbs   || 0),
+      fat:     acc.fat     + (m.fat     || 0),
+      cal:     acc.cal     + (m.cal     || 0),
+    }),
+    { protein: 0, carbs: 0, fat: 0, cal: 0 },
+  )
+
+  lines.push(line)
+  lines.push(
+    `📊 *Daily totals:* P ${totals.protein}g · C ${totals.carbs}g · F ${totals.fat}g · ${totals.cal} kcal`,
+  )
+  lines.push("")
+  lines.push(`_Sent from ${appName}_`)
+
+  return lines.join("\n")
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// CORE SHARE HELPERS
+// ────────────────────────────────────────────────────────────────────────────
 
 export function shareViaWhatsApp(text: string) {
   const encoded = encodeURIComponent(text)
   window.open(`https://wa.me/?text=${encoded}`, "_blank")
 }
 
-export async function shareOrCopy(text: string, title = "HealthTracker Summary"): Promise<"whatsapp" | "native" | "clipboard"> {
+export async function shareOrCopy(
+  text: string,
+  title = "HealthTracker Summary",
+): Promise<"whatsapp" | "native" | "clipboard"> {
   if (navigator.share) {
     try {
       await navigator.share({ title, text })
