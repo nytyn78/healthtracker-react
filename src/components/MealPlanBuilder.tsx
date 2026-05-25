@@ -5,6 +5,7 @@ import {
   useHealthStore,
 } from "../store/useHealthStore"
 import { computeMacros } from "../services/adaptiveTDEE"
+import { loadGoalMode } from "../services/goalModeConfig"
 import { PRESETS, PresetKey } from "../services/mealPlanPresets"
 import MealPlanSync from "./MealPlanSync"
 import {
@@ -244,7 +245,8 @@ export default function MealPlanBuilder() {
 
   // Read user's profile to compute personalised protein target
   const { profile, goals, settings } = useHealthStore()
-  const macros = computeMacros(profile, goals, settings)
+  const goalMode = loadGoalMode()
+  const macros = computeMacros(profile, goals, settings, goalMode)
   const userProteinTarget = macros?.proteinG ?? 0
 
   function persistPlan(updated: MealPlanEntry[]) {
