@@ -8,7 +8,7 @@
 
 import { useState } from "react"
 import { computeMacros } from "../services/adaptiveTDEE"
-import { useHealthStore, saveMealPlan, MealPlanEntry } from "../store/useHealthStore"
+import { useHealthStore, saveMealPlan, MealPlanEntry, DietTag, DIET_TAG_LABELS } from "../store/useHealthStore"
 import { generateWeekPlan, GeneratorTargets } from "../services/mealGenerator"
 import { toDayMealPlanEntries } from "../services/transformer"
 import { loadGoalMode } from "../services/goalModeConfig"
@@ -16,11 +16,31 @@ import { KEYS } from "../services/storageKeys"
 
 const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
 
-function getDietTag() {
+// ── Diet tag resolution ──────────────────────────────────────────────────────
+// Reads the user's chosen dietary tag from storage. Defaults to "veg" (was
+// previously "eggetarian" — that default caused the long-running "eggetarian
+// keto" label bug for vegetarian users who never explicitly picked a tag).
+function getDietTag(): DietTag {
   try {
     const cfg = JSON.parse(localStorage.getItem(KEYS.DIET_CONFIG) || "{}")
-    return cfg.tag || "eggetarian"
-  } catch { return "eggetarian" }
+    // Reject empty / falsy / unknown values; fall back to safe default
+    if (cfg.tag === "veg" || cfg.tag === "eggetarian" || cfg.tag === "non_veg") return cfg.tag
+    return "veg"
+  } catch { return "veg" }
+}
+
+// ── Macro mode label resolution ──────────────────────────────────────────────
+// Mirrors the resolveMacroMode logic in adaptiveTDEE.ts. We re-derive the mode
+// from the user's actual settings.macroSplit so the label NEVER contradicts the
+// engine output. This is what fixes the "balanced selected, label says keto" bug.
+function resolveMacroModeLabel(macroSplit: { fatPct: number; proteinPct: number; carbsPct: number }): string {
+  const { carbsPct, proteinPct } = macroSplit
+  if (carbsPct <= 10)                                        return "keto"
+  if (carbsPct <= 20)                                        return "very low-carb"
+  if (proteinPct >= 40)                                      return "high-protein"
+  if (proteinPct >= 30 && carbsPct >= 20 && carbsPct <= 40)  return "recomposition"
+  if (carbsPct <= 35)                                        return "low-carb"
+  return "balanced"
 }
 
 function getMealPlanTargetHash(targets: GeneratorTargets): string {
@@ -45,7 +65,13 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
   const [generating, setGenerating] = useState(false)
   const [justDone, setJustDone]     = useState(false)
 
-  const computed = computeMacros(profile, goals, settings)
+  // ── Goal-mode aware macro computation ─────────────────────────────────────
+  // Reads the user's goal mode (fat_loss, breastfeeding, pregnancy_t2, etc.)
+  // so that maternal calorie surplus and other mode-specific adjustments
+  // are applied correctly. Previously this call omitted goalMode, silently
+  // under-prescribing calories for breastfeeding and pregnant users.
+  const goalMode = loadGoalMode()
+  const computed = computeMacros(profile, goals, settings, goalMode)
   if (!computed) return null
 
   const targets: GeneratorTargets = {
@@ -55,6 +81,14 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
     calories:  computed.targetCalories,
   }
 
+  // ── Dynamic label assembly ─────────────────────────────────────────────────
+  // Both the diet tag (veg/eggetarian/non_veg) and macro mode label are derived
+  // from the user's actual current state — NOT hardcoded. This ensures the
+  // header text always matches the macros being prescribed below it.
+  const dietTag    = getDietTag()
+  const macroLabel = resolveMacroModeLabel(settings.macroSplit)
+  const dietTagLabel = DIET_TAG_LABELS[dietTag].toLowerCase()
+
   const currentHash = getMealPlanTargetHash(targets)
   const savedHash   = getSavedHash()
   const isOutOfSync = savedHash !== currentHash && savedHash !== ""
@@ -63,9 +97,13 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
   function regenerate() {
     setGenerating(true)
     try {
-      const dietTag = getDietTag()
-      // Map stored diet tag to generator diet type
-      // non_veg → "non-veg", everything else → "eggetarian" (eggs+dairy allowed)
+      // Map stored diet tag to generator's expected diet type.
+      // The generator currently only supports "non-veg" and "eggetarian" branches
+      // (no pure vegetarian branch yet). For vegetarian users we'd ideally want
+      // a pure-veg branch — flagged for a future iteration. For now, vegetarian
+      // users get the eggetarian branch but their actual logged meals respect
+      // the dietTag stored on each entry.
+      // TODO(meal-generator): add a pure-veg branch that excludes egg ingredients.
       const diet = (dietTag === "non_veg" ? "non-veg" : "eggetarian") as any
       const weekResults = generateWeekPlan(targets, diet)
 
@@ -73,7 +111,7 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
       const allEntries: MealPlanEntry[] = weekResults.flatMap((result, i) =>
         toDayMealPlanEntries(result.plan, {
           lang:    "en",
-          dietTag: dietTag as any,
+          dietTag: dietTag,
           day:     DAYS[i],
         })
       )
@@ -105,8 +143,8 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
       <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 mb-3">
         <div className="text-xs font-bold text-teal-800 mb-1">🍽 Generate your meal plan</div>
         <p className="text-xs text-teal-700 mb-2 leading-snug">
-          Generate a 7-day eggetarian keto meal plan matched to your targets —
-          {targets.proteinG}g protein · {targets.fatG}g fat · {targets.carbsG}g carbs · {targets.calories} kcal/day
+          Generate a 7-day {dietTagLabel} {macroLabel} meal plan matched to your targets —
+          {' '}{targets.proteinG}g protein · {targets.fatG}g fat · {targets.carbsG}g carbs · {targets.calories} kcal/day
         </p>
         <button onClick={regenerate} disabled={generating}
           className="w-full py-2.5 bg-teal-600 text-white rounded-xl text-sm font-bold disabled:opacity-50">
