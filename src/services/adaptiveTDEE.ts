@@ -216,7 +216,7 @@ export type MacroMode =
 // ── Mode resolver ─────────────────────────────────────────────────────────────
 // Derives the effective mode from the user's macroSplit slider percentages.
 // Checked from most restrictive → most general. First match wins.
-function resolveMacroMode(
+export function resolveMacroMode(
   macroSplit: { fatPct: number; proteinPct: number; carbsPct: number }
 ): MacroMode {
   const { carbsPct, proteinPct } = macroSplit
