@@ -398,13 +398,33 @@ type FatStrategy =
   // Used by modes where carbs flex, to prevent runaway fat at high budgets.
   | { kind: "kcal_fraction";  fraction: number; floorG: number }
 
+// MacroModeProfile binds carbs and fat as a discriminated PAIR, not as two
+// independent fields. This encodes a real invariant of the engine:
+//
+//   carb_anchored: carbs are fixed grams (mode-defining), fat is residual.
+//                  Used by KETO / VERY_LOW_CARB / LOW_CARB.
+//   fat_anchored:  fat is a kcal fraction (with hormonal floor), carbs flex
+//                  within a sanity band. Used by BALANCED / HPC / RECOMP.
+//
+// Pairing the union eliminates two previously-unreachable fallback branches
+// inside resolveCarbsAndFat — narrowing on the top-level `strategy` field
+// lets the compiler prove which carb shape goes with which fat shape, so no
+// defensive `if (kind === ...) else 0` is needed. If a future mode profile
+// tries to mix-and-match (e.g. fixed_g carbs with kcal_fraction fat), the
+// type checker rejects it at the MODE_PROFILES declaration site rather than
+// producing a runtime no-op.
 type MacroModeProfile = {
   proteinTable: ProteinTable
   proteinCap?:  number          // optional g/kg cap (e.g. LOW_CARB caps at 1.4)
-  carbs:        CarbStrategy
-  fat:          FatStrategy
   calorieFloor: number
-}
+} & (
+  | { strategy: "carb_anchored"
+      carbs: Extract<CarbStrategy, { kind: "fixed_g" }>
+      fat:   Extract<FatStrategy,  { kind: "residual" }> }
+  | { strategy: "fat_anchored"
+      carbs: Extract<CarbStrategy, { kind: "flex_in_band" }>
+      fat:   Extract<FatStrategy,  { kind: "kcal_fraction" }> }
+)
 
 const MODE_PROFILES: Record<MacroMode, MacroModeProfile> = {
   // ───────────────────────────────────────────────────────────────────────
@@ -414,6 +434,7 @@ const MODE_PROFILES: Record<MacroMode, MacroModeProfile> = {
   // (midpoint of 20–50g clinical keto range), fat absorbs the rest.
   // ───────────────────────────────────────────────────────────────────────
   KETO: {
+    strategy:     "carb_anchored",
     proteinTable: PROTEIN_DEFAULT,
     carbs:        { kind: "fixed_g",       anchorG: 25, bandG: [20, 50] },
     fat:          { kind: "residual",      floorG: 60 },
@@ -426,6 +447,7 @@ const MODE_PROFILES: Record<MacroMode, MacroModeProfile> = {
   // metabolic benefits of carb restriction without strict ketosis.
   // ───────────────────────────────────────────────────────────────────────
   VERY_LOW_CARB: {
+    strategy:     "carb_anchored",
     proteinTable: PROTEIN_DEFAULT,
     carbs:        { kind: "fixed_g",       anchorG: 65, bandG: [50, 80] },
     fat:          { kind: "residual",      floorG: 55 },
@@ -439,6 +461,7 @@ const MODE_PROFILES: Record<MacroMode, MacroModeProfile> = {
   // band — popular with sustainable fat loss users.
   // ───────────────────────────────────────────────────────────────────────
   LOW_CARB: {
+    strategy:     "carb_anchored",
     proteinTable: PROTEIN_DEFAULT,
     proteinCap:   1.4,
     carbs:        { kind: "fixed_g",       anchorG: 100, bandG: [80, 120] },
@@ -457,6 +480,7 @@ const MODE_PROFILES: Record<MacroMode, MacroModeProfile> = {
   // appropriately scales with the budget instead of staying fixed.
   // ───────────────────────────────────────────────────────────────────────
   BALANCED: {
+    strategy:     "fat_anchored",
     proteinTable: PROTEIN_DEFAULT,
     proteinCap:   1.4,
     carbs:        { kind: "flex_in_band",  bandG: [110, 320] },
@@ -477,6 +501,7 @@ const MODE_PROFILES: Record<MacroMode, MacroModeProfile> = {
   // naturally lands ~45% carbs, which is appropriate for the mode.
   // ───────────────────────────────────────────────────────────────────────
   HIGH_PROTEIN_CUT: {
+    strategy:     "fat_anchored",
     proteinTable: PROTEIN_HIGH,
     carbs:        { kind: "flex_in_band",  bandG: [60, 280] },
     fat:          { kind: "kcal_fraction", fraction: 0.25, floorG: 40 },
@@ -491,6 +516,7 @@ const MODE_PROFILES: Record<MacroMode, MacroModeProfile> = {
   // the same reason as HIGH_PROTEIN_CUT — active heavy users.
   // ───────────────────────────────────────────────────────────────────────
   RECOMPOSITION: {
+    strategy:     "fat_anchored",
     proteinTable: PROTEIN_HIGH,
     carbs:        { kind: "flex_in_band",  bandG: [80, 300] },
     fat:          { kind: "kcal_fraction", fraction: 0.28, floorG: 40 },
@@ -550,14 +576,14 @@ export function resolveCarbsAndFat(
   const modeProfile = MODE_PROFILES[mode]
   const proteinKcal = proteinG * 4
 
-  if (modeProfile.fat.kind === "residual") {
+  if (modeProfile.strategy === "carb_anchored") {
     // Carb-anchored mode (KETO / VLC / LC). Carbs are mode-defining and fixed.
     // Fat absorbs whatever calories are left after protein + carbs are paid.
-    // Type narrowing: when fat is residual, carbs must be fixed_g (enforced
-    // at the profile level — see MODE_PROFILES above).
-    const carbsG = modeProfile.carbs.kind === "fixed_g"
-      ? modeProfile.carbs.anchorG
-      : 0  // unreachable but keeps the type system happy
+    //
+    // Narrowing on modeProfile.strategy proves modeProfile.carbs is `fixed_g`
+    // and modeProfile.fat is `residual` — both via the paired discriminated
+    // union on MacroModeProfile. No defensive fallback ternaries needed.
+    const carbsG = modeProfile.carbs.anchorG
     const fatKcalRemaining = targetCalories - proteinKcal - carbsG * 4
     const fatG = Math.max(Math.round(fatKcalRemaining / 9), modeProfile.fat.floorG)
     return { carbsG, fatG }
@@ -573,15 +599,15 @@ export function resolveCarbsAndFat(
   // floor, not a ceiling). This is correct: at 2800+ kcal a HPC plan will
   // naturally need more fat too — what matters for the mode identity is the
   // protein/carb FLOOR on fat, not a hard fat ceiling.
+  //
+  // As above: the `fat_anchored` narrowing proves modeProfile.fat is
+  // `kcal_fraction` and modeProfile.carbs is `flex_in_band`.
   const fatFromFraction   = Math.round((targetCalories * modeProfile.fat.fraction) / 9)
   const fatAnchorG        = Math.max(fatFromFraction, modeProfile.fat.floorG)
   const carbKcalRemaining = targetCalories - proteinKcal - fatAnchorG * 9
   const carbsRaw          = Math.round(carbKcalRemaining / 4)
-  // Type narrowing: when fat is kcal_fraction, carbs must be flex_in_band.
-  const band = modeProfile.carbs.kind === "flex_in_band"
-    ? modeProfile.carbs.bandG
-    : [0, 9999] as [number, number]  // unreachable but type-safe
-  const carbsG = Math.min(Math.max(carbsRaw, band[0]), band[1])
+  const [bandMin, bandMax] = modeProfile.carbs.bandG
+  const carbsG = Math.min(Math.max(carbsRaw, bandMin), bandMax)
 
   // If we clamped carbs at the upper band, the overflow calories go to fat.
   // Fat has only a floor, no ceiling — this prevents the engine from silently
@@ -597,10 +623,13 @@ export function resolveCarbsAndFat(
 // declared mode. If false, something has gone wrong upstream (e.g. an
 // extreme calorie budget pushed carbs out of the mode's declared band).
 // Used by computeMacros for a dev-time sanity check.
+//
+// bandG exists on both arms of the CarbStrategy union and means the same
+// thing in both: the sanity range the carb output must lie within for the
+// mode label to be honest. No need to discriminate on `kind` here.
 export function macrosMatchMode(mode: MacroMode, carbsG: number): boolean {
-  const carbs = MODE_PROFILES[mode].carbs
-  const band = carbs.kind === "fixed_g" ? carbs.bandG : carbs.bandG
-  return carbsG >= band[0] && carbsG <= band[1]
+  const [min, max] = MODE_PROFILES[mode].carbs.bandG
+  return carbsG >= min && carbsG <= max
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
