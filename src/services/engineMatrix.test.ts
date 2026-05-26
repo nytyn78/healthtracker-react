@@ -156,7 +156,12 @@ const SCENARIOS: Scenario[] = [
     id: "tall-male-active",
     label: "Tall active man, recomposition",
     profile: { age: 28, sex: "male", heightCm: 188, weightKg: 88, activityLevel: "very_active" },
-    goals: { targetWeightKg: 85, weeklyLossKg: 0.25 },
+    // Recomposition gets a built-in -250 kcal calorieAdjustment from
+    // GOAL_MODE_FLAGS. Setting weeklyLossKg=0 here prevents stacking a
+    // weight-loss deficit on top of it. Combining both would produce a
+    // ~-525 kcal/day deficit which is too aggressive for the recomp goal
+    // (small steady deficit + adequate training fuel).
+    goals: { targetWeightKg: 85, weeklyLossKg: 0 as any },
     eatingMode: "high_protein", goalMode: "recomposition",
     expect: { minProtein: 130 },
   },
@@ -385,6 +390,76 @@ const SCENARIOS: Scenario[] = [
     goals: { targetWeightKg: 52, weeklyLossKg: 0 as any },
     eatingMode: "balanced", goalMode: "teen_early",
     expect: { minProtein: 65 },  // 52kg * 1.3 = 67g
+  },
+
+  // ── 13. Goal-mode coverage — modes not previously in the matrix ──────────
+  // Pre-shipping of Commit 7a (deficit=0 enforcement for non-deficit modes).
+  // These scenarios pin the engine's behaviour for goal modes that the app
+  // supports but the matrix didn't exercise — maintenance, teen_older,
+  // postpartum, pre_conception — plus a deliberate stale-deficit regression
+  // that proves the engine ignores a non-zero weeklyLossKg in growth modes.
+
+  {
+    id: "maintenance-male",
+    label: "Adult man on maintenance (no deficit, no surplus)",
+    profile: { age: 40, sex: "male", heightCm: 178, weightKg: 78, activityLevel: "moderately_active" },
+    // Stale weeklyLossKg=0.5 left over from a previous fat-loss phase.
+    // The engine must ignore this and produce TDEE-level calories.
+    // Regression guard for the "user switched goal modes but old slider
+    // value persists in storage" silent-deficit bug.
+    goals: { targetWeightKg: 78, weeklyLossKg: 0.5 },
+    eatingMode: "balanced", goalMode: "maintenance",
+    expect: { minCalories: 2400, maxCalories: 2900 }, // ~TDEE, not TDEE-550
+  },
+  {
+    id: "maintenance-female",
+    label: "Adult woman on maintenance",
+    profile: { age: 36, sex: "female", heightCm: 164, weightKg: 60, activityLevel: "lightly_active" },
+    goals: { targetWeightKg: 60, weeklyLossKg: 0 as any },
+    eatingMode: "balanced", goalMode: "maintenance",
+    expect: { minCalories: 1700, maxCalories: 2200 },
+  },
+  {
+    id: "teen-older-cautious-cut",
+    label: "17yo on cautious fat loss — capped at 0.5 kg/wk by mode",
+    profile: { age: 17, sex: "male", heightCm: 175, weightKg: 78, activityLevel: "moderately_active" },
+    // User asked for 1 kg/wk but teen_older flags cap at 0.5 kg/wk.
+    // The cap MUST activate — older teens can deficit but only cautiously.
+    goals: { targetWeightKg: 70, weeklyLossKg: 1.0 },
+    eatingMode: "balanced", goalMode: "teen_older",
+    expect: { minCalories: 1800 },
+  },
+  {
+    id: "postpartum-recovery",
+    label: "Postpartum mother, gentle recovery (no aggressive deficit)",
+    profile: { age: 30, sex: "female", heightCm: 162, weightKg: 68, activityLevel: "lightly_active" },
+    goals: { targetWeightKg: 60, weeklyLossKg: 0.25 },
+    eatingMode: "balanced", goalMode: "postpartum",
+  },
+  {
+    id: "pre-conception-overweight",
+    label: "Pre-conception, overweight — -300 kcal adjustment applies",
+    profile: { age: 31, sex: "female", heightCm: 160, weightKg: 78, activityLevel: "lightly_active" },
+    goals: { targetWeightKg: 65, weeklyLossKg: 0.5 },
+    eatingMode: "balanced", goalMode: "pre_conception",
+    expect: { minCalories: 1200 },
+  },
+  {
+    id: "stale-deficit-child-regression",
+    label: "REGRESSION: 11yo child with stale weeklyLossKg — must be ignored",
+    // This scenario specifically tests the deficit=0 enforcement added in
+    // Commit 7a. A stale 0.5 kg/wk value from a previous goal mode would
+    // historically produce a -550 kcal deficit on a growing child. The
+    // engine must now ignore the value and prescribe at TDEE.
+    profile: { age: 11, sex: "male", heightCm: 145, weightKg: 38, activityLevel: "moderately_active" },
+    goals: { targetWeightKg: 38, weeklyLossKg: 0.5 },
+    eatingMode: "balanced", goalMode: "child",
+    // Mifflin BMR(38kg, 145cm, 11yo male) = 10*38 + 6.25*145 - 5*11 + 5 = 1236
+    // TDEE at moderately_active (1.55) ≈ 1916. Engine must produce ~TDEE,
+    // not TDEE - 550 = 1366. Floor of 1300 (BALANCED) would mask the bug
+    // at 1366 — so we assert > 1700 to distinguish "deficit applied then
+    // clamped to floor" from "deficit correctly ignored".
+    expect: { minCalories: 1700 },
   },
 ]
 
