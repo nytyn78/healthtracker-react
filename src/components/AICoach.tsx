@@ -8,17 +8,14 @@ import {
   loadHistory, loadAISettings, saveAISettings, AISettings,
   loadFocusItems, saveFocusItems, addFocusItem, FocusItem,
   loadMedications, Medication,
-  useHealthStore,
+  useHealthStore, loadDietConfig,
 } from "../store/useHealthStore"
 import { computeMacros } from "../services/adaptiveTDEE"
-function loadDietConfig() {
-  try {
-    const raw = localStorage.getItem("diet_config")
-    return raw ? JSON.parse(raw) : {}
-  } catch {
-    return {}
-  }
-}
+// (Previously had a stale local copy of loadDietConfig that read from the
+// unprefixed "diet_config" localStorage key. After the storage-key prefix
+// was added across the rest of the app, this local copy was silently reading
+// from an empty key — making AICoach's "Diet" line in profile summaries
+// always blank. Now uses the canonical loader from the store.)
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
