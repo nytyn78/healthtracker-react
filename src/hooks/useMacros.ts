@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import { useHealthStore, loadDayData } from "../store/useHealthStore"
 import { computeMacros } from "../services/adaptiveTDEE"
+import { loadGoalMode } from "../services/goalModeConfig"
 import { getISTDate } from "../utils/dateHelpers"
 
 export type MacroTotals = {
@@ -35,7 +36,7 @@ export function useMacros(): { totals: MacroTotals; targets: MacroTargets | null
     setTotals(t)
   }, [])
 
-  const macros = computeMacros(profile, goals, settings)
+  const macros = computeMacros(profile, goals, settings, loadGoalMode())
   const targets: MacroTargets | null = macros
     ? {
         calories: macros.targetCalories,
