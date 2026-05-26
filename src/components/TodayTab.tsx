@@ -13,7 +13,7 @@ import { GoalMode, getFlags, isMaternalMode, isGeriatricMode, loadGoalMode, save
 import MicronutrientChecklist from "./MicronutrientChecklist"
 import MealPlanSync from "./MealPlanSync"
 import { loadMealPlan, MealPlanEntry } from "../store/useHealthStore"
-import { getTodayPlan, getDayName, DayPlan } from "../data/mealPlan"
+import { getDayName } from "../data/mealPlan"
 import { formatDailySummaryForShare, shareOrCopy } from "../services/shareUtils"
 
 // ── Get today's meals — from stored plan if available, else hardcoded fallback ─
@@ -37,9 +37,13 @@ function getTodayMeals(dayName: string): { meals: StoredMeal[]; fromStore: boole
       }))
     }
   }
-  // Fall back to hardcoded plan
-  const fallback = getTodayPlan(dayName)
-  return { fromStore: false, meals: fallback.meals }
+  // No stored plan and no fallback. Returning an empty meals list is the
+  // honest behaviour — previously this fell back to a hardcoded keto rotation
+  // (Andhra Egg Masala etc.) regardless of the user's actual mode, which
+  // showed keto content to balanced/low-carb/recomp/maintenance users who
+  // had no plan generated yet. The UI handles empty meals correctly: the
+  // MealPlanSync banner already prompts "Generate your meal plan" in this state.
+  return { fromStore: false, meals: [] }
 }
 
 type StoredMeal = {
@@ -502,7 +506,6 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
 
   const tots = sumMacros(day.entries)
   const { meals: todayMeals } = getTodayMeals(getDayName())
-  const fallbackPlan = getTodayPlan(getDayName())
   const dayName = getDayName()
   const dateLabel = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })
 
@@ -652,7 +655,14 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
             : goalMode === "child"       ? "🧒 Child — Growing Strong"
             : goalMode === "teen_early"  ? "🧑 Early Teen"
             : goalMode === "teen_older"  ? "👦 Teen"
-            : fallbackPlan.theme
+            // Previously fell back to a hardcoded meal-rotation theme
+            // ("Andhra Egg Masala & Bhuna Paneer Tikka") shown to every
+            // non-special-mode user regardless of their actual eating mode.
+            // Replaced with a goal-mode label so the header always describes
+            // what the user is actually doing, not a stale keto-rotation name.
+            : goalMode === "recomposition" ? "💪 Recomposition"
+            : goalMode === "maintenance"   ? "⚖️ Maintenance"
+            : "🎯 Fat Loss"
           }</div>
           {profile.name && <div className="text-xs opacity-60 mt-0.5">Good day, {profile.name} 👋</div>}
         </div>
@@ -984,14 +994,12 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
               </div>
             )
           })}
-          {fallbackPlan.shake && (
-            <div className="flex items-center gap-2 mt-1 p-2 bg-blue-50 rounded-lg">
-              <span>🥤</span>
-              <div className="text-xs text-blue-800">
-                <span className="font-bold">Whey Shake</span> — Isopure 1 scoop / 300ml water · ~4 PM
-              </div>
-            </div>
-          )}
+          {/* Removed hardcoded "Whey Shake — Isopure 1 scoop / 300ml water · ~4 PM"
+              hint that was previously shown to every user regardless of mode,
+              diet, or supplement use. This was keto/IF-specific developer
+              content that didn't belong as a default UI element for non-keto
+              users (or anyone not taking whey). If the user's generated meal
+              plan includes a shake, it appears as a normal meal entry above. */}
         </Section>
 
         {/* ── FOOD LOG ── */}
