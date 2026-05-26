@@ -85,15 +85,10 @@ export const FOODS = {
     displayName: { hi: "व्हे प्रोटीन", en: "Whey Protein" },
   },
 
-  // Per 1g raw — use quantity: 75 for 75g
-  MASOOR_DAL: {
-    id: "MASOOR_DAL", name: "Masoor Dal (raw)",
-    unitType: "grams",
-    macros: { protein: 0.24, carbs: 0.60, fat: 0.013, calories: 3.40, fiber: 0.15 },
-    tags: ["veg", "eggetarian", "fiber-source"],
-    quantization: { step: 5, min: 25, max: 150 },
-    displayName: { hi: "मसूर दाल", en: "Masoor Dal" },
-  },
+  // MASOOR_DAL was previously defined here with hand-estimated values. The
+  // IFCT-sourced version (B013 — Lentil dal) now lives in the Grain Legumes
+  // section below, alongside the other 8b legumes. The FoodId is unchanged
+  // so existing meal-plan references continue to resolve.
 
   // ── Added fats ───────────────────────────────────────────────────────────────
   // Per 1 tsp
@@ -411,6 +406,20 @@ export const FOODS = {
   // standard reporting metric, ≈ net carbs (total carbs minus fibre).
   //
   // Calcium and iron are in mg per gram (i.e. IFCT mg/100g value ÷ 100).
+  //
+  // Commit 8b fix: the original 8a cereal entries had the `fat` field
+  // populated from IFCT Table 1's Ash column (one position to the right of
+  // the Fat column) for all 10 cereal entries. Fat values below have been
+  // corrected to the actual Table 1 Fat values. The BAJRA comment was also
+  // corrected — bajra is not "high fat for a grain" (real fat 1.37%, ash
+  // 5.43%, which is what the 8a value was reflecting). Protein, CHOAVL,
+  // fibre, calcium, iron, and energy were unaffected by the bug and remain
+  // as originally entered. Energy stays as the IFCT-printed kJ value
+  // converted to kcal — it is not recomputed by Atwater from the new fat
+  // value, because IFCT energy is the authoritative number (it accounts
+  // for sugar/fibre/alcohol fractions that pure Atwater on protein-fat-CHO
+  // would miss). The resulting protein + fat + carb kcal will be very
+  // close to the printed energy but not identical, which is correct.
 
   // A019 — Whole wheat flour. The atta used for chapati / roti / paratha
   // across North India. High fibre because the bran is retained. n=6.
@@ -418,7 +427,7 @@ export const FOODS = {
     id: "ATTA", name: "Whole Wheat Flour (Atta)",
     unitType: "grams",
     macros: {
-      protein: 0.1057, carbs: 0.6417, fat: 0.0153,
+      protein: 0.1057, carbs: 0.6417, fat: 0.0128,
       calories: 3.20, fiber: 0.1136,
       calcium: 0.3094, iron: 0.0410,
     },
@@ -433,7 +442,7 @@ export const FOODS = {
     id: "MAIDA", name: "Refined Wheat Flour (Maida)",
     unitType: "grams",
     macros: {
-      protein: 0.1036, carbs: 0.7427, fat: 0.0076,
+      protein: 0.1036, carbs: 0.7427, fat: 0.0051,
       calories: 3.52, fiber: 0.0276,
       calcium: 0.2040, iron: 0.0177,
     },
@@ -447,7 +456,7 @@ export const FOODS = {
     id: "SOOJI", name: "Semolina (Sooji / Rava)",
     unitType: "grams",
     macros: {
-      protein: 0.1138, carbs: 0.6843, fat: 0.0074,
+      protein: 0.1138, carbs: 0.6843, fat: 0.0080,
       calories: 3.34, fiber: 0.0972,
       calcium: 0.2938, iron: 0.0298,
     },
@@ -462,7 +471,7 @@ export const FOODS = {
     id: "RICE_WHITE_RAW", name: "White Rice, raw (milled)",
     unitType: "grams",
     macros: {
-      protein: 0.0794, carbs: 0.7824, fat: 0.0052,
+      protein: 0.0794, carbs: 0.7824, fat: 0.0056,
       calories: 3.56, fiber: 0.0281,
       calcium: 0.0749, iron: 0.0065,
     },
@@ -477,7 +486,7 @@ export const FOODS = {
     id: "RICE_BROWN_RAW", name: "Brown Rice, raw",
     unitType: "grams",
     macros: {
-      protein: 0.0916, carbs: 0.7480, fat: 0.0124,
+      protein: 0.0916, carbs: 0.7480, fat: 0.0104,
       calories: 3.54, fiber: 0.0443,
       calcium: 0.1093, iron: 0.0102,
     },
@@ -492,7 +501,7 @@ export const FOODS = {
     id: "POHA", name: "Rice Flakes (Poha)",
     unitType: "grams",
     macros: {
-      protein: 0.0744, carbs: 0.7675, fat: 0.0114,
+      protein: 0.0744, carbs: 0.7675, fat: 0.0085,
       calories: 3.54, fiber: 0.0346,
       calcium: 0.0919, iron: 0.0446,
     },
@@ -502,12 +511,13 @@ export const FOODS = {
   },
 
   // A003 — Pearl millet. Bajra — winter staple in Rajasthan, Gujarat,
-  // Haryana. High fat for a grain, very high iron. n=6.
+  // Haryana. Modest fat for a grain; very high iron (6.42 mg/100g) and
+  // good calcium (27.4 mg/100g). n=6.
   BAJRA: {
     id: "BAJRA", name: "Pearl Millet (Bajra)",
     unitType: "grams",
     macros: {
-      protein: 0.1096, carbs: 0.6178, fat: 0.0543,
+      protein: 0.1096, carbs: 0.6178, fat: 0.0137,
       calories: 3.48, fiber: 0.1149,
       calcium: 0.2735, iron: 0.0642,
     },
@@ -522,7 +532,7 @@ export const FOODS = {
     id: "JOWAR", name: "Sorghum (Jowar)",
     unitType: "grams",
     macros: {
-      protein: 0.0997, carbs: 0.6768, fat: 0.0173,
+      protein: 0.0997, carbs: 0.6768, fat: 0.0139,
       calories: 3.34, fiber: 0.1022,
       calcium: 0.2760, iron: 0.0395,
     },
@@ -538,7 +548,7 @@ export const FOODS = {
     id: "RAGI", name: "Finger Millet (Ragi)",
     unitType: "grams",
     macros: {
-      protein: 0.0716, carbs: 0.6682, fat: 0.0192,
+      protein: 0.0716, carbs: 0.6682, fat: 0.0204,
       calories: 3.21, fiber: 0.1118,
       calcium: 3.640, iron: 0.0462,
     },
@@ -554,13 +564,161 @@ export const FOODS = {
     id: "BARLEY", name: "Barley (Jau)",
     unitType: "grams",
     macros: {
-      protein: 0.1094, carbs: 0.6129, fat: 0.0130,
+      protein: 0.1094, carbs: 0.6129, fat: 0.0106,
       calories: 3.16, fiber: 0.1564,
       calcium: 0.2864, iron: 0.0156,
     },
     tags: ["veg", "eggetarian", "fiber-source"],
     quantization: { step: 5, min: 20, max: 150 },
     displayName: { hi: "जौ", en: "Barley (Jau)" },
+  },
+
+  // ── IFCT 2017 — Grain Legumes (commit 8b) ────────────────────────────────────
+  //
+  // Same source, citation, and methodology as the cereal block above:
+  // Indian Food Composition Tables 2017 (Longvah et al., NIN/ICMR). Values
+  // are per 1 gram raw, with IFCT food code and sample size in each entry's
+  // comment. CHOAVL ("available CHO by difference"), TDF for fibre, energy
+  // converted from kJ at 1 kcal = 4.184 kJ. Calcium and iron in mg per gram
+  // (IFCT mg/100g ÷ 100).
+  //
+  // Cooking-conversion rule of thumb for dal: 1 g dry → ~2.5 g cooked (varies
+  // with soaking, lentil type, and how loose the dal is — masoor and moong
+  // are looser, urad and rajma are denser when properly cooked).
+  //
+  // Coverage decisions:
+  //   - Kabuli chana (white chickpea) is not separately tabulated in IFCT.
+  //     It is the cream-coloured variety of the same species (Cicer
+  //     arietinum) as desi chana. The whole-Bengal-gram entry (B002) is the
+  //     closest IFCT match; kabuli is slightly higher in CHOAVL and slightly
+  //     lower in fibre, but the difference is within the n=6 sample SD.
+  //     Users logging kabuli chana should use CHANA_WHOLE.
+  //   - "Bengal gram, whole" (B002) covers both desi chana / kala chana
+  //     and serves as the closest proxy for kabuli (see above).
+
+  // B021 — Pigeon pea, dehusked split (toor / arhar dal). The most-used dal
+  // across most of India. n=6.
+  TOOR_DAL: {
+    id: "TOOR_DAL", name: "Toor Dal / Arhar (raw)",
+    unitType: "grams",
+    macros: {
+      protein: 0.2170, carbs: 0.5523, fat: 0.0156,
+      calories: 3.31, fiber: 0.0906,
+      calcium: 0.7173, iron: 0.0390,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "तूर / अरहर दाल", en: "Toor Dal (Arhar)" },
+  },
+
+  // B001 — Bengal gram, dehusked split (chana dal). Slightly higher fat
+  // than other split dals; mild glycaemic load. n=6.
+  CHANA_DAL: {
+    id: "CHANA_DAL", name: "Chana Dal (raw)",
+    unitType: "grams",
+    macros: {
+      protein: 0.2155, carbs: 0.4672, fat: 0.0531,
+      calories: 3.29, fiber: 0.1515,
+      calcium: 0.4632, iron: 0.0608,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "चना दाल", en: "Chana Dal" },
+  },
+
+  // B002 — Bengal gram, whole. Desi black chickpea (kala chana) and the
+  // closest IFCT proxy for kabuli chana (see header note above). Very high
+  // fibre because the seed coat is intact. Good calcium and iron. n=6.
+  CHANA_WHOLE: {
+    id: "CHANA_WHOLE", name: "Whole Chana (Kala / Kabuli, raw)",
+    unitType: "grams",
+    macros: {
+      protein: 0.1877, carbs: 0.3956, fat: 0.0511,
+      calories: 2.87, fiber: 0.2522,
+      calcium: 1.500, iron: 0.0678,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "साबुत चना (काला / काबुली)", en: "Whole Chana" },
+  },
+
+  // B010 — Green gram, dehusked split (moong dal). Light, easy to digest,
+  // popular in khichdi and dal. Lowest fibre among the split dals here. n=6.
+  MOONG_DAL: {
+    id: "MOONG_DAL", name: "Moong Dal (raw)",
+    unitType: "grams",
+    macros: {
+      protein: 0.2388, carbs: 0.5259, fat: 0.0135,
+      calories: 3.26, fiber: 0.0937,
+      calcium: 0.4313, iron: 0.0393,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "मूंग दाल", en: "Moong Dal" },
+  },
+
+  // B003 — Black gram, dehusked split (urad dal). The dal in dal makhani
+  // (when paired with rajma) and in idli/dosa batter. Highest protein of
+  // the split dals tabulated here. n=6.
+  URAD_DAL: {
+    id: "URAD_DAL", name: "Urad Dal (raw)",
+    unitType: "grams",
+    macros: {
+      protein: 0.2306, carbs: 0.5100, fat: 0.0169,
+      calories: 3.24, fiber: 0.1193,
+      calcium: 0.5567, iron: 0.0467,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "उड़द दाल", en: "Urad Dal" },
+  },
+
+  // B004 — Black gram, whole (sabut urad). Used in dal makhani. Much higher
+  // fibre than dehusked urad because the dark seed coat is retained. n=6.
+  URAD_WHOLE: {
+    id: "URAD_WHOLE", name: "Whole Urad / Sabut Urad (raw)",
+    unitType: "grams",
+    macros: {
+      protein: 0.2197, carbs: 0.4399, fat: 0.0158,
+      calories: 2.91, fiber: 0.2041,
+      calcium: 0.8618, iron: 0.0597,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "साबुत उड़द", en: "Whole Urad (Sabut)" },
+  },
+
+  // B013 — Lentil dal (masoor dal). Replaces the previous hand-estimated
+  // entry. Highest protein among the dehusked dals here (24.4 g/100g) and
+  // the highest iron (7.06 mg/100g — useful in iron-deficiency diets and
+  // maternal modes). n=6.
+  MASOOR_DAL: {
+    id: "MASOOR_DAL", name: "Masoor Dal (raw)",
+    unitType: "grams",
+    macros: {
+      protein: 0.2435, carbs: 0.5253, fat: 0.0075,
+      calories: 3.22, fiber: 0.1043,
+      calcium: 0.4432, iron: 0.0706,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 25, max: 150 },
+    displayName: { hi: "मसूर दाल", en: "Masoor Dal" },
+  },
+
+  // B019 — Rajmah, brown (rajma). Kidney bean. High fibre, very high
+  // calcium for a legume (134 mg/100g), high iron. The dal makhani pairing
+  // partner and the rajma in rajma-chawal. n=6.
+  RAJMA: {
+    id: "RAJMA", name: "Rajma / Kidney Bean (raw)",
+    unitType: "grams",
+    macros: {
+      protein: 0.1950, carbs: 0.4883, fat: 0.0168,
+      calories: 2.98, fiber: 0.1695,
+      calcium: 1.340, iron: 0.0630,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "राजमा", en: "Rajma (Kidney Bean)" },
   },
 
 } as const satisfies Record<string, FoodItem>
