@@ -158,9 +158,29 @@ export function calcTargetCalories(
   // ── Weight-loss deficit ────────────────────────────────────────────────────
   // Capped by mode-specific maximum (breastfeeding 0.3 kg/wk, geriatric 0.25,
   // pregnancy null = no deficits allowed at all).
+  //
+  // Growth & maintenance modes (child / teen_early / maintenance) hard-zero
+  // the deficit regardless of the user-supplied weeklyLossKg. This is the
+  // "inform-don't-override" pattern made explicit: the UI hides the weekly-
+  // loss control for these modes, but if a stale value lingers in storage
+  // from a previous goal mode, the engine must not silently apply it.
+  //
+  // Why these three modes specifically:
+  //   - child / teen_early: weight changes reflect growth, not surplus. A
+  //     deficit during growth is clinically harmful — it can compromise
+  //     final adult height, bone density, and pubertal development.
+  //   - maintenance: by definition a non-deficit mode. Stale weeklyLossKg
+  //     from a previous fat-loss phase shouldn't quietly carry over.
+  //
+  // teen_older keeps the deficit logic (with the 0.5 kg/wk cap already in
+  // GOAL_MODE_FLAGS) — older teens can pursue cautious fat loss with the
+  // caveat banners shown in UI.
+  const isNonDeficitMode =
+    goalMode === "child" || goalMode === "teen_early" || goalMode === "maintenance"
   const maxLoss = goalMode ? GOAL_MODE_FLAGS[goalMode]?.maxWeightLossPerWeekKg : null
-  const cappedWeeklyLoss =
-    maxLoss === null && goalMode && isPregnancyMode(goalMode)
+  const cappedWeeklyLoss = isNonDeficitMode
+    ? 0
+    : maxLoss === null && goalMode && isPregnancyMode(goalMode)
       ? 0  // pregnancy: no deficits ever
       : maxLoss !== undefined && maxLoss !== null
         ? Math.min(goals.weeklyLossKg, maxLoss)
