@@ -1,5 +1,6 @@
 import { useHealthStore, loadHistory, loadAISettings } from "../store/useHealthStore"
 import { computeMacros } from "../services/adaptiveTDEE"
+import { loadGoalMode } from "../services/goalModeConfig"
 import { useState } from "react"
 import { KEYS } from "../services/storageKeys"
 
@@ -37,7 +38,7 @@ export default function AIWeeklyReport() {
   const [error, setError] = useState("")
 
   const aiSettings = loadAISettings()
-  const macros = computeMacros(profile, goals, settings)
+  const macros = computeMacros(profile, goals, settings, loadGoalMode())
 
   async function generateReport() {
     const apiKey = aiSettings?.anthropicKey

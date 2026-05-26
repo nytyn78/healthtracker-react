@@ -9,6 +9,7 @@ import {
 } from "../services/mealPlanPresets"
 import { getISTDate } from "../utils/dateHelpers"
 import { computeMacros } from "../services/adaptiveTDEE"
+import { loadGoalMode } from "../services/goalModeConfig"
 import { useHealthStore } from "../store/useHealthStore"
 
 function makeId() { return `eatout-${Date.now()}-${Math.random().toString(36).slice(2)}` }
@@ -50,7 +51,7 @@ export default function EatingOut() {
   const [markedOut, setMarkedOut] = useState(() => wasEatingOut(today))
   const [loggedDish, setLoggedDish] = useState<string | null>(null)
 
-  const macros = computeMacros(profile, goals, settings)
+  const macros = computeMacros(profile, goals, settings, loadGoalMode())
 
   // Remaining macros today
   const logged = (day.entries || []).reduce(

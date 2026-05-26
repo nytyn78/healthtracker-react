@@ -92,7 +92,7 @@ export default function ProgressCharts({ goalMode: propGoalMode }: { goalMode?: 
     setHistory(loadHistory())
   }, [])
 
-  const macros = computeMacros(profile, goals, settings)
+  const macros = computeMacros(profile, goals, settings, goalMode)
   const calTarget     = macros?.targetCalories ?? 1350
   const proteinTarget = macros?.proteinG ?? 110
   const carbTarget    = macros?.carbsG ?? 22

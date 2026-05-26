@@ -68,7 +68,19 @@ export default function App() {
   }
 
   if (showOnboarding) {
-    return <Onboarding onComplete={() => setShowOnboarding(false)} />
+    // On onboarding completion: re-read goalMode from storage immediately.
+    // Onboarding writes the user's chosen goal mode via saveGoalMode() in its
+    // complete() function, but App's goalMode React state was initialised at
+    // app start when storage may have held a stale (or default fat_loss)
+    // value. Without this explicit sync, the user sees the wrong goal-mode
+    // header for ~0-2 seconds after onboarding finishes — until the existing
+    // 2-second polling useEffect re-reads storage. The poll remains as a
+    // safety net for cross-tab changes; this handler covers the same-tab
+    // onboarding-finish case directly.
+    return <Onboarding onComplete={() => {
+      setGoalMode(loadGoalMode())
+      setShowOnboarding(false)
+    }} />
   }
 
   const flags = getFlags(goalMode)

@@ -11,6 +11,7 @@ import {
   useHealthStore, loadDietConfig,
 } from "../store/useHealthStore"
 import { computeMacros } from "../services/adaptiveTDEE"
+import { loadGoalMode } from "../services/goalModeConfig"
 // (Previously had a stale local copy of loadDietConfig that read from the
 // unprefixed "diet_config" localStorage key. After the storage-key prefix
 // was added across the rest of the app, this local copy was silently reading
@@ -121,7 +122,7 @@ function FocusItemsList() {
 // ── No-key fallback panel ─────────────────────────────────────────────────────
 function NoKeyPanel({ feature, onPromptCopied }: { feature: string; onPromptCopied?: () => void }) {
   const { profile, goals, settings } = useHealthStore()
-  const macros = computeMacros(profile, goals, settings)
+  const macros = computeMacros(profile, goals, settings, loadGoalMode())
   const history = loadHistory()
 
   function copyPrompt() {
@@ -168,7 +169,7 @@ function WeeklyReportSection() {
   const [error, setError] = useState("")
   const [copied, setCopied] = useState(false)
 
-  const macros = computeMacros(profile, goals, settings)
+  const macros = computeMacros(profile, goals, settings, loadGoalMode())
   const hasKey = !!aiSettings.anthropicKey
 
   async function generate() {
@@ -252,7 +253,7 @@ function InAppChat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  const macros = computeMacros(profile, goals, settings)
+  const macros = computeMacros(profile, goals, settings, loadGoalMode())
   const hasKey = !!aiSettings.anthropicKey
 
   const systemPrompt = `You are a personal health coach integrated into a health tracking app. You have access to the user's data.

@@ -1,5 +1,6 @@
 import { useHealthStore, loadDayData } from "../store/useHealthStore"
 import { computeMacros } from "../services/adaptiveTDEE"
+import { loadGoalMode } from "../services/goalModeConfig"
 import { getISTDate } from "../utils/dateHelpers"
 import { useState, useEffect } from "react"
 
@@ -56,7 +57,7 @@ export default function MacroProgressBars() {
     setTotals(t)
   }, [])
 
-  const macros = computeMacros(profile, goals, settings)
+  const macros = computeMacros(profile, goals, settings, loadGoalMode())
   if (!macros) {
     return (
       <div className="bg-white rounded-2xl shadow-sm p-4">

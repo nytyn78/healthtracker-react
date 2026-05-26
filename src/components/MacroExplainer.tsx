@@ -7,13 +7,14 @@ import { useState } from "react"
 import { useHealthStore, loadDietConfig } from "../store/useHealthStore"
 import { computeMacros, calcBMR, calcTDEE } from "../services/adaptiveTDEE"
 import { ACTIVITY_MULTIPLIERS } from "../store/useHealthStore"
+import { loadGoalMode } from "../services/goalModeConfig"
 
 type MetricKey = "calories" | "protein" | "carbs" | "fat" | "bmr" | "tdee" | null
 
 export default function MacroExplainer() {
   const [active, setActive] = useState<MetricKey>(null)
   const { profile, goals, settings } = useHealthStore()
-  const macros = computeMacros(profile, goals, settings)
+  const macros = computeMacros(profile, goals, settings, loadGoalMode())
   if (!macros) return null
 
   return (
@@ -51,7 +52,7 @@ function Metric({ label, value, unit, onClick }: { label: string; value: number;
 // ── Modal with the math ───────────────────────────────────────────────────────
 function ExplainerModal({ metric, onClose }: { metric: NonNullable<MetricKey>; onClose: () => void }) {
   const { profile, goals, settings } = useHealthStore()
-  const macros = computeMacros(profile, goals, settings)!
+  const macros = computeMacros(profile, goals, settings, loadGoalMode())!
   const bmr = calcBMR(profile)!
   const tdee = calcTDEE(profile)!
   const w = Number(profile.weightKg)

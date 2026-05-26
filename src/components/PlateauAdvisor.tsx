@@ -1,6 +1,7 @@
 import { useHealthStore, loadHistory } from "../store/useHealthStore"
 import { detectPlateau } from "../services/plateauDetection"
 import { computeMacros } from "../services/adaptiveTDEE"
+import { loadGoalMode } from "../services/goalModeConfig"
 import { useState, useEffect } from "react"
 
 const ADVICE: Record<string, { title: string; body: string; emoji: string }> = {
@@ -38,7 +39,7 @@ const ADVICE: Record<string, { title: string; body: string; emoji: string }> = {
 
 export default function PlateauAdvisor() {
   const { profile, goals, settings } = useHealthStore()
-  const macros = computeMacros(profile, goals, settings)
+  const macros = computeMacros(profile, goals, settings, loadGoalMode())
   const calTarget = macros?.targetCalories ?? 1350
 
   const [result, setResult] = useState(() =>

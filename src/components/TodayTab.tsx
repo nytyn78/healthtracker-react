@@ -434,7 +434,14 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
   const today = getISTDate()
   const [day, setDay] = useState<DayData>(() => loadDayData(today))
   const [, setTick] = useState(0)
-  const [goalMode] = useState<GoalMode>(propGoalMode ?? loadGoalMode())
+  // Use the prop directly (with localStorage fallback) instead of useState.
+  // useState(propGoalMode ?? loadGoalMode()) would capture the value at first
+  // render and never update — meaning a goalMode change in App.tsx (via the
+  // post-onboarding sync or the periodic poll) wouldn't propagate here until
+  // TodayTab happened to unmount and remount. That caused the "header stuck
+  // on Fat Loss after picking Recomposition until I generate a meal plan"
+  // bug. Reading the prop on every render keeps the header in sync.
+  const goalMode: GoalMode = propGoalMode ?? loadGoalMode()
   const [showPositiveTest, setShowPositiveTest] = useState(false)
   const [shareToast, setShareToast] = useState<string | null>(null)
 
@@ -459,7 +466,7 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
   const activeBreak = isInBreakPeriod(today)
 
   // Top nudge — now goal-mode aware
-  const macroTargets = computeMacros(profile, goals, settings)
+  const macroTargets = computeMacros(profile, goals, settings, goalMode)
   const topNudge = getTopNudge({
     history: loadHistory(),
     calTarget:     macroTargets?.targetCalories ?? 1350,
@@ -499,7 +506,7 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
     saveHistory(hist.slice(0, 180))
   }, [])
 
-  const computed = computeMacros(profile, goals, settings)
+  const computed = computeMacros(profile, goals, settings, goalMode)
   const tgt = computed
     ? { cal: computed.targetCalories, protein: computed.proteinG, carbs: computed.carbsG, fat: computed.fatG }
     : DEFAULT_TARGETS
