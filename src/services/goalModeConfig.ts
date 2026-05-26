@@ -645,30 +645,15 @@ export const MICRONUTRIENT_ITEMS: MicronutrientItem[] = [
     modes: ["geriatric"],
   },
 ]
-// ─── Diet Config ────────────────────────────────────────────────────────────
-
-export interface DietConfig {
-  mode?: string
-  tag?: string
-}
-
-const DIET_CONFIG_KEY = "diet_config"
-
-export function loadDietConfig(): DietConfig {
-  try {
-    const raw = localStorage.getItem(DIET_CONFIG_KEY)
-    return raw ? JSON.parse(raw) : {}
-  } catch {
-    return {}
-  }
-}
-
-export function saveDietConfig(config: DietConfig) {
-  try {
-    localStorage.setItem(DIET_CONFIG_KEY, JSON.stringify(config))
-  } catch {}
-}
 // ─── localStorage helpers ─────────────────────────────────────────────────────
+//
+// Note: dietConfig (mode + tag) lives in useHealthStore.ts. This file used to
+// duplicate loadDietConfig/saveDietConfig here using an UNPREFIXED localStorage
+// key ("diet_config" instead of "ht2_diet_config"), creating an invisible third
+// storage slot that nothing read from but that a stale AICoach copy also
+// pointed at. Removed as part of the macroSplit / dietConfig reconciliation
+// (Commit 6) — there is now exactly one dietConfig accessor in the codebase,
+// owned by the store, using the prefixed KEYS.DIET_CONFIG key.
 
 const GOAL_MODE_KEY     = KEYS.GOAL_MODE
 const PREGNANCY_KEY     = KEYS.PREGNANCY_SETTINGS
