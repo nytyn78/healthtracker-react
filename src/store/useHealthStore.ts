@@ -116,15 +116,52 @@ const DEFAULT_GOALS: UserGoals = {
   weeklyLossKg: 0.5,
 }
 
-const DEFAULT_MACRO_SPLIT: MacroSplit = {
-  fatPct: 70,
-  proteinPct: 25,
-  carbsPct: 5,
+// ── Canonical macro-split mapping ─────────────────────────────────────────────
+// Single source of truth: each user-facing DietMode maps to exactly one
+// MacroSplit percentage triple. This is the inverse of resolveMacroMode in
+// adaptiveTDEE.ts — picking the centre of each mode's band.
+//
+// HISTORY: previously the store kept macroSplit as an independent settings
+// value, separate from dietConfig.mode. Onboarding wrote to dietConfig.mode
+// but never touched macroSplit, so the engine (which reads macroSplit) kept
+// the keto default while the user's actual choice (balanced/low_carb/etc.)
+// lived in a different storage slot. This caused users who picked balanced
+// in onboarding to receive keto macros silently. The mapping below makes
+// dietConfig.mode the source of truth; macroSplit is derived from it.
+export const MACRO_SPLIT_FOR_MODE: Record<DietMode, MacroSplit> = {
+  keto:                { fatPct: 70, proteinPct: 25, carbsPct: 5  },
+  low_carb:            { fatPct: 50, proteinPct: 25, carbsPct: 25 },
+  balanced:            { fatPct: 30, proteinPct: 25, carbsPct: 45 },
+  high_protein:        { fatPct: 25, proteinPct: 40, carbsPct: 35 },
+  vegetarian_balanced: { fatPct: 30, proteinPct: 25, carbsPct: 45 }, // alias of balanced
 }
 
+// Inverse: macroSplit → DietMode. Mirrors resolveMacroMode in adaptiveTDEE.ts
+// but returns the user-facing DietMode union (not the engine's MacroMode).
+// Used by the legacy migration path and by updateMacroSplit (Settings slider
+// writes propagate to dietConfig).
+export function dietModeFromMacroSplit(macroSplit: MacroSplit): DietMode {
+  const { carbsPct, proteinPct } = macroSplit
+  if (carbsPct <= 10)                                       return "keto"
+  if (proteinPct >= 40)                                     return "high_protein"
+  if (carbsPct <= 35)                                       return "low_carb"
+  return "balanced"
+}
+
+// Balanced is the safe default for an unknown user — matches mainstream
+// dietary guidance (AMDR 45-65% carbs / 20-35% fat / 10-35% protein) and
+// works for the broadest user base.
+const DEFAULT_MACRO_SPLIT: MacroSplit = MACRO_SPLIT_FOR_MODE.balanced
+
+// Default IF protocol. 16:8 (eating window 12pm–8pm) is the most common
+// mainstream IF schedule and a reasonable default for users who haven't
+// configured fasting. Previously defaulted to 19:5 — the developer's
+// personal schedule — which silently applied an aggressive fast window
+// to every new user. (TODO Commit 7: Settings IF on/off toggle so users
+// who don't want IF at all can disable it cleanly.)
 const DEFAULT_IF: IFProtocol = {
-  fastingHours: 19,
-  eatingHours: 5,
+  fastingHours: 16,
+  eatingHours: 8,
   fastStartHour: 20,
 }
 
@@ -175,6 +212,63 @@ function persist(state: HealthState) {
 
 const saved = loadPersisted()
 
+// ── macroSplit ↔ dietConfig.mode reconciliation (Commit 6) ─────────────────────
+// Before this commit, macroSplit and dietConfig.mode lived in separate storage
+// slots and could disagree. The user-facing source of truth is now
+// dietConfig.mode; macroSplit is always derived from it.
+//
+// On store init we reconcile the two storage slots to ensure consistency
+// going forward:
+//
+//   - Both exist:   Trust dietConfig.mode. Recompute macroSplit from it.
+//                   (Fixes the bug where onboarding wrote mode=balanced but
+//                   the engine kept reading the keto macroSplit default.)
+//
+//   - Only macro:   Legacy user — no dietConfig stored. Derive a DietMode
+//                   from their existing macroSplit and write it to
+//                   dietConfig. Their experience is unchanged; the
+//                   inconsistency is just resolved.
+//
+//   - Only diet:    Recompute macroSplit from dietConfig.mode. Normal path
+//                   for a freshly-onboarded user (onboarding only writes
+//                   dietConfig, not macroSplit).
+//
+//   - Neither:      Use defaults (balanced macroSplit). Brand-new user.
+function reconcileMacroSplitAndDietConfig(): MacroSplit {
+  let diet: { mode?: DietMode; tag?: DietTag } = {}
+  try {
+    const raw = localStorage.getItem(KEYS.DIET_CONFIG)
+    diet = raw ? JSON.parse(raw) : {}
+  } catch {}
+
+  const storedSplit = saved.settings?.macroSplit
+  const dietMode = diet.mode as DietMode | undefined
+
+  // dietConfig.mode is authoritative when present.
+  if (dietMode && MACRO_SPLIT_FOR_MODE[dietMode]) {
+    return MACRO_SPLIT_FOR_MODE[dietMode]
+  }
+
+  // Legacy: macroSplit exists but no dietConfig. Derive mode and persist it
+  // so subsequent reads find dietConfig as the source of truth.
+  if (storedSplit && (storedSplit.fatPct + storedSplit.proteinPct + storedSplit.carbsPct) > 0) {
+    const derivedMode = dietModeFromMacroSplit({ ...DEFAULT_MACRO_SPLIT, ...storedSplit })
+    const derivedTag  = (diet.tag as DietTag | undefined) ?? "veg"
+    try {
+      localStorage.setItem(
+        KEYS.DIET_CONFIG,
+        JSON.stringify({ mode: derivedMode, tag: derivedTag }),
+      )
+    } catch {}
+    return { ...DEFAULT_MACRO_SPLIT, ...storedSplit }
+  }
+
+  // Brand-new user: defaults.
+  return DEFAULT_MACRO_SPLIT
+}
+
+const reconciledMacroSplit = reconcileMacroSplitAndDietConfig()
+
 export const useHealthStore = create<HealthState>((set, get) => ({
   today: "",
   logs: saved.logs ?? {},
@@ -183,7 +277,7 @@ export const useHealthStore = create<HealthState>((set, get) => ({
   profile:  { ...DEFAULT_PROFILE,  ...(saved.profile  ?? {}) },
   goals:    { ...DEFAULT_GOALS,    ...(saved.goals    ?? {}) },
   settings: {
-    macroSplit: { ...DEFAULT_MACRO_SPLIT, ...(saved.settings?.macroSplit ?? {}) },
+    macroSplit: reconciledMacroSplit,
     ifProtocol: { ...DEFAULT_IF,          ...(saved.settings?.ifProtocol ?? {}) },
   },
   init: async () => {},
@@ -192,7 +286,24 @@ export const useHealthStore = create<HealthState>((set, get) => ({
   clearToday: () => {},
   updateProfile: (patch: Partial<UserProfile>) => set((s: HealthState) => { const n = { ...s, profile: { ...s.profile, ...patch } }; persist(n); return n }),
   updateGoals: (patch: Partial<UserGoals>) => set((s: HealthState) => { const n = { ...s, goals: { ...s.goals, ...patch } }; persist(n); return n }),
-  updateMacroSplit: (patch: Partial<MacroSplit>) => set((s: HealthState) => { const n = { ...s, settings: { ...s.settings, macroSplit: { ...s.settings.macroSplit, ...patch } } }; persist(n); return n }),
+  // updateMacroSplit (Settings macro-preset buttons / slider) writes through
+  // to dietConfig as well, so the two storage locations never drift apart.
+  // The DietMode is derived from the new macroSplit via dietModeFromMacroSplit.
+  updateMacroSplit: (patch: Partial<MacroSplit>) => set((s: HealthState) => {
+    const newSplit = { ...s.settings.macroSplit, ...patch }
+    // Mirror to dietConfig so all readers stay consistent
+    try {
+      const raw = localStorage.getItem(KEYS.DIET_CONFIG)
+      const cur = raw ? JSON.parse(raw) : {}
+      const newMode = dietModeFromMacroSplit(newSplit)
+      localStorage.setItem(
+        KEYS.DIET_CONFIG,
+        JSON.stringify({ mode: newMode, tag: cur.tag ?? "veg" }),
+      )
+    } catch {}
+    const n = { ...s, settings: { ...s.settings, macroSplit: newSplit } }
+    persist(n); return n
+  }),
   updateIFProtocol: (patch: Partial<IFProtocol>) => set((s: HealthState) => {
     const updated = { ...s.settings.ifProtocol, ...patch }
     if (patch.fastingHours !== undefined) updated.eatingHours = 24 - patch.fastingHours
@@ -503,8 +614,27 @@ export function loadDietConfig(): { mode: DietMode; tag: DietTag } {
   } catch { return { mode: "balanced", tag: "veg" } }
 }
 
+// Writes dietConfig AND propagates the change into the Zustand store's
+// settings.macroSplit so the engine, warnings system, and any subscribed
+// component all see the updated mode immediately. Before this commit,
+// saveDietConfig only touched localStorage; the store kept whatever
+// macroSplit it had been initialised with, which is the parallel-storage
+// bug that caused balanced-mode onboarding choices to be silently overridden
+// with the keto default. (See reconcileMacroSplitAndDietConfig above.)
 export function saveDietConfig(config: { mode: DietMode; tag: DietTag }) {
   try { localStorage.setItem(KEYS.DIET_CONFIG, JSON.stringify(config)) } catch {}
+  // Sync macroSplit through the Zustand store so all React consumers update.
+  // Direct setState (not via updateMacroSplit) — updateMacroSplit would write
+  // dietConfig back, causing a redundant write.
+  try {
+    const newSplit = MACRO_SPLIT_FOR_MODE[config.mode] ?? DEFAULT_MACRO_SPLIT
+    useHealthStore.setState((s: HealthState) => {
+      const next = { ...s, settings: { ...s.settings, macroSplit: newSplit } }
+      persist(next)
+      return next
+    })
+    bumpSettingsVersion()
+  } catch {}
 }
 
 // ── Meal plan ─────────────────────────────────────────────────────────────────
