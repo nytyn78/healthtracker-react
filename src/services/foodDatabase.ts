@@ -17,6 +17,13 @@ export type Macro = {
   fat:      number
   calories: number
   fiber:    number  // required — never optional
+  // Optional micronutrients in milligrams per unit.
+  // Populated for IFCT-sourced foods where these matter clinically
+  // (maternal iron / calcium, geriatric calcium, pediatric iron).
+  // Older entries leave these undefined; consumers should treat undefined
+  // as "not tracked" rather than "zero".
+  calcium?: number  // mg per unit
+  iron?:    number  // mg per unit
 }
 
 export type FoodItem = {
@@ -375,6 +382,185 @@ export const FOODS = {
     tags: ["veg", "eggetarian", "keto"],
     quantization: { step: 1, min: 1, max: 8 },
     displayName: { hi: "गाढ़ा नारियल दूध", en: "Thick Coconut Milk" },
+  },
+
+  // ═════════════════════════════════════════════════════════════════════════
+  // ── Cereals, millets, and grain staples ───────────────────────────────────
+  // ═════════════════════════════════════════════════════════════════════════
+  //
+  // All values per 1 gram of RAW (uncooked, as-purchased) ingredient.
+  // Cooking conversion is handled by callers — see services/cookingConversion.ts
+  // (planned). Typical conversions:
+  //   - Rice:        1g dry → ~3g cooked
+  //   - Dal/lentils: 1g dry → ~2.5g cooked
+  //   - Atta:        25g flour + 15g water = ~40g cooked roti
+  //   - Sooji/oats:  1g dry → ~3g cooked
+  //
+  // Source: Indian Food Composition Tables 2017 (IFCT), National Institute of
+  // Nutrition / Indian Council of Medical Research, Hyderabad. T. Longvah,
+  // R. Ananthan, K. Bhaskarachary & K. Venkaiah, Eds. Available at
+  // https://nin.res.in (free public reference for non-commercial use with
+  // acknowledgment). Values cited by IFCT food code (e.g. A019 = wheat
+  // flour, atta). "n=" indicates the number of regional composite samples
+  // averaged in IFCT — higher n = more regionally representative.
+  //
+  // Energy is converted from kJ (as printed in IFCT) to kcal using
+  // factor 1 kcal = 4.184 kJ.
+  //
+  // Carbs are "available carbohydrate by difference" (CHOAVLDF) — IFCT's
+  // standard reporting metric, ≈ net carbs (total carbs minus fibre).
+  //
+  // Calcium and iron are in mg per gram (i.e. IFCT mg/100g value ÷ 100).
+
+  // A019 — Whole wheat flour. The atta used for chapati / roti / paratha
+  // across North India. High fibre because the bran is retained. n=6.
+  ATTA: {
+    id: "ATTA", name: "Whole Wheat Flour (Atta)",
+    unitType: "grams",
+    macros: {
+      protein: 0.1057, carbs: 0.6417, fat: 0.0153,
+      calories: 3.20, fiber: 0.1136,
+      calcium: 0.3094, iron: 0.0410,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 200 },
+    displayName: { hi: "गेहूं का आटा", en: "Atta (Whole Wheat Flour)" },
+  },
+
+  // A018 — Refined wheat flour. Maida, used for naan, parathas, biscuits,
+  // many sweets. Lower fibre because bran is removed; higher carb fraction. n=6.
+  MAIDA: {
+    id: "MAIDA", name: "Refined Wheat Flour (Maida)",
+    unitType: "grams",
+    macros: {
+      protein: 0.1036, carbs: 0.7427, fat: 0.0076,
+      calories: 3.52, fiber: 0.0276,
+      calcium: 0.2040, iron: 0.0177,
+    },
+    tags: ["veg", "eggetarian"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "मैदा", en: "Maida (Refined Flour)" },
+  },
+
+  // A022 — Semolina. Sooji / rava — used for upma, halwa, rava idli, dhokla. n=6.
+  SOOJI: {
+    id: "SOOJI", name: "Semolina (Sooji / Rava)",
+    unitType: "grams",
+    macros: {
+      protein: 0.1138, carbs: 0.6843, fat: 0.0074,
+      calories: 3.34, fiber: 0.0972,
+      calcium: 0.2938, iron: 0.0298,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "सूजी", en: "Sooji (Semolina)" },
+  },
+
+  // A015 — Polished white rice, raw. The most-consumed staple in India. n=6.
+  // Low fibre after milling; calcium and iron both modest.
+  RICE_WHITE_RAW: {
+    id: "RICE_WHITE_RAW", name: "White Rice, raw (milled)",
+    unitType: "grams",
+    macros: {
+      protein: 0.0794, carbs: 0.7824, fat: 0.0052,
+      calories: 3.56, fiber: 0.0281,
+      calcium: 0.0749, iron: 0.0065,
+    },
+    tags: ["veg", "eggetarian"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "सफेद चावल (कच्चा)", en: "White Rice (raw)" },
+  },
+
+  // A013 — Brown rice, raw. Bran intact — higher fibre, B vitamins, iron
+  // and minerals vs polished white. n=6.
+  RICE_BROWN_RAW: {
+    id: "RICE_BROWN_RAW", name: "Brown Rice, raw",
+    unitType: "grams",
+    macros: {
+      protein: 0.0916, carbs: 0.7480, fat: 0.0124,
+      calories: 3.54, fiber: 0.0443,
+      calcium: 0.1093, iron: 0.0102,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "भूरा चावल (कच्चा)", en: "Brown Rice (raw)" },
+  },
+
+  // A011 — Rice flakes. Poha — flattened parboiled rice, breakfast staple
+  // across Maharashtra and North India. n=6.
+  POHA: {
+    id: "POHA", name: "Rice Flakes (Poha)",
+    unitType: "grams",
+    macros: {
+      protein: 0.0744, carbs: 0.7675, fat: 0.0114,
+      calories: 3.54, fiber: 0.0346,
+      calcium: 0.0919, iron: 0.0446,
+    },
+    tags: ["veg", "eggetarian"],
+    quantization: { step: 5, min: 20, max: 100 },
+    displayName: { hi: "पोहा", en: "Poha (Rice Flakes)" },
+  },
+
+  // A003 — Pearl millet. Bajra — winter staple in Rajasthan, Gujarat,
+  // Haryana. High fat for a grain, very high iron. n=6.
+  BAJRA: {
+    id: "BAJRA", name: "Pearl Millet (Bajra)",
+    unitType: "grams",
+    macros: {
+      protein: 0.1096, carbs: 0.6178, fat: 0.0543,
+      calories: 3.48, fiber: 0.1149,
+      calcium: 0.2735, iron: 0.0642,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "बाजरा", en: "Bajra (Pearl Millet)" },
+  },
+
+  // A005 — Sorghum. Jowar — staple in Maharashtra, Karnataka, AP. Often
+  // ground for jowar roti / bhakri. Naturally gluten-free. n=6.
+  JOWAR: {
+    id: "JOWAR", name: "Sorghum (Jowar)",
+    unitType: "grams",
+    macros: {
+      protein: 0.0997, carbs: 0.6768, fat: 0.0173,
+      calories: 3.34, fiber: 0.1022,
+      calcium: 0.2760, iron: 0.0395,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "ज्वार", en: "Jowar (Sorghum)" },
+  },
+
+  // A010 — Finger millet. Ragi — calcium-rich (364 mg/100g — the highest
+  // among Indian cereals); important for paediatric and geriatric diets.
+  // Karnataka, Tamil Nadu, Andhra staple. n=5.
+  RAGI: {
+    id: "RAGI", name: "Finger Millet (Ragi)",
+    unitType: "grams",
+    macros: {
+      protein: 0.0716, carbs: 0.6682, fat: 0.0192,
+      calories: 3.21, fiber: 0.1118,
+      calcium: 3.640, iron: 0.0462,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "रागी", en: "Ragi (Finger Millet)" },
+  },
+
+  // A004 — Pearled barley. Very high total fibre (15.6 g/100g) — among the
+  // most fibre-dense cereals in IFCT. Useful in DASH-style and lower-GI
+  // meal plans. n=6.
+  BARLEY: {
+    id: "BARLEY", name: "Barley (Jau)",
+    unitType: "grams",
+    macros: {
+      protein: 0.1094, carbs: 0.6129, fat: 0.0130,
+      calories: 3.16, fiber: 0.1564,
+      calcium: 0.2864, iron: 0.0156,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 150 },
+    displayName: { hi: "जौ", en: "Barley (Jau)" },
   },
 
 } as const satisfies Record<string, FoodItem>
