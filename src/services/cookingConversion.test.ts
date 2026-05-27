@@ -13,7 +13,7 @@ import {
   GLASS_LIQUID_G,
   rawToCookedG,
   cookedToRawG,
-  householdUnitToRawG,
+  householdUnitToFoodQuantity,
   rotisToAttaG,
   attaToRotis,
 } from "./cookingConversion"
@@ -132,70 +132,117 @@ describe("cookedToRawG", () => {
 
 // ── householdUnitToRawG ───────────────────────────────────────────────────────
 
-describe("householdUnitToRawG — katori", () => {
+describe("householdUnitToFoodQuantity — katori", () => {
   it("1 katori rice = 50g dry", () => {
     // 150g cooked / 3.0 = 50g raw
-    expect(householdUnitToRawG("katori", 1, "RICE_WHITE_RAW")).toBe(50)
+    expect(householdUnitToFoodQuantity("katori", 1, "RICE_WHITE_RAW")).toBe(50)
   })
 
   it("1 katori dal = 60g dry", () => {
     // 150g cooked / 2.5 = 60g raw
-    expect(householdUnitToRawG("katori", 1, "TOOR_DAL")).toBe(60)
-    expect(householdUnitToRawG("katori", 1, "MOONG_DAL")).toBe(60)
+    expect(householdUnitToFoodQuantity("katori", 1, "TOOR_DAL")).toBe(60)
+    expect(householdUnitToFoodQuantity("katori", 1, "MOONG_DAL")).toBe(60)
   })
 
   it("1.5 katori rice = 75g dry", () => {
-    expect(householdUnitToRawG("katori", 1.5, "RICE_WHITE_RAW")).toBe(75)
+    expect(householdUnitToFoodQuantity("katori", 1.5, "RICE_WHITE_RAW")).toBe(75)
   })
 
   it("returns null for foods that aren't served by katori", () => {
-    expect(householdUnitToRawG("katori", 1, "PANEER")).toBeNull()
-    expect(householdUnitToRawG("katori", 1, "EGG")).toBeNull()
-    expect(householdUnitToRawG("katori", 1, "COW_MILK")).toBeNull()
+    expect(householdUnitToFoodQuantity("katori", 1, "PANEER")).toBeNull()
+    expect(householdUnitToFoodQuantity("katori", 1, "EGG")).toBeNull()
+    expect(householdUnitToFoodQuantity("katori", 1, "COW_MILK")).toBeNull()
   })
 })
 
-describe("householdUnitToRawG — roti", () => {
+describe("householdUnitToFoodQuantity — roti", () => {
   it("1 roti = 25g atta", () => {
-    expect(householdUnitToRawG("roti", 1, "ATTA")).toBe(25)
+    expect(householdUnitToFoodQuantity("roti", 1, "ATTA")).toBe(25)
   })
 
   it("2 rotis = 50g atta", () => {
-    expect(householdUnitToRawG("roti", 2, "ATTA")).toBe(50)
+    expect(householdUnitToFoodQuantity("roti", 2, "ATTA")).toBe(50)
   })
 
   it("rejects roti for non-atta foods (category error)", () => {
-    expect(householdUnitToRawG("roti", 1, "RICE_WHITE_RAW")).toBeNull()
-    expect(householdUnitToRawG("roti", 1, "SOOJI")).toBeNull()
-    expect(householdUnitToRawG("roti", 1, "MAIDA")).toBeNull()
+    expect(householdUnitToFoodQuantity("roti", 1, "RICE_WHITE_RAW")).toBeNull()
+    expect(householdUnitToFoodQuantity("roti", 1, "SOOJI")).toBeNull()
+    expect(householdUnitToFoodQuantity("roti", 1, "MAIDA")).toBeNull()
   })
 })
 
-describe("householdUnitToRawG — glass", () => {
+describe("householdUnitToFoodQuantity — glass", () => {
   it("1 glass milk = 200g (cow or buffalo)", () => {
-    expect(householdUnitToRawG("glass", 1, "COW_MILK")).toBe(200)
-    expect(householdUnitToRawG("glass", 1, "BUFFALO_MILK")).toBe(200)
+    expect(householdUnitToFoodQuantity("glass", 1, "COW_MILK")).toBe(200)
+    expect(householdUnitToFoodQuantity("glass", 1, "BUFFALO_MILK")).toBe(200)
   })
 
   it("scales linearly", () => {
-    expect(householdUnitToRawG("glass", 0.5, "COW_MILK")).toBe(100)
-    expect(householdUnitToRawG("glass", 2,   "COW_MILK")).toBe(400)
+    expect(householdUnitToFoodQuantity("glass", 0.5, "COW_MILK")).toBe(100)
+    expect(householdUnitToFoodQuantity("glass", 2,   "COW_MILK")).toBe(400)
   })
 
   it("rejects glass for non-liquid foods", () => {
-    expect(householdUnitToRawG("glass", 1, "PANEER")).toBeNull()
-    expect(householdUnitToRawG("glass", 1, "RICE_WHITE_RAW")).toBeNull()
+    expect(householdUnitToFoodQuantity("glass", 1, "PANEER")).toBeNull()
+    expect(householdUnitToFoodQuantity("glass", 1, "RICE_WHITE_RAW")).toBeNull()
   })
 })
 
-describe("householdUnitToRawG — tsp/tbsp", () => {
-  it("returns null for fats already stored per-tsp (use food's unitType directly)", () => {
-    // GHEE/BUTTER/COCONUT_OIL are stored as unitType: 'tsp' in foodDatabase,
-    // so passing them through here is a category error. Callers should
-    // use the food's native unit, not convert.
-    expect(householdUnitToRawG("tsp",  1, "GHEE")).toBeNull()
-    expect(householdUnitToRawG("tbsp", 1, "BUTTER")).toBeNull()
-    expect(householdUnitToRawG("tsp",  1, "COCONUT_OIL")).toBeNull()
+describe("householdUnitToFoodQuantity — tsp/tbsp on per-tsp foods", () => {
+  // Foods stored as unitType: "tsp" in foodDatabase. The household unit
+  // matches the food's native unit, so tsp count passes through directly
+  // and 1 tbsp = 3 tsp.
+
+  it("2 tsp ghee = 2 (tsp count, GHEE's native unit)", () => {
+    expect(householdUnitToFoodQuantity("tsp", 2, "GHEE")).toBe(2)
+  })
+
+  it("1 tbsp ghee = 3 tsp", () => {
+    expect(householdUnitToFoodQuantity("tbsp", 1, "GHEE")).toBe(3)
+  })
+
+  it("works for butter, coconut oil, cream, half-and-half, coconut milk", () => {
+    expect(householdUnitToFoodQuantity("tsp",  1, "BUTTER")).toBe(1)
+    expect(householdUnitToFoodQuantity("tsp",  1, "COCONUT_OIL")).toBe(1)
+    expect(householdUnitToFoodQuantity("tsp",  1, "CREAM")).toBe(1)
+    expect(householdUnitToFoodQuantity("tsp",  1, "HALF_AND_HALF")).toBe(1)
+    expect(householdUnitToFoodQuantity("tbsp", 1, "COCONUT_MILK_THICK")).toBe(3)
+  })
+
+  it("scales linearly", () => {
+    expect(householdUnitToFoodQuantity("tsp",  4, "GHEE")).toBe(4)
+    expect(householdUnitToFoodQuantity("tbsp", 2, "GHEE")).toBe(6)
+  })
+})
+
+describe("householdUnitToFoodQuantity — tsp/tbsp on per-gram foods", () => {
+  // Foods stored as unitType: "grams" but meaningfully measurable by tsp/tbsp
+  // (e.g. atta-for-tadka, sooji-for-poha). 1 tsp ≈ 5g, 1 tbsp ≈ 15g.
+
+  it("1 tsp sooji = 5g raw", () => {
+    expect(householdUnitToFoodQuantity("tsp", 1, "SOOJI")).toBe(5)
+  })
+
+  it("1 tbsp atta = 15g raw", () => {
+    expect(householdUnitToFoodQuantity("tbsp", 1, "ATTA")).toBe(15)
+  })
+
+  it("scales linearly", () => {
+    expect(householdUnitToFoodQuantity("tsp",  3, "SOOJI")).toBe(15)
+    expect(householdUnitToFoodQuantity("tbsp", 2, "ATTA")).toBe(30)
+  })
+})
+
+describe("householdUnitToFoodQuantity — tsp/tbsp on per-count foods", () => {
+  // Eggs (count) and whey (scoop) don't take tsp/tbsp meaningfully — return null.
+
+  it("returns null for per-count foods", () => {
+    expect(householdUnitToFoodQuantity("tsp",  1, "EGG")).toBeNull()
+    expect(householdUnitToFoodQuantity("tbsp", 1, "EGG")).toBeNull()
+  })
+
+  it("returns null for per-scoop foods", () => {
+    expect(householdUnitToFoodQuantity("tsp", 1, "WHEY")).toBeNull()
   })
 })
 

@@ -30,6 +30,7 @@
 //     piece, stuffed parathas, idli batter ratios — all defer to recipes)
 
 import type { FoodId } from "./foodDatabase"
+import { FOODS } from "./foodDatabase"
 
 // ── Conversion ratios (raw mass × ratio = cooked mass) ────────────────────────
 // All ratios are unitless multipliers. Inverse (cooked → raw) is 1/ratio.
@@ -171,32 +172,58 @@ export function cookedToRawG(foodId: FoodId, cookedG: number): number | null {
   return null
 }
 
-// ── Household-unit conversions ────────────────────────────────────────────────
-// These return RAW grams (for macro lookup) given a household-unit count.
+// ── Household-unit → food-quantity conversion ────────────────────────────────
+// Returns the value to put in a ComposedIngredient.quantity field, matching
+// the food's native unitType:
+//   - per-gram foods → raw grams
+//   - per-tsp foods  → tsp count (tbsp count × 3 if the household unit is tbsp)
+//   - per-count foods → unit count
+//   - per-scoop foods → scoop count
+//
+// This contract means callers don't have to inspect the food's unitType to
+// decide whether to convert. Pass any household unit + any food; if the
+// combination is meaningful, get the right number back. If the combination
+// is a category error ("1 katori of EGG", "1 roti of rice"), get null and
+// handle it explicitly.
 
 export type HouseholdUnit = "katori" | "roti" | "glass" | "tsp" | "tbsp"
 
+/** Standard mass equivalents for tsp/tbsp when applied to per-gram foods. */
+const TSP_AS_GRAMS  = TSP_G   // 5g for solids; close enough for liquids at ~1 g/ml
+const TBSP_AS_GRAMS = TBSP_G  // 15g
+
 /**
- * Convert N household units of a food to raw grams.
- * Returns null if the combination has no canonical conversion (e.g. "katori
- * of paneer" — paneer isn't served by katori; "roti of rice" — meaningless).
+ * Convert N household units of a food to the food's native quantity unit.
+ * Returns null if the combination has no canonical interpretation.
  *
  * Examples:
- *   householdUnitToRawG("katori", 1, "RICE_WHITE_RAW") → 50   (150g cooked / 3.0)
- *   householdUnitToRawG("katori", 1, "TOOR_DAL")       → 60   (150g cooked / 2.5)
- *   householdUnitToRawG("roti",   2, "ATTA")           → 50   (2 × 25g atta)
- *   householdUnitToRawG("glass",  1, "COW_MILK")       → 200  (1g/ml × 200ml)
- *   householdUnitToRawG("tsp",    1, "GHEE")           → null (GHEE is already
- *                                                            stored per-tsp in
- *                                                            foodDatabase, no
- *                                                            mass conversion
- *                                                            needed)
+ *   householdUnitToFoodQuantity("katori", 1, "RICE_WHITE_RAW") → 50   (raw g)
+ *   householdUnitToFoodQuantity("katori", 1, "TOOR_DAL")       → 60   (raw g)
+ *   householdUnitToFoodQuantity("katori", 1, "PANEER")         → null (paneer
+ *                                                                     isn't a
+ *                                                                     katori
+ *                                                                     food)
+ *   householdUnitToFoodQuantity("roti",   2, "ATTA")           → 50   (raw g)
+ *   householdUnitToFoodQuantity("glass",  1, "COW_MILK")       → 200  (raw g)
+ *   householdUnitToFoodQuantity("tsp",    2, "GHEE")           → 2    (tsp,
+ *                                                                     matches
+ *                                                                     GHEE's
+ *                                                                     unitType)
+ *   householdUnitToFoodQuantity("tbsp",   1, "GHEE")           → 3    (1 tbsp
+ *                                                                     = 3 tsp)
+ *   householdUnitToFoodQuantity("tsp",    1, "SOOJI")          → 5    (raw g;
+ *                                                                     sooji is
+ *                                                                     per-gram)
  */
-export function householdUnitToRawG(
+export function householdUnitToFoodQuantity(
   unit: HouseholdUnit,
   count: number,
   foodId: FoodId,
 ): number | null {
+  const food = FOODS[foodId]
+  if (!food) return null
+  const nativeUnit = food.unitType
+
   if (unit === "roti") {
     // Only atta produces rotis. Whole rotis don't decompose into other foods.
     if (foodId !== "ATTA") return null
@@ -206,27 +233,32 @@ export function householdUnitToRawG(
   if (unit === "katori") {
     // Katori applies to foods served as the cooked-staple bowl: rice, dal,
     // sabzi, porridge. Need a raw/cooked ratio to back out raw mass.
+    if (nativeUnit !== "grams") return null
     const cookedG = count * KATORI_COOKED_G
     return cookedToRawG(foodId, cookedG)
   }
 
   if (unit === "glass") {
-    // Glass applies to liquid foods served by volume. Milk, buttermilk.
-    // Liquids have no raw/cooked distinction at this granularity.
+    // Glass applies to liquid foods served by volume. Milk for now;
+    // buttermilk / lassi / tea later when added.
     const milkFoods: FoodId[] = ["COW_MILK", "BUFFALO_MILK"]
     if (!milkFoods.includes(foodId)) return null
     return count * GLASS_LIQUID_G
   }
 
   if (unit === "tsp" || unit === "tbsp") {
-    // Tsp/tbsp are for added fats and small condiments. Most of these
-    // (GHEE, BUTTER, COCONUT_OIL) are already stored per-tsp in foodDatabase,
-    // so passing them through here is a category error — return null so
-    // callers know to use the food's native unitType directly.
+    // Two cases: food's native unit is "tsp" (ghee/butter/oil/cream/coconut
+    // milk — already stored per-tsp), or food is per-gram (sooji/atta/sugar-
+    // when-added/spices).
     //
-    // Foods stored per-gram that ARE meaningfully measured by tsp/tbsp at
-    // typical kitchen scale could be added here in future. None yet qualify
-    // unambiguously (sugar isn't in the DB; salt is sub-macro-noise).
+    // Native tsp: tsp count passes through, tbsp count × 3 (1 tbsp = 3 tsp).
+    // Per-gram:   convert at 5g/tsp, 15g/tbsp.
+    //
+    // Per-count / per-scoop foods don't take tsp/tbsp meaningfully (you
+    // don't measure eggs or whey scoops by tsp) — return null.
+    const tspCount = unit === "tsp" ? count : count * 3
+    if (nativeUnit === "tsp")   return tspCount
+    if (nativeUnit === "grams") return tspCount * TSP_AS_GRAMS
     return null
   }
 
