@@ -1,6 +1,22 @@
 // ── recipeRegistry.ts ──────────────────────────────────────────────────────────
 // Pure content layer. Bilingual Hindi + English.
-// Covers eggetarian AND non-veg options — generator selects based on diet tag.
+// Covers veg, eggetarian, and non-veg options — generator selects based on
+// diet tag.
+//
+// Semantic conventions (consumed by mealGenerator.ts after commit 11):
+//
+//   compatibleFoods: FoodIds that are essentially always in the dish.
+//     Aromatics and trace seasonings (cumin, mustard seeds, asafoetida,
+//     ginger-garlic, green chilli, turmeric, garam masala, kasuri methi,
+//     curry leaves, fresh coriander, jaggery, tamarind, nigella) live in
+//     step text only — they contribute < 5g and < 10 kcal at typical
+//     portions, below the macro noise floor.
+//
+//   requiredRanges: DISJUNCTIVE / range-if-present semantics. If multiple
+//     foods are listed (e.g. DAL_TADKA lists TOOR_DAL, MOONG_DAL, MASOOR_DAL;
+//     BUTTER_CHICKEN lists CHICKEN_THIGH, CHICKEN_BREAST), the generator
+//     picks ONE of them and scales it into its declared range. NOT
+//     conjunctive — the recipe doesn't require all listed foods.
 
 import type { FoodId } from "./foodDatabase"
 
@@ -8,6 +24,7 @@ export type Recipe = {
   id:              string
   name:            { hi: string; en: string }
   compatibleFoods: FoodId[]
+  /** Disjunctive range constraint — see file header. */
   requiredRanges?: Partial<Record<FoodId, { min: number; max: number }>>
   dietTags:        Array<"veg" | "eggetarian" | "non-veg">
   steps: {
@@ -511,12 +528,13 @@ export const RECIPES: Record<string, Recipe> = {
   CHICKEN_KALI_MIRCH: {
     id: "CHICKEN_KALI_MIRCH",
     name: { hi: "चिकन काली मिर्च", en: "Chicken Kali Mirch" },
-    compatibleFoods: ["CHICKEN_BREAST", "GHEE", "ONION", "HUNG_CURD", "CREAM", "MUSHROOM"],
+    // MUSHROOM removed in 10.3 — kali mirch chicken is not a mushroom dish.
+    compatibleFoods: ["CHICKEN_BREAST", "GHEE", "ONION", "HUNG_CURD", "CREAM"],
     requiredRanges: { CHICKEN_BREAST: { min: 120, max: 300 } },
     dietTags: ["non-veg"],
     steps: {
-      hi: ["चिकन — दही, काली मिर्च, नमक में 30 मिनट मैरिनेट", "घी में प्याज 4 मिनट — क्रीमी होने तक", "अदरक-लहसुन — 1 मिनट", "मैरिनेट चिकन — 6 मिनट हर तरफ भूनें", "मशरूम डालें — 3 मिनट", "भरपूर काली मिर्च — क्रीम — परोसें"],
-      en: ["Chicken — marinate in yogurt, black pepper, salt — 30 min", "Ghee — onion 4 min until creamy", "Ginger-garlic — 1 min", "Marinated chicken — 6 min each side", "Add mushrooms — 3 min", "Generous black pepper — cream — serve"],
+      hi: ["चिकन — दही, काली मिर्च, नमक में 30 मिनट मैरिनेट", "घी में प्याज 4 मिनट — क्रीमी होने तक", "अदरक-लहसुन — 1 मिनट", "मैरिनेट चिकन — 6 मिनट हर तरफ भूनें", "भरपूर काली मिर्च (साबुत कुटी हुई) — 1 मिनट", "क्रीम — 2 मिनट धीमी आंच — परोसें"],
+      en: ["Chicken — marinate in yogurt, black pepper, salt — 30 min", "Ghee — onion 4 min until creamy", "Ginger-garlic — 1 min", "Marinated chicken — 6 min each side", "Generous black pepper (whole, crushed) — 1 min", "Cream — 2 min low flame — serve"],
     },
   },
 
@@ -537,7 +555,9 @@ export const RECIPES: Record<string, Recipe> = {
   MUTTON_KEEMA_MASALA: {
     id: "MUTTON_KEEMA_MASALA",
     name: { hi: "मटन कीमा मसाला", en: "Mutton Keema Masala" },
-    compatibleFoods: ["MUTTON_KEEMA", "GHEE", "ONION", "TOMATO", "SPINACH", "CAPSICUM"],
+    // SPINACH removed in 10.3 — duplicative with MUTTON_KEEMA_PALAK which
+    // is the distinct keema-with-spinach dish.
+    compatibleFoods: ["MUTTON_KEEMA", "GHEE", "ONION", "TOMATO", "CAPSICUM"],
     requiredRanges: { MUTTON_KEEMA: { min: 100, max: 250 } },
     dietTags: ["non-veg"],
     steps: {
@@ -575,12 +595,114 @@ export const RECIPES: Record<string, Recipe> = {
   PRAWN_MASALA: {
     id: "PRAWN_MASALA",
     name: { hi: "झींगा मसाला", en: "Prawn Masala" },
-    compatibleFoods: ["PRAWNS", "GHEE", "ONION", "TOMATO", "CAPSICUM", "COCONUT_MILK_THICK"],
+    // COCONUT_MILK_THICK removed in 10.3 — prawn masala (North Indian /
+    // Mumbai-coast style) is a dry tomato-onion preparation, not coconut-
+    // based. Goan prawn curry (xacuti, ambot-tik) is coconut-based but is a
+    // distinct dish; defer to a future recipe.
+    compatibleFoods: ["PRAWNS", "GHEE", "ONION", "TOMATO", "CAPSICUM"],
     requiredRanges: { PRAWNS: { min: 120, max: 300 } },
     dietTags: ["non-veg"],
     steps: {
       hi: ["झींगे — हल्दी, लाल मिर्च — 5 मिनट मैरिनेट", "घी में सरसों, करी पत्ता", "प्याज 2 मिनट — शिमला मिर्च 1 मिनट", "टमाटर — मसाले — 2 मिनट", "झींगे — तेज़ आंच — 3-4 मिनट (ज़्यादा नहीं)", "नींबू — हरा धनिया — परोसें"],
       en: ["Prawns — turmeric, red chilli — 5 min", "Ghee — mustard seeds, curry leaves", "Onion 2 min — capsicum 1 min", "Tomato — spices — 2 min", "Prawns — high heat — 3-4 min (don't overcook)", "Lemon — coriander — serve"],
+    },
+  },
+
+  // ── Non-veg (mid-carb / BALANCED-suited, added in commit 10.3) ──────────────
+  // The existing non-veg recipes above are keto-shaped: protein + ghee +
+  // keto-friendly veg, no grains. The recipes below are the kind of non-veg
+  // meal a BALANCED or LOW_CARB mode user actually eats — chicken/mutton
+  // curries paired with rice or roti as part of a daily plate.
+  //
+  // None of these recipes include rice or roti as ingredients themselves —
+  // pairing is a meal-composition concern, handled by mealGenerator.ts.
+  // The recipes here are the curry; the generator picks the carb staple.
+
+  CHICKEN_CURRY: {
+    // The universal "ghar wala chicken" — bone-in chicken in onion-tomato
+    // gravy, slow-simmered. The Sunday lunch of millions of North Indian
+    // homes. Pairs with rice or roti. Uses CHICKEN_THIGH as the meat (bone
+    // is uneaten; the macro per gram of edible thigh meat is the right
+    // tracking target). Distinct from CHICKEN_HANDI (which uses yogurt
+    // marinade and cream) and BUTTER_CHICKEN (which uses tomato puree and
+    // butter+cream gravy).
+    id: "CHICKEN_CURRY",
+    name: { hi: "चिकन करी", en: "Chicken Curry" },
+    compatibleFoods: ["CHICKEN_THIGH", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { CHICKEN_THIGH: { min: 150, max: 300 } },
+    dietTags: ["non-veg"],
+    steps: {
+      hi: ["चिकन — हल्दी, नमक — 15 मिनट रखें", "घी में जीरा, तेज़पत्ता, लौंग, दालचीनी, हरी इलायची, काली इलायची — 30 सेकंड", "प्याज पीसकर — 5 मिनट गहरा सुनहरा (यही ग्रेवी का रंग देगा)", "अदरक-लहसुन पेस्ट — 2 मिनट", "टमाटर पीसकर — हल्दी, लाल मिर्च, धनिया पाउडर — 4 मिनट तेल छूटने तक", "चिकन डालें — 5 मिनट तेज़ आंच मसाला चढ़ाएं", "गरम पानी (लगभग चिकन के बराबर) — उबाल — ढककर 25 मिनट धीमी आंच चिकन गला तक", "गरम मसाला — हरा धनिया — परोसें"],
+      en: ["Chicken — turmeric, salt — rest 15 min", "Ghee — cumin, bay leaf, clove, cinnamon, green and black cardamom — 30 sec", "Pureed onion — 5 min deep golden (this gives the gravy its colour)", "Ginger-garlic paste — 2 min", "Pureed tomato — turmeric, red chilli, coriander powder — 4 min until oil separates", "Add chicken — 5 min high heat so masala coats", "Hot water (roughly volume of chicken) — boil — covered 25 min low flame until chicken tender", "Garam masala — coriander — serve"],
+    },
+  },
+
+  MUTTON_CURRY: {
+    // Bone-in mutton (goat) curry, slow-cooked. The classic Sunday meal,
+    // paired with rice (mutton-chawal) or roti. Uses MUTTON_CURRY_CUT
+    // (IFCT O001 goat shoulder); mutton is sometimes shoulder, sometimes
+    // mixed cuts with bone, but the macro per gram of edible meat is the
+    // right tracking target. Slow-simmered for tenderness — pressure-cooker
+    // shortcut also works and is in step text as an alternative.
+    id: "MUTTON_CURRY",
+    name: { hi: "मटन करी", en: "Mutton Curry" },
+    compatibleFoods: ["MUTTON_CURRY_CUT", "GHEE", "ONION", "TOMATO", "HUNG_CURD"],
+    requiredRanges: { MUTTON_CURRY_CUT: { min: 150, max: 300 } },
+    dietTags: ["non-veg"],
+    steps: {
+      hi: ["मटन — दही, हल्दी, अदरक-लहसुन पेस्ट, नमक — 30 मिनट मैरिनेट", "घी में तेज़पत्ता, लौंग, दालचीनी, काली इलायची, साबुत जीरा — 30 सेकंड", "प्याज पीसकर — 6 मिनट गहरा सुनहरा (मटन को गहरा रंग चाहिए)", "मैरिनेट मटन — 8 मिनट तेज़ आंच भूनें मसाला चढ़े", "टमाटर पीसकर — लाल मिर्च, धनिया पाउडर — 4 मिनट", "गरम पानी (मटन के बराबर) — कुकर में 5-6 सीटी (लगभग 25 मिनट)", "ढक्कन खोलें — गरम मसाला — 5 मिनट खुला उबालें ग्रेवी गाढ़ी होने तक", "हरा धनिया, पुदीना — परोसें"],
+      en: ["Mutton — marinate in yogurt, turmeric, ginger-garlic paste, salt — 30 min", "Ghee — bay leaf, clove, cinnamon, black cardamom, whole cumin — 30 sec", "Pureed onion — 6 min deep golden (mutton needs a darker base)", "Marinated mutton — 8 min high heat bhuno so masala coats", "Pureed tomato — red chilli, coriander powder — 4 min", "Hot water (volume of mutton) — pressure-cook 5-6 whistles (~25 min)", "Open lid — garam masala — 5 min uncovered until gravy thickens", "Coriander, mint — serve"],
+    },
+  },
+
+  BUTTER_CHICKEN: {
+    // Murgh makhani — Punjabi/Delhi origin restaurant classic, now a home
+    // staple. Tomato puree gravy with butter and cream; chicken marinated
+    // in yogurt and tandoori spices. Genuinely a heavy dish; portion the
+    // cream and butter generously but not absurdly. Boneless chicken is
+    // canonical (CHICKEN_THIGH or CHICKEN_BREAST — thigh stays juicier).
+    id: "BUTTER_CHICKEN",
+    name: { hi: "बटर चिकन", en: "Butter Chicken (Murgh Makhani)" },
+    compatibleFoods: ["CHICKEN_THIGH", "CHICKEN_BREAST", "BUTTER", "GHEE", "TOMATO", "HUNG_CURD", "CREAM"],
+    requiredRanges: { CHICKEN_THIGH: { min: 120, max: 250 }, CHICKEN_BREAST: { min: 120, max: 250 } },
+    dietTags: ["non-veg"],
+    steps: {
+      hi: ["चिकन क्यूब्स — दही, हल्दी, लाल मिर्च, गरम मसाला, अदरक-लहसुन, नमक — 1 घंटा मैरिनेट", "तवे पर मक्खन — मैरिनेट चिकन — 6-8 मिनट सब तरफ सुनहरा (तंदूरी जैसी पपड़ी) — निकालें", "उसी पैन में मक्खन — टमाटर पीसकर डालें — 8 मिनट गाढ़ा होने तक", "लाल मिर्च, कसूरी मेथी, थोड़ी चीनी (टमाटर का खट्टापन कम)", "क्रीम — 2 मिनट धीमी आंच", "चिकन वापस — 3 मिनट मसाला चढ़ने तक", "कसूरी मेथी और मक्खन ऊपर से — परोसें"],
+      en: ["Chicken cubes — yogurt, turmeric, red chilli, garam masala, ginger-garlic, salt — 1 hr", "Butter on tawa — marinated chicken — 6-8 min until golden all sides (tandoori-like crust) — remove", "Same pan — butter — pureed tomato — 8 min until thick", "Red chilli, kasuri methi, small pinch of sugar (cuts tomato acidity)", "Cream — 2 min low flame", "Return chicken — 3 min until masala coats", "Finish with kasuri methi and a knob of butter — serve"],
+    },
+  },
+
+  MURGH_DO_PYAZA: {
+    // Semi-dry chicken with onions cooked twice — fried golden brown
+    // initially, and again as crunchy sliced rings in the finish. The
+    // double-onion treatment is the dish's signature. Paired with roti
+    // (less gravy than a typical curry).
+    id: "MURGH_DO_PYAZA",
+    name: { hi: "मुर्ग दो प्याज़ा", en: "Murgh Do Pyaza" },
+    compatibleFoods: ["CHICKEN_THIGH", "GHEE", "ONION", "TOMATO", "HUNG_CURD"],
+    requiredRanges: { CHICKEN_THIGH: { min: 150, max: 300 } },
+    dietTags: ["non-veg"],
+    steps: {
+      hi: ["चिकन — दही, हल्दी, अदरक-लहसुन, नमक — 30 मिनट मैरिनेट", "आधा प्याज़ बारीक काटें (ग्रेवी के लिए); आधा मोटे लंबे टुकड़ों में (फिनिशिंग के लिए)", "घी में बारीक प्याज़ — 5 मिनट गहरा सुनहरा", "अदरक-लहसुन पेस्ट — 1 मिनट", "टमाटर — हल्दी, लाल मिर्च, धनिया, गरम मसाला — 3 मिनट तेल छूटने तक", "मैरिनेट चिकन — 5 मिनट तेज़ आंच", "थोड़ा पानी — ढककर 15 मिनट धीमी आंच (कम ग्रेवी रखें)", "अलग से मोटे प्याज़ के टुकड़े घी में 2 मिनट कुरकुरे — चिकन में डालें — 1 मिनट", "हरा धनिया — परोसें"],
+      en: ["Chicken — yogurt, turmeric, ginger-garlic, salt — marinate 30 min", "Half onion fine-chopped (for gravy); half in long thick slices (for finish)", "Ghee — fine onion — 5 min deep golden", "Ginger-garlic paste — 1 min", "Tomato — turmeric, red chilli, coriander, garam masala — 3 min until oil separates", "Marinated chicken — 5 min high heat", "A little water — covered 15 min low flame (keep gravy light)", "Separately fry thick onion slices in ghee 2 min until crisp — fold into chicken — 1 min", "Coriander — serve"],
+    },
+  },
+
+  MACHER_JHOL: {
+    // Bengali fish curry — mustard oil, nigella (kalonji), potato, tomato,
+    // green chilli. Light, brothy, ginger-forward. Distinct from
+    // FISH_CURRY_SIMPLE (which is South Indian, coconut-based, with
+    // mustard seeds and curry leaves). Mustard oil is the defining flavor —
+    // omitting it makes this dish unrecognizable, which is why
+    // MUSTARD_OIL was added in 10.3a. Aloo (potato) anchors the broth.
+    id: "MACHER_JHOL",
+    name: { hi: "माछेर झोल (बंगाली मछली करी)", en: "Macher Jhol (Bengali Fish Curry)" },
+    compatibleFoods: ["FISH_ROHU", "MUSTARD_OIL", "ALOO", "TOMATO", "ONION"],
+    requiredRanges: { FISH_ROHU: { min: 150, max: 300 }, MUSTARD_OIL: { min: 2, max: 4 }, ALOO: { min: 100, max: 200 } },
+    dietTags: ["non-veg"],
+    steps: {
+      hi: ["मछली के टुकड़े — हल्दी, नमक मलें — 10 मिनट", "सरसों का तेल खूब गरम करें — धुआं आने तक (कच्चापन जाए)", "मछली तेज़ आंच पर 2 मिनट हर तरफ — सुनहरी — निकालें", "उसी तेल में कलौंजी (नाइजेला) — 15 सेकंड", "आलू लंबे टुकड़ों में — 4 मिनट किनारे सुनहरे", "अदरक पेस्ट, हरी मिर्च — 30 सेकंड", "टमाटर — हल्दी, लाल मिर्च — 2 मिनट", "गरम पानी — आलू गलने तक 10 मिनट", "मछली वापस — 5 मिनट धीमी आंच (टूटे नहीं)", "हरा धनिया — परोसें"],
+      en: ["Fish pieces — rub turmeric, salt — 10 min", "Heat mustard oil to smoke point (cooks off rawness)", "Fish high heat 2 min each side — golden — remove", "Same oil — nigella (kalonji) — 15 sec", "Potato in long pieces — 4 min until edges golden", "Ginger paste, green chilli — 30 sec", "Tomato — turmeric, red chilli — 2 min", "Hot water — 10 min until potato cooked", "Return fish — 5 min low flame (don't break)", "Coriander — serve"],
     },
   },
 
