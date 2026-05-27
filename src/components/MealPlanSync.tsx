@@ -7,7 +7,7 @@
  */
 
 import { useState } from "react"
-import { computeMacros } from "../services/adaptiveTDEE"
+import { computeMacros, resolveMacroMode } from "../services/adaptiveTDEE"
 import { useHealthStore, saveMealPlan, MealPlanEntry, DietTag, DIET_TAG_LABELS } from "../store/useHealthStore"
 import { generateWeekPlan, GeneratorTargets } from "../services/mealGenerator"
 import { toDayMealPlanEntries } from "../services/transformer"
@@ -103,9 +103,15 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
       // a pure-veg branch — flagged for a future iteration. For now, vegetarian
       // users get the eggetarian branch but their actual logged meals respect
       // the dietTag stored on each entry.
-      // TODO(meal-generator): add a pure-veg branch that excludes egg ingredients.
+      // TODO(meal-generator): add a pure-veg branch that excludes egg ingredients
+      //                       (commit 11.1 — already on the pending list).
       const diet = (dietTag === "non_veg" ? "non-veg" : "eggetarian") as any
-      const weekResults = generateWeekPlan(targets, diet)
+      // Macro mode is derived from settings.macroSplit at call time — same
+      // resolution used by the engine, so validator + generator agree.
+      // Pre-11.0 the generator forced "keto" inside validateNutrition; now
+      // the user's actual mode flows through.
+      const macroMode = resolveMacroMode(settings.macroSplit)
+      const weekResults = generateWeekPlan(targets, diet, macroMode)
 
       // Convert each day to MealPlanEntry[] and flatten
       const allEntries: MealPlanEntry[] = weekResults.flatMap((result, i) =>
