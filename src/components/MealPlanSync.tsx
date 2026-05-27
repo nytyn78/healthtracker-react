@@ -98,14 +98,12 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
     setGenerating(true)
     try {
       // Map stored diet tag to generator's expected diet type.
-      // The generator currently only supports "non-veg" and "eggetarian" branches
-      // (no pure vegetarian branch yet). For vegetarian users we'd ideally want
-      // a pure-veg branch — flagged for a future iteration. For now, vegetarian
-      // users get the eggetarian branch but their actual logged meals respect
-      // the dietTag stored on each entry.
-      // TODO(meal-generator): add a pure-veg branch that excludes egg ingredients
-      //                       (commit 11.1 — already on the pending list).
-      const diet = (dietTag === "non_veg" ? "non-veg" : "eggetarian") as any
+      // Three branches now supported: veg (11.1), eggetarian, non-veg.
+      // The veg branch uses paneer + hung curd + tofu — no eggs, no meat.
+      const diet =
+        dietTag === "non_veg"    ? "non-veg" :
+        dietTag === "eggetarian" ? "eggetarian" :
+                                   "veg"
       // Macro mode is derived from settings.macroSplit at call time — same
       // resolution used by the engine, so validator + generator agree.
       // Pre-11.0 the generator forced "keto" inside validateNutrition; now
