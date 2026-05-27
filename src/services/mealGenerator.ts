@@ -4,18 +4,38 @@
 // Diet-aware: eggetarian uses eggs+paneer+whey. Non-veg rotates chicken/mutton/fish/prawns.
 // 7-day variety guaranteed — no two consecutive days use the same protein source.
 // Macros computed from ingredients upward — never stored as fixed values.
+//
+// ⚠ STRUCTURAL DEBT — addressed in future commits 11.1–11.4 (not 11.0):
+//   - Meal shape is hardcoded to 2 meals + shake (2 PM / 4:30 PM / 6:30 PM).
+//     This is a 19:5 IF schedule baked into the function with no toggle. A
+//     KETO user who eats breakfast at 8 AM is served a 2-meal plan that
+//     ignores morning food. Decoupling meal count + meal times from the
+//     macro mode is commit 11.4.
+//   - Recipe-registry compatibleFoods and requiredRanges are not consulted
+//     — recipes only provide the meal-card name and steps. Ingredient picks
+//     are hardcoded in buildEggPaneerMeal / buildProteinMeal. Consuming the
+//     registry properly is commit 11.2.
+//   - There's no pure-veg branch; vegetarian users get the eggetarian
+//     branch (with eggs). Adding the veg branch is commit 11.1.
+//   - BALANCED / LOW_CARB / HPC / RECOMPOSITION modes still get the keto-
+//     shaped meal template — no rice, no roti, no dal-as-staple. Mode-aware
+//     meal templates is commit 11.3.
+//
+// Commit 11.0 (this commit): macroMode threaded through generateDayPlan and
+// down to validateNutrition. No behavior change yet — keto plans render
+// identically to pre-11.0. Just stops the validator from pretending every
+// user is on keto.
 
-import type { ComposedDayPlan, ComposedMeal, ComposedIngredient } from "./composedTypes"
+import type { ComposedDayPlan, ComposedMeal, ComposedIngredient, GeneratorTargets } from "./composedTypes"
 import { validateNutrition } from "./constraintEngine"
 import type { ValidationResult } from "./constraintEngine"
 import { RECIPES } from "./recipeRegistry"
+import type { MacroMode } from "./adaptiveTDEE"
 
-export type GeneratorTargets = {
-  proteinG:  number
-  fatG:      number
-  carbsG:    number
-  calories:  number
-}
+// Re-export for callers that previously imported GeneratorTargets from here.
+// The canonical home is composedTypes.ts (moved in 11.0 to break a circular
+// type import between mealGenerator.ts and constraintEngine.ts).
+export type { GeneratorTargets } from "./composedTypes"
 
 export type DietType = "eggetarian" | "non-veg" | "veg"
 
@@ -163,9 +183,10 @@ export type GenerationResult = {
 }
 
 export function generateDayPlan(
-  targets:  GeneratorTargets,
-  dayIndex: number,
-  diet:     DietType = "eggetarian",
+  targets:   GeneratorTargets,
+  dayIndex:  number,
+  diet:      DietType = "eggetarian",
+  macroMode: MacroMode = "KETO",
 ): GenerationResult {
   const veg      = VEG_ROTATION[dayIndex % 7]
   const shakeP   = 25
@@ -206,19 +227,24 @@ export function generateDayPlan(
     meals: [meal1, shake, meal2],
     meta: {
       decisions: [
-        `Diet: ${diet} | Day: ${dayIndex} | Veg: ${veg.primary}`,
+        `Diet: ${diet} | Mode: ${macroMode} | Day: ${dayIndex} | Veg: ${veg.primary}`,
         `Target: P${targets.proteinG}g F${targets.fatG}g C${targets.carbsG}g ${targets.calories}kcal`,
       ],
     },
   }
 
-  const validation = validateNutrition(plan, "keto")
+  // Validator now receives the user's actual macro mode and target macros —
+  // see constraintEngine.ts. Pre-11.0 this was hardcoded "keto" with a
+  // single-user calorie/protein band, which misfired for every non-keto
+  // user and every keto user whose target wasn't 95-105g protein.
+  const validation = validateNutrition(plan, macroMode, targets)
   return { plan, validation, dayIndex }
 }
 
 export function generateWeekPlan(
-  targets: GeneratorTargets,
-  diet:    DietType = "eggetarian",
+  targets:   GeneratorTargets,
+  diet:      DietType = "eggetarian",
+  macroMode: MacroMode = "KETO",
 ): GenerationResult[] {
-  return Array.from({ length: 7 }, (_, i) => generateDayPlan(targets, i, diet))
+  return Array.from({ length: 7 }, (_, i) => generateDayPlan(targets, i, diet, macroMode))
 }

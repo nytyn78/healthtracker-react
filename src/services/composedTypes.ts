@@ -30,6 +30,18 @@ export type ComposedDayPlan = {
   }
 }
 
+// ── Generator targets ─────────────────────────────────────────────────────────
+// The macro targets a meal plan must hit, derived from computeMacros() in
+// adaptiveTDEE.ts. Lives here (in the engine type layer) rather than in
+// mealGenerator.ts so constraintEngine.ts can reference it without a
+// circular import.
+export type GeneratorTargets = {
+  proteinG:  number
+  fatG:      number
+  carbsG:    number
+  calories:  number
+}
+
 export type PlanInstance = {
   id:           string
   date:         string

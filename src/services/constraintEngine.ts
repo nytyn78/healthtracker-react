@@ -1,11 +1,23 @@
 // ── constraintEngine.ts ────────────────────────────────────────────────────────
-// Phase 1: keto validation only.
-// Validates nutrition constraints. Ingredient validator is a separate concern.
-// Does NOT correct plans — correction loop is a future layer.
+// Mode-aware nutrition validator (commit 11.0).
+// Validates a generated plan against (a) the user's prescribed macro targets
+// and (b) mode-specific carb/fibre rules. Does NOT correct plans — correction
+// is a future layer.
+//
+// 11.0 changes vs the pre-11.0 keto-only validator:
+//   - DietType ("keto" | "lowCarb" | "balanced") → MacroMode (the canonical
+//     6-mode union from adaptiveTDEE.ts). Single source of truth for mode.
+//   - Protein and calorie checks parameterised against the user's actual
+//     GeneratorTargets, not hardcoded to 95-110g protein / 1400-1550 kcal
+//     (those were calibrated to one specific user and broke for anyone else).
+//   - Carb / fibre rules tightened mode by mode so "validator passes" matches
+//     "macro profile honestly reflects the chosen mode" (e.g. a 280g-carb
+//     LOW_CARB plan is now flagged; previously only > 70g failed).
 
 import { computeDayMacros } from "./macroEngine"
 import { FOODS } from "./foodDatabase"
-import type { ComposedDayPlan } from "./composedTypes"
+import type { ComposedDayPlan, GeneratorTargets } from "./composedTypes"
+import type { MacroMode } from "./adaptiveTDEE"
 
 function round1(n: number): number {
   return Math.round(n * 10) / 10
@@ -14,14 +26,14 @@ function round1(n: number): number {
 // ── Issue types ───────────────────────────────────────────────────────────────
 
 export type IssueCode =
-  | "PROTEIN_LOW"
-  | "PROTEIN_HIGH"              // >110g — hard error
-  | "PROTEIN_OVER_TARGET"       // 105–110g — warning only
-  | "CALORIES_LOW"
-  | "CALORIES_HIGH"
-  | "CARBS_EXCEEDED"
+  | "PROTEIN_LOW"                  // > soft tolerance below target
+  | "PROTEIN_HIGH"                 // > hard tolerance above target (error)
+  | "PROTEIN_OVER_TARGET"          // soft–hard tolerance band above target (warning)
+  | "CALORIES_LOW"                 // > tolerance below target
+  | "CALORIES_HIGH"                // > tolerance above target
+  | "CARBS_EXCEEDED"               // above mode ceiling (or below floor)
   | "FIBER_LOW"
-  | "PROTEIN_SOURCE_INSUFFICIENT"  // replaces WHEY_MISSING — protein can't be met
+  | "PROTEIN_SOURCE_INSUFFICIENT"  // protein target unreachable
   | "NO_VITAMIN_C_SOURCE"
   | "INGREDIENT_COUNT_EXCEEDED"
 
@@ -44,54 +56,44 @@ export type ValidationResult = {
   }
 }
 
-// ── Diet rules ─────────────────────────────────────────────────────────────────
+// ── Mode rules ────────────────────────────────────────────────────────────────
+// Mode-specific carb and fibre rules. Protein and calorie targets come from
+// the user's GeneratorTargets at call time — those are user-specific and
+// don't belong in a static table.
+//
+// Carb numbers are set to the LOWER half of each mode's MODE_PROFILES band
+// in adaptiveTDEE.ts. This keeps "mode label" and "macro profile" honest:
+// a BALANCED plan at 280g carbs flexes within band; a BALANCED plan at 320g
+// is flagged because at that point it's drifted from the mode's identity.
+//
+// Fibre minimums scale with carb headroom (KETO can't reach 25g fibre with
+// < 30g net carbs, so fibre min relaxed to 12g; balanced has headroom for 25g).
 
-export type DietType = "keto" | "lowCarb" | "balanced"
-
-export const DIET_RULES: Record<DietType, {
-  calorieMin:  number
-  calorieMax:  number
-  proteinMin:  number
-  proteinSoftMax: number  // warning threshold
-  proteinHardMax: number  // error threshold
-  carbsMax:    number
-  carbsMin?:   number
-  fiberMin:    number     // diet-specific — keto relaxed to 12g
-  fiberTarget: number
-}> = {
-  keto: {
-    calorieMin:      1400,
-    calorieMax:      1550,
-    proteinMin:      95,
-    proteinSoftMax:  105,
-    proteinHardMax:  110,
-    carbsMax:        25,
-    fiberMin:        12,   // relaxed for keto — strict 15g conflicts with <25g carb ceiling
-    fiberTarget:     15,
-  },
-  lowCarb: {
-    calorieMin:      1400,
-    calorieMax:      1550,
-    proteinMin:      95,
-    proteinSoftMax:  105,
-    proteinHardMax:  110,
-    carbsMax:        70,
-    carbsMin:        50,
-    fiberMin:        15,
-    fiberTarget:     20,
-  },
-  balanced: {
-    calorieMin:      1400,
-    calorieMax:      1550,
-    proteinMin:      95,
-    proteinSoftMax:  105,
-    proteinHardMax:  110,
-    carbsMax:        150,
-    carbsMin:        120,
-    fiberMin:        15,
-    fiberTarget:     20,
-  },
+export type ModeRules = {
+  carbsMax:     number   // upper ceiling for carbs (net for KETO, total elsewhere)
+  carbsMin?:    number   // lower floor — only for non-KETO modes
+  carbsAreNet:  boolean  // KETO uses net carbs (total - fibre); others use total
+  fiberMin:     number   // error threshold
+  fiberTarget:  number   // info threshold (above min, below target)
 }
+
+export const MODE_RULES: Record<MacroMode, ModeRules> = {
+  KETO:             { carbsMax: 30,  carbsAreNet: true,  fiberMin: 12, fiberTarget: 15 },
+  VERY_LOW_CARB:    { carbsMax: 70,  carbsMin: 50,  carbsAreNet: false, fiberMin: 15, fiberTarget: 20 },
+  LOW_CARB:         { carbsMax: 110, carbsMin: 80,  carbsAreNet: false, fiberMin: 18, fiberTarget: 25 },
+  BALANCED:         { carbsMax: 280, carbsMin: 130, carbsAreNet: false, fiberMin: 25, fiberTarget: 30 },
+  HIGH_PROTEIN_CUT: { carbsMax: 220, carbsMin: 80,  carbsAreNet: false, fiberMin: 20, fiberTarget: 28 },
+  RECOMPOSITION:    { carbsMax: 250, carbsMin: 100, carbsAreNet: false, fiberMin: 22, fiberTarget: 28 },
+}
+
+// ── Target tolerances ─────────────────────────────────────────────────────────
+// How close the day's actual macros must land to the prescribed targets.
+// Soft = warning band; hard = error band. Centred on user's actual targets,
+// not on a one-user-specific absolute range.
+
+const PROTEIN_TOLERANCE_SOFT_G = 10   // ±10g around target is fine
+const PROTEIN_TOLERANCE_HARD_G = 20   // > 20g over target is a hard error
+const CALORIE_TOLERANCE_KCAL   = 100  // ±100 kcal around target
 
 // ── Ingredient validator helpers ───────────────────────────────────────────────
 
@@ -140,54 +142,56 @@ function checkVitaminCSource(plan: ComposedDayPlan): Issue | null {
 // ── Main validator ─────────────────────────────────────────────────────────────
 
 export function validateNutrition(
-  plan: ComposedDayPlan,
-  dietType: DietType
+  plan:      ComposedDayPlan,
+  macroMode: MacroMode,
+  targets:   GeneratorTargets,
 ): ValidationResult {
-  const rules   = DIET_RULES[dietType]
+  const rules   = MODE_RULES[macroMode]
   const totals  = computeDayMacros(plan)
   const issues: Issue[] = []
 
-  // ── Protein ──────────────────────────────────────────────────────────────────
-  if (totals.protein < rules.proteinMin) {
+  // ── Protein (parameterised against user's target, not hardcoded band) ───────
+  const proteinDelta = totals.protein - targets.proteinG  // signed: + = over target
+  if (-proteinDelta > PROTEIN_TOLERANCE_SOFT_G) {
     issues.push({
       type: "error",
       code: "PROTEIN_LOW",
-      message: `Protein ${totals.protein}g is below minimum ${rules.proteinMin}g`,
+      message: `Protein ${totals.protein}g is ${round1(-proteinDelta)}g below target ${targets.proteinG}g`,
     })
-  } else if (totals.protein > rules.proteinHardMax) {
+  } else if (proteinDelta > PROTEIN_TOLERANCE_HARD_G) {
     issues.push({
       type: "error",
       code: "PROTEIN_HIGH",
-      message: `Protein ${totals.protein}g exceeds hard maximum ${rules.proteinHardMax}g`,
+      message: `Protein ${totals.protein}g is ${round1(proteinDelta)}g over target ${targets.proteinG}g (>${PROTEIN_TOLERANCE_HARD_G}g hard limit)`,
     })
-  } else if (totals.protein > rules.proteinSoftMax) {
+  } else if (proteinDelta > PROTEIN_TOLERANCE_SOFT_G) {
     issues.push({
       type: "warning",
       code: "PROTEIN_OVER_TARGET",
-      message: `Protein ${totals.protein}g exceeds target range (${rules.proteinMin}–${rules.proteinSoftMax}g)`,
+      message: `Protein ${totals.protein}g is ${round1(proteinDelta)}g over target ${targets.proteinG}g`,
     })
   }
 
-  // ── Calories ─────────────────────────────────────────────────────────────────
-  if (totals.calories < rules.calorieMin) {
+  // ── Calories (parameterised against user's target) ──────────────────────────
+  const calorieDelta = totals.calories - targets.calories
+  if (-calorieDelta > CALORIE_TOLERANCE_KCAL) {
     issues.push({
       type: "error",
       code: "CALORIES_LOW",
-      message: `Calories ${totals.calories} kcal below minimum ${rules.calorieMin} kcal`,
+      message: `Calories ${totals.calories} kcal is ${round1(-calorieDelta)} below target ${targets.calories} kcal`,
     })
-  } else if (totals.calories > rules.calorieMax) {
+  } else if (calorieDelta > CALORIE_TOLERANCE_KCAL) {
     issues.push({
       type: "error",
       code: "CALORIES_HIGH",
-      message: `Calories ${totals.calories} kcal exceeds maximum ${rules.calorieMax} kcal`,
+      message: `Calories ${totals.calories} kcal is ${round1(calorieDelta)} over target ${targets.calories} kcal`,
     })
   }
 
-  // ── Carbs ─────────────────────────────────────────────────────────────────────
-  // NOTE: carbs.max represents:
-  //   - NET carbs (carbs - fiber) for keto  → glycemic impact is what matters
-  //   - TOTAL carbs for all other diets     → energy balance is what matters
-  const effectiveCarbs = dietType === "keto"
+  // ── Carbs (mode-specific rules) ─────────────────────────────────────────────
+  // KETO uses NET carbs (glycemic impact is what matters); other modes use
+  // TOTAL carbs (energy balance is what matters).
+  const effectiveCarbs = rules.carbsAreNet
     ? totals.carbs - totals.fiber
     : totals.carbs
 
@@ -195,39 +199,39 @@ export function validateNutrition(
     issues.push({
       type: "error",
       code: "CARBS_EXCEEDED",
-      message: dietType === "keto"
-        ? `Net carbs ${round1(effectiveCarbs)}g exceeds keto limit of ${rules.carbsMax}g (total: ${totals.carbs}g, fiber: ${totals.fiber}g)`
-        : `Carbs ${effectiveCarbs}g exceeds ${dietType} limit of ${rules.carbsMax}g`,
+      message: rules.carbsAreNet
+        ? `Net carbs ${round1(effectiveCarbs)}g exceeds ${macroMode} limit ${rules.carbsMax}g (total: ${totals.carbs}g, fibre: ${totals.fiber}g)`
+        : `Carbs ${round1(effectiveCarbs)}g exceeds ${macroMode} limit ${rules.carbsMax}g`,
     })
   }
   if (rules.carbsMin !== undefined && effectiveCarbs < rules.carbsMin) {
     issues.push({
       type: "warning",
       code: "CARBS_EXCEEDED",
-      message: `Carbs ${effectiveCarbs}g below minimum ${rules.carbsMin}g for ${dietType}`,
+      message: `Carbs ${round1(effectiveCarbs)}g below ${macroMode} minimum ${rules.carbsMin}g`,
     })
   }
 
-  // ── Fiber ─────────────────────────────────────────────────────────────────────
+  // ── Fibre ────────────────────────────────────────────────────────────────────
   if (totals.fiber < rules.fiberMin) {
     issues.push({
       type: "error",
       code: "FIBER_LOW",
-      message: `Fiber ${totals.fiber}g below minimum ${rules.fiberMin}g for ${dietType}`,
+      message: `Fibre ${totals.fiber}g below ${macroMode} minimum ${rules.fiberMin}g`,
     })
   } else if (totals.fiber < rules.fiberTarget) {
     issues.push({
       type: "info",
       code: "FIBER_LOW",
-      message: `Fiber ${totals.fiber}g — target is ${rules.fiberTarget}g`,
+      message: `Fibre ${totals.fiber}g — ${macroMode} target is ${rules.fiberTarget}g`,
     })
   }
 
-  // ── Vitamin C ─────────────────────────────────────────────────────────────────
+  // ── Vitamin C ────────────────────────────────────────────────────────────────
   const vitCIssue = checkVitaminCSource(plan)
   if (vitCIssue) issues.push(vitCIssue)
 
-  // ── Ingredient counts ─────────────────────────────────────────────────────────
+  // ── Ingredient counts ────────────────────────────────────────────────────────
   issues.push(...checkIngredientCounts(plan))
 
   const errors = issues.filter(i => i.type === "error")
