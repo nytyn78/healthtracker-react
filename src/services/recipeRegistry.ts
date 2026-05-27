@@ -119,6 +119,235 @@ export const RECIPES: Record<string, Recipe> = {
     },
   },
 
+  // ── Pure veg — dals and legumes (commit 10.1) ────────────────────────────────
+  // Standard North Indian household preparations. No named-author content;
+  // technique described in plain functional terms. compatibleFoods lists only
+  // ingredients essentially always in the dish — aromatics like onion/tomato
+  // are listed where they're part of the dish identity, omitted where they're
+  // optional. dietTags ["veg"] makes these visible to all diets (veg ⊂
+  // eggetarian ⊂ non-veg in the existing getRecipesForDiet filter).
+
+  DAL_TADKA: {
+    id: "DAL_TADKA",
+    name: { hi: "दाल तड़का", en: "Dal Tadka" },
+    // Any of the three light dals works; generator picks one.
+    compatibleFoods: ["TOOR_DAL", "MOONG_DAL", "MASOOR_DAL", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { TOOR_DAL: { min: 30, max: 80 }, MOONG_DAL: { min: 30, max: 80 }, MASOOR_DAL: { min: 30, max: 80 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["दाल धोएं — हल्दी, नमक, पानी — कुकर में 3 सीटी", "अलग कड़ाही में घी — जीरा, हींग — 15 सेकंड", "प्याज 2 मिनट सुनहरा — अदरक-लहसुन 1 मिनट", "टमाटर — लाल मिर्च, गरम मसाला — 2 मिनट तेल छूटने तक", "पकी दाल डालें — 2 मिनट उबालें — गाढ़ापन ठीक करें", "हरा धनिया — गरम परोसें"],
+      en: ["Rinse dal — turmeric, salt, water — pressure-cook 3 whistles", "Separate pan — ghee — cumin, asafoetida — 15 sec", "Onion 2 min golden — ginger-garlic 1 min", "Tomato — red chilli, garam masala — 2 min until oil separates", "Add cooked dal — simmer 2 min — adjust consistency", "Coriander — serve hot"],
+    },
+  },
+
+  DAL_MAKHANI_SIMPLE: {
+    id: "DAL_MAKHANI_SIMPLE",
+    name: { hi: "दाल मखनी (सादी)", en: "Dal Makhani (Simple)" },
+    // Traditional dal makhani uses urad whole + rajma in roughly 3:1 ratio.
+    // "Simple" = pressure-cooked, not the 8-hour slow simmer.
+    compatibleFoods: ["URAD_WHOLE", "RAJMA", "GHEE", "ONION", "TOMATO", "CREAM"],
+    requiredRanges: { URAD_WHOLE: { min: 30, max: 70 }, RAJMA: { min: 10, max: 25 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["उड़द और राजमा रात भर भिगोएं", "हल्दी, नमक, पानी — कुकर में 5-6 सीटी — गला तक पकाएं", "अलग कड़ाही में घी — जीरा — प्याज 3 मिनट गहरा सुनहरा", "अदरक-लहसुन पेस्ट — 1 मिनट", "टमाटर पीसकर — मसाले — 4 मिनट", "पकी दाल डालें — 8 मिनट धीमी आंच — मसलें", "क्रीम — कसूरी मेथी — परोसें"],
+      en: ["Soak urad and rajma overnight", "Turmeric, salt, water — pressure-cook 5-6 whistles until very soft", "Separate pan — ghee — cumin — onion 3 min deep golden", "Ginger-garlic paste — 1 min", "Pureed tomato — spices — 4 min", "Add cooked dal — 8 min low flame — mash partially", "Swirl cream — kasuri methi — serve"],
+    },
+  },
+
+  CHANA_MASALA: {
+    id: "CHANA_MASALA",
+    name: { hi: "छोले / चना मसाला", en: "Chana Masala" },
+    compatibleFoods: ["CHANA_WHOLE", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { CHANA_WHOLE: { min: 40, max: 100 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["चना रात भर भिगोएं — हल्दी, नमक — कुकर में 4-5 सीटी", "घी में जीरा, तेज़पत्ता", "प्याज 3 मिनट गहरा सुनहरा", "अदरक-लहसुन पेस्ट — 1 मिनट", "टमाटर — लाल मिर्च, धनिया पाउडर, अनारदाना — 3 मिनट", "पका चना — पानी — 8 मिनट उबालें", "गरम मसाला — हरा धनिया — परोसें"],
+      en: ["Soak chana overnight — turmeric, salt — pressure-cook 4-5 whistles", "Ghee — cumin, bay leaf", "Onion 3 min deep golden", "Ginger-garlic paste — 1 min", "Tomato — red chilli, coriander powder, anardana — 3 min", "Cooked chana — water — simmer 8 min", "Garam masala — coriander — serve"],
+    },
+  },
+
+  KAALE_CHANE: {
+    id: "KAALE_CHANE",
+    name: { hi: "काले चने", en: "Kala Chana (Black Chickpeas)" },
+    // Same FoodId as kabuli (CHANA_WHOLE serves as IFCT proxy for both);
+    // distinct recipe because kala chana is conventionally a thinner gravy
+    // with different spicing (saunf, anardana absent, more cumin).
+    compatibleFoods: ["CHANA_WHOLE", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { CHANA_WHOLE: { min: 40, max: 100 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["काले चने रात भर भिगोएं — कुकर में हल्दी, नमक — 5 सीटी", "घी में जीरा भरपूर — हींग", "प्याज 2 मिनट — अदरक-लहसुन 1 मिनट", "टमाटर — लाल मिर्च, धनिया पाउडर — 2 मिनट", "पके चने — पानी पतला — 10 मिनट उबालें", "नींबू — हरा धनिया — परोसें"],
+      en: ["Soak kala chana overnight — pressure-cook with turmeric, salt — 5 whistles", "Ghee — generous cumin — asafoetida", "Onion 2 min — ginger-garlic 1 min", "Tomato — red chilli, coriander powder — 2 min", "Cooked chana — thin gravy — simmer 10 min", "Lemon — coriander — serve"],
+    },
+  },
+
+  RAJMA_CURRY: {
+    id: "RAJMA_CURRY",
+    name: { hi: "राजमा", en: "Rajma Curry" },
+    compatibleFoods: ["RAJMA", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { RAJMA: { min: 40, max: 100 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["राजमा रात भर भिगोएं — कुकर में हल्दी, नमक — 5-6 सीटी गला तक", "घी में जीरा — तेज़पत्ता", "प्याज 3 मिनट गहरा सुनहरा", "अदरक-लहसुन पेस्ट — 1 मिनट", "टमाटर पीसकर — लाल मिर्च, धनिया, गरम मसाला — 4 मिनट तेल छूटने तक", "राजमा डालें — कुछ राजमा मसलें — 10 मिनट धीमी आंच", "हरा धनिया — परोसें"],
+      en: ["Soak rajma overnight — pressure-cook with turmeric, salt — 5-6 whistles until soft", "Ghee — cumin, bay leaf", "Onion 3 min deep golden", "Ginger-garlic paste — 1 min", "Pureed tomato — red chilli, coriander, garam masala — 4 min until oil separates", "Add rajma — mash a few beans — 10 min low flame", "Coriander — serve"],
+    },
+  },
+
+  // ── Pure veg — rice and breads ───────────────────────────────────────────────
+
+  PLAIN_RICE: {
+    id: "PLAIN_RICE",
+    name: { hi: "सादे चावल", en: "Plain Rice" },
+    compatibleFoods: ["RICE_WHITE_RAW"],
+    requiredRanges: { RICE_WHITE_RAW: { min: 30, max: 80 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["चावल धोएं — 10 मिनट भिगोएं", "1:2 पानी — नमक — उबाल आने दें", "ढककर धीमी आंच — 12 मिनट", "5 मिनट दम — कांटे से अलग करें — परोसें"],
+      en: ["Rinse rice — soak 10 min", "1:2 water — salt — bring to boil", "Cover — low flame — 12 min", "Rest 5 min — fluff with fork — serve"],
+    },
+  },
+
+  JEERA_RICE: {
+    id: "JEERA_RICE",
+    name: { hi: "जीरा चावल", en: "Jeera Rice" },
+    compatibleFoods: ["RICE_WHITE_RAW", "GHEE"],
+    requiredRanges: { RICE_WHITE_RAW: { min: 30, max: 80 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["चावल धोएं — 10 मिनट भिगोएं", "घी में जीरा — तेज़पत्ता, लौंग, दालचीनी — 15 सेकंड", "चावल डालें — हल्के से भूनें — 1 मिनट", "1:2 गरम पानी — नमक — उबाल", "ढककर 12 मिनट धीमी आंच — 5 मिनट दम — परोसें"],
+      en: ["Rinse rice — soak 10 min", "Ghee — cumin — bay leaf, clove, cinnamon — 15 sec", "Add rice — toast gently — 1 min", "1:2 hot water — salt — boil", "Cover — 12 min low flame — rest 5 min — serve"],
+    },
+  },
+
+  PLAIN_ROTI: {
+    id: "PLAIN_ROTI",
+    name: { hi: "सादी रोटी", en: "Plain Roti" },
+    // 25g atta per roti is the household standard (see cookingConversion.ts).
+    compatibleFoods: ["ATTA"],
+    requiredRanges: { ATTA: { min: 25, max: 100 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["आटा — पानी (60% मात्रा) — चुटकी नमक — मुलायम गूंदें", "10 मिनट ढककर रखें — फिर हल्का गूंदें", "लोई बेलें — सूखा आटा बहुत हल्का", "गरम तवा — एक तरफ 30 सेकंड — पलटें", "दूसरी तरफ बुलबुले उठें तक — सीधी आंच पर फुलाएं", "तुरंत परोसें"],
+      en: ["Atta — water (60% by volume) — pinch salt — knead soft dough", "Rest covered 10 min — knead lightly again", "Roll out — minimal dry flour", "Hot tawa — 30 sec one side — flip", "Until bubbles form — puff over direct flame", "Serve immediately"],
+    },
+  },
+
+  ALOO_PARATHA: {
+    id: "ALOO_PARATHA",
+    name: { hi: "आलू पराठा", en: "Aloo Paratha" },
+    compatibleFoods: ["ATTA", "ALOO", "GHEE"],
+    requiredRanges: { ATTA: { min: 30, max: 80 }, ALOO: { min: 60, max: 150 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["आलू उबालें — मैश करें — जीरा, हरी मिर्च, धनिया, अमचूर, नमक", "आटा मुलायम गूंदें — 10 मिनट रखें", "लोई में आलू भरें — सावधानी से बेलें", "गरम तवा — हर तरफ घी — सुनहरा कुरकुरा सेकें", "दही या मक्खन के साथ परोसें"],
+      en: ["Boil potatoes — mash — cumin, green chilli, coriander, amchur, salt", "Knead soft dough — rest 10 min", "Stuff dough ball with aloo — roll carefully", "Hot tawa — ghee both sides — cook golden crisp", "Serve with curd or butter"],
+    },
+  },
+
+  GOBHI_PARATHA: {
+    id: "GOBHI_PARATHA",
+    name: { hi: "गोभी पराठा", en: "Gobhi Paratha" },
+    compatibleFoods: ["ATTA", "CAULIFLOWER", "GHEE"],
+    requiredRanges: { ATTA: { min: 30, max: 80 }, CAULIFLOWER: { min: 80, max: 150 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["गोभी कद्दूकस — नमक लगाएं 5 मिनट — पानी निचोड़ें", "जीरा, अदरक-हरी मिर्च, धनिया, गरम मसाला मिलाएं", "आटा गूंदें — 10 मिनट रखें", "लोई में गोभी भरें — हल्के हाथ से बेलें", "गरम तवा — हर तरफ घी — सुनहरा सेकें", "दही या अचार के साथ परोसें"],
+      en: ["Grate cauliflower — salt 5 min — squeeze water out", "Mix in cumin, ginger-chilli, coriander, garam masala", "Knead dough — rest 10 min", "Stuff with cauliflower — roll gently", "Hot tawa — ghee both sides — cook golden", "Serve with curd or pickle"],
+    },
+  },
+
+  // ── Pure veg — paneer and sabzi ──────────────────────────────────────────────
+
+  PALAK_PANEER_VEG: {
+    id: "PALAK_PANEER_VEG",
+    name: { hi: "पालक पनीर", en: "Palak Paneer (Vegetarian)" },
+    // Distinct from PALAK_PANEER_EGGS — pure-veg, no eggs.
+    compatibleFoods: ["PANEER", "SPINACH", "GHEE", "ONION", "TOMATO", "CREAM"],
+    requiredRanges: { PANEER: { min: 80, max: 200 }, SPINACH: { min: 100, max: 250 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["पालक उबलते पानी में 2 मिनट — ठंडे पानी में डालें — पीसें", "घी में जीरा — प्याज 3 मिनट सुनहरा", "अदरक-लहसुन पेस्ट — 1 मिनट", "टमाटर — हल्दी, गरम मसाला — 2 मिनट", "पालक प्यूरी — 4 मिनट धीमी आंच", "पनीर क्यूब्स — 2 मिनट — क्रीम वैकल्पिक", "कसूरी मेथी — परोसें"],
+      en: ["Blanch spinach 2 min — shock in cold water — purée", "Ghee — cumin — onion 3 min golden", "Ginger-garlic paste — 1 min", "Tomato — turmeric, garam masala — 2 min", "Spinach purée — 4 min low flame", "Paneer cubes — 2 min — cream optional", "Kasuri methi — serve"],
+    },
+  },
+
+  ALOO_MUTTER: {
+    id: "ALOO_MUTTER",
+    name: { hi: "आलू मटर", en: "Aloo Mutter" },
+    compatibleFoods: ["ALOO", "MUTTER", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { ALOO: { min: 80, max: 200 }, MUTTER: { min: 50, max: 120 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["आलू छीलें — क्यूब्स काटें", "घी में जीरा, हींग — प्याज 2 मिनट सुनहरा", "अदरक-हरी मिर्च — 30 सेकंड", "टमाटर — हल्दी, लाल मिर्च, धनिया — 2 मिनट", "आलू और मटर डालें — 2 मिनट भूनें", "पानी — ढककर 15 मिनट धीमी आंच आलू नरम होने तक", "गरम मसाला — हरा धनिया — परोसें"],
+      en: ["Peel and cube potatoes", "Ghee — cumin, asafoetida — onion 2 min golden", "Ginger-green chilli — 30 sec", "Tomato — turmeric, red chilli, coriander — 2 min", "Add aloo and mutter — 2 min toss", "Water — covered 15 min low flame until potato tender", "Garam masala — coriander — serve"],
+    },
+  },
+
+  ALOO_GOBHI: {
+    id: "ALOO_GOBHI",
+    name: { hi: "आलू गोभी", en: "Aloo Gobhi" },
+    compatibleFoods: ["ALOO", "CAULIFLOWER", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { ALOO: { min: 80, max: 200 }, CAULIFLOWER: { min: 100, max: 250 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["आलू और गोभी मध्यम टुकड़ों में काटें", "घी में जीरा, हींग — 15 सेकंड", "प्याज 2 मिनट — अदरक-हरी मिर्च — 30 सेकंड", "हल्दी, लाल मिर्च, धनिया पाउडर — 30 सेकंड", "आलू-गोभी — टमाटर — 3 मिनट भूनें", "ढककर 12 मिनट धीमी आंच — बीच में हिलाएं", "गरम मसाला — हरा धनिया — परोसें"],
+      en: ["Cut aloo and gobhi into medium pieces", "Ghee — cumin, asafoetida — 15 sec", "Onion 2 min — ginger-green chilli — 30 sec", "Turmeric, red chilli, coriander powder — 30 sec", "Aloo-gobhi — tomato — 3 min toss", "Cover — 12 min low flame — stir once", "Garam masala — coriander — serve"],
+    },
+  },
+
+  PHOOL_GOBHI_SABZI: {
+    id: "PHOOL_GOBHI_SABZI",
+    name: { hi: "फूल गोभी की सब्ज़ी", en: "Phool Gobhi Sabzi" },
+    compatibleFoods: ["CAULIFLOWER", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { CAULIFLOWER: { min: 120, max: 250 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["गोभी छोटे फूल — गरम पानी में 5 मिनट — छानें", "घी में जीरा, हींग — 15 सेकंड", "प्याज 2 मिनट — अदरक-हरी मिर्च 30 सेकंड", "टमाटर — हल्दी, लाल मिर्च — 2 मिनट", "गोभी डालें — 3 मिनट भूनें", "ढककर 8 मिनट धीमी आंच", "अमचूर — हरा धनिया — परोसें"],
+      en: ["Small cauliflower florets — hot water 5 min — drain", "Ghee — cumin, asafoetida — 15 sec", "Onion 2 min — ginger-green chilli 30 sec", "Tomato — turmeric, red chilli — 2 min", "Add cauliflower — 3 min toss", "Cover — 8 min low flame", "Amchur — coriander — serve"],
+    },
+  },
+
+  KATHAL_SABZI: {
+    id: "KATHAL_SABZI",
+    name: { hi: "कटहल की सब्ज़ी", en: "Kathal Sabzi" },
+    // Raw/tender jackfruit (IFCT D051), not ripe. Cube and pressure-cook
+    // briefly before final sauté for tender result.
+    compatibleFoods: ["KATHAL", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { KATHAL: { min: 150, max: 300 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["कटहल छीलें (हाथों पर तेल लगाएं) — मध्यम क्यूब्स — हल्दी, नमक के साथ कुकर में 1 सीटी", "घी में जीरा, सौंफ — 15 सेकंड", "प्याज 3 मिनट गहरा सुनहरा", "अदरक-लहसुन — 1 मिनट", "टमाटर — लाल मिर्च, धनिया, गरम मसाला — 3 मिनट", "कटहल — हल्के हाथ से मिलाएं — 5 मिनट धीमी आंच", "हरा धनिया — परोसें"],
+      en: ["Peel kathal (oil hands first) — medium cubes — pressure-cook 1 whistle with turmeric, salt", "Ghee — cumin, fennel — 15 sec", "Onion 3 min deep golden", "Ginger-garlic — 1 min", "Tomato — red chilli, coriander, garam masala — 3 min", "Kathal — fold gently — 5 min low flame", "Coriander — serve"],
+    },
+  },
+
+  KARELA_SABZI_VEG: {
+    id: "KARELA_SABZI_VEG",
+    name: { hi: "करेले की सब्ज़ी (सादी)", en: "Karela Sabzi (Vegetarian)" },
+    // Distinct from KARELA_EGG_PANEER — pure-veg.
+    compatibleFoods: ["KARELA", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { KARELA: { min: 100, max: 200 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["करेले काटें — नमक लगाएं 15 मिनट — कड़वाहट निकालने पानी से धोएं — निचोड़ें", "घी में जीरा, सौंफ", "प्याज 4 मिनट गहरा सुनहरा", "करेले — 8 मिनट तेज़ आंच कुरकुरे होने तक", "टमाटर — हल्दी, लाल मिर्च, धनिया, अमचूर — 3 मिनट", "एक चुटकी गुड़ — परोसें"],
+      en: ["Slice karela — salt 15 min — rinse to reduce bitterness — squeeze", "Ghee — cumin, fennel", "Onion 4 min deep golden", "Karela — 8 min high heat until crisp", "Tomato — turmeric, red chilli, coriander, amchur — 3 min", "Pinch of jaggery — serve"],
+    },
+  },
+
+  POHA: {
+    id: "POHA",
+    name: { hi: "पोहा", en: "Poha" },
+    // Quick breakfast — onion-poha style. Peanuts are conventional but
+    // omitted (no PEANUT FoodId yet); will add when food DB covers nuts.
+    compatibleFoods: ["POHA", "ONION", "MUTTER", "GHEE"],
+    requiredRanges: { POHA: { min: 40, max: 80 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["पोहा छलनी में डालें — नल के नीचे 30 सेकंड भिगोएं — छानें — नमक, चीनी एक चुटकी — रखें", "घी में सरसों, करी पत्ता, हरी मिर्च — 30 सेकंड", "प्याज 2 मिनट — मटर (अगर) — 2 मिनट", "हल्दी — पोहा डालें — हल्के हाथ से मिलाएं — 2 मिनट ढककर भाप", "नींबू — हरा धनिया — गरम परोसें"],
+      en: ["Poha in colander — rinse 30 sec under tap — drain — pinch salt and sugar — set aside", "Ghee — mustard seeds, curry leaves, green chilli — 30 sec", "Onion 2 min — mutter (if using) — 2 min", "Turmeric — add poha — fold gently — 2 min covered steam", "Lemon — coriander — serve hot"],
+    },
+  },
+
   // ── Non-veg (chicken) ────────────────────────────────────────────────────────
 
   CHICKEN_HANDI: {
