@@ -5,7 +5,7 @@
 // 7-day variety guaranteed — no two consecutive days use the same protein source.
 // Macros computed from ingredients upward — never stored as fixed values.
 //
-// ⚠ STRUCTURAL DEBT — addressed in future commits 11.1–11.4 (not 11.0):
+// ⚠ STRUCTURAL DEBT — addressed in future commits 11.2–11.4 (not done yet):
 //   - Meal shape is hardcoded to 2 meals + shake (2 PM / 4:30 PM / 6:30 PM).
 //     This is a 19:5 IF schedule baked into the function with no toggle. A
 //     KETO user who eats breakfast at 8 AM is served a 2-meal plan that
@@ -13,18 +13,15 @@
 //     macro mode is commit 11.4.
 //   - Recipe-registry compatibleFoods and requiredRanges are not consulted
 //     — recipes only provide the meal-card name and steps. Ingredient picks
-//     are hardcoded in buildEggPaneerMeal / buildProteinMeal. Consuming the
-//     registry properly is commit 11.2.
-//   - There's no pure-veg branch; vegetarian users get the eggetarian
-//     branch (with eggs). Adding the veg branch is commit 11.1.
+//     are hardcoded in buildEggPaneerMeal / buildVegMeal / buildProteinMeal.
+//     Consuming the registry properly is commit 11.2.
 //   - BALANCED / LOW_CARB / HPC / RECOMPOSITION modes still get the keto-
 //     shaped meal template — no rice, no roti, no dal-as-staple. Mode-aware
 //     meal templates is commit 11.3.
 //
-// Commit 11.0 (this commit): macroMode threaded through generateDayPlan and
-// down to validateNutrition. No behavior change yet — keto plans render
-// identically to pre-11.0. Just stops the validator from pretending every
-// user is on keto.
+// Commit 11.0 added: macroMode threaded through to validateNutrition.
+// Commit 11.1 added: pure-veg branch (buildVegMeal) using PANEER + HUNG_CURD
+//   + optional TOFU. Vegetarian users no longer silently get eggs.
 
 import type { ComposedDayPlan, ComposedMeal, ComposedIngredient, GeneratorTargets } from "./composedTypes"
 import { validateNutrition } from "./constraintEngine"
@@ -65,6 +62,31 @@ const NON_VEG_WEEK: Array<{ m1Recipe: string; m2Recipe: string; m1FoodId: string
   { m1Recipe: "FISH_CURRY_SIMPLE",  m2Recipe: "CHICKEN_HANDI",        m1FoodId: "FISH_ROHU",      m2FoodId: "CHICKEN_THIGH" },
   { m1Recipe: "CHICKEN_SAAG",       m2Recipe: "PRAWN_MASALA",         m1FoodId: "CHICKEN_BREAST", m2FoodId: "PRAWNS" },
   { m1Recipe: "MUTTON_KEEMA_PALAK", m2Recipe: "CHICKEN_TIKKA_DRY",    m1FoodId: "MUTTON_KEEMA",   m2FoodId: "CHICKEN_BREAST" },
+]
+
+// Pure veg: keto-compatible recipes only (commit 11.1).
+//
+// Keto-veg is genuinely narrow. The only 10.x recipes whose ingredient
+// composition stays within KETO carb limits without eggs or meat are:
+//   - PALAK_PANEER_VEG (paneer + spinach)
+//   - PANEER_BHURJI    (pure paneer crumble)
+//   - KADHAI_PANEER    (paneer + capsicum)
+// These cycle across 7 days. Vegetable variety (different leafy/vitamin-C
+// pick each day via VEG_ROTATION) makes the same recipe taste distinct day
+// to day. Mid-carb veg recipes like MATAR_PANEER, ALOO_MUTTER, DAL_TADKA
+// are deliberately excluded — their ingredient costs would blow keto carb
+// limits, and the user-visible meal card must match what's actually cooked.
+//
+// 11.3 (mode-aware templates) will expand this rotation for LOW_CARB /
+// BALANCED users where dal and rice become appropriate.
+const VEG_WEEK: Array<{ m1Recipe: string; m2Recipe: string }> = [
+  { m1Recipe: "PALAK_PANEER_VEG", m2Recipe: "PANEER_BHURJI" },     // Mon
+  { m1Recipe: "KADHAI_PANEER",    m2Recipe: "PALAK_PANEER_VEG" },  // Tue
+  { m1Recipe: "PANEER_BHURJI",    m2Recipe: "KADHAI_PANEER" },     // Wed
+  { m1Recipe: "PALAK_PANEER_VEG", m2Recipe: "KADHAI_PANEER" },     // Thu
+  { m1Recipe: "PANEER_BHURJI",    m2Recipe: "PALAK_PANEER_VEG" },  // Fri
+  { m1Recipe: "KADHAI_PANEER",    m2Recipe: "PANEER_BHURJI" },     // Sat
+  { m1Recipe: "PALAK_PANEER_VEG", m2Recipe: "PANEER_BHURJI" },     // Sun
 ]
 
 // Vegetable rotation for the day
@@ -121,6 +143,87 @@ function buildEggPaneerMeal(
   ingredients.push({ foodId: "ONION" as any, quantity: 30 })
 
   // Get recipe name from registry
+  const recipe = RECIPES[recipeId]
+  const name = recipe?.name.en ?? recipeId
+
+  return { name, slot, time, recipeId, ingredients }
+}
+
+// ── buildVegMeal (commit 11.1) ────────────────────────────────────────────────
+// Pure-veg meal builder — no eggs, no meat. Uses PANEER + HUNG_CURD as the
+// core keto-compatible co-protein pair, with TOFU added when protein needs
+// exceed what paneer+curd can deliver at reasonable portions.
+//
+// Recipe-name awareness: PALAK_PANEER_VEG forces SPINACH as the vegetable
+// regardless of the day's VEG_ROTATION; KADHAI_PANEER forces CAPSICUM;
+// PANEER_BHURJI takes whatever the rotation picked. This keeps the meal-
+// card name honest — a meal called "Palak Paneer" must contain spinach.
+//
+// Protein math: typical keto-veg target is ~35-40g protein per meal (after
+// whey shake covers 25g of the daily ~100g). Paneer at 18.86% protein +
+// hung curd at 9.7% protein hit this comfortably:
+//   - 120g paneer = 22.6g P, 80g hung curd = 7.8g P → 30.4g protein
+//   - 150g paneer + 80g hung curd → 36.1g protein
+// Tofu is added only when protein needs exceed ~38g (paneer cap is ~180g
+// per meal to keep portion realistic).
+
+function buildVegMeal(
+  recipeId: string,
+  slot: "primary" | "secondary",
+  targetProtein: number,
+  targetFat: number,
+  veg: { primary: string; vitaminC: string },
+  time: string,
+): ComposedMeal {
+  // Recipe identity overrides the day's vegetable rotation for recipes
+  // whose names imply a specific vegetable. PANEER_BHURJI accepts any veg.
+  let effectiveVeg = veg
+  if (recipeId === "PALAK_PANEER_VEG") {
+    effectiveVeg = { primary: "SPINACH", vitaminC: "TOMATO" }
+  } else if (recipeId === "KADHAI_PANEER") {
+    effectiveVeg = { primary: "CAPSICUM", vitaminC: "CAPSICUM" }
+  }
+
+  // Hung curd contributes both protein and meal identity (replaces the
+  // role eggs play in the eggetarian builder). 80g is the standard portion.
+  const hungCurdG       = 80
+  const proteinFromCurd = hungCurdG * 0.097  // HUNG_CURD per-g protein
+
+  // Paneer scales to cover remaining protein, capped at 180g per meal to
+  // keep the plate realistic. Above that, tofu picks up the slack.
+  const paneerNeeded    = (targetProtein - proteinFromCurd) / 0.1886  // PANEER per-g protein
+  const paneerG         = clamp(roundTo(paneerNeeded, 10), 80, 180)
+  const proteinFromPaneer = paneerG * 0.1886
+
+  // If paneer hit its cap and we still need more protein, add tofu.
+  const proteinGapAfterPaneer = targetProtein - proteinFromCurd - proteinFromPaneer
+  const tofuG = proteinGapAfterPaneer > 5
+    ? clamp(roundTo(proteinGapAfterPaneer / 0.081, 10), 0, 150)  // TOFU_FIRM per-g protein
+    : 0
+
+  // Fat budget: account for paneer's high fat (24.8%) and hung curd (5%),
+  // top up with ghee.
+  const fatFromSources  = paneerG * 0.2478 + hungCurdG * 0.05 + tofuG * 0.049
+  const gheeNeeded      = clamp(roundTo((targetFat - fatFromSources) / 5, 0.5), 0.5, 4)
+
+  const ingredients: ComposedIngredient[] = [
+    { foodId: "PANEER" as any, quantity: paneerG,
+      prepNote: recipeId === "PANEER_BHURJI"
+        ? { hi: "क्रम्बल्ड", en: "crumbled" }
+        : { hi: "क्यूब्स", en: "cubes" } },
+    { foodId: "HUNG_CURD" as any, quantity: hungCurdG,
+      prepNote: { hi: "मैरिनेड के लिए", en: "for marinade / texture" } },
+  ]
+  if (tofuG > 0) {
+    ingredients.push({ foodId: "TOFU_FIRM" as any, quantity: tofuG })
+  }
+  ingredients.push({ foodId: "GHEE" as any, quantity: gheeNeeded })
+  ingredients.push({ foodId: effectiveVeg.primary as any, quantity: 80 })
+  if (effectiveVeg.vitaminC !== effectiveVeg.primary) {
+    ingredients.push({ foodId: effectiveVeg.vitaminC as any, quantity: 60 })
+  }
+  ingredients.push({ foodId: "ONION" as any, quantity: 30 })
+
   const recipe = RECIPES[recipeId]
   const name = recipe?.name.en ?? recipeId
 
@@ -209,6 +312,12 @@ export function generateDayPlan(
     meal2 = day.m2FoodId === "EGG_PANEER"
       ? buildEggPaneerMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
       : buildProteinMeal(day.m2Recipe, "secondary", day.m2FoodId, m2P, m2F, veg, "6:30 PM")
+  } else if (diet === "veg") {
+    // Pure-veg branch (11.1). Uses paneer + hung curd + optional tofu as
+    // the keto-compatible co-protein stack. No eggs, no meat.
+    const day = VEG_WEEK[dayIndex % 7]
+    meal1 = buildVegMeal(day.m1Recipe, "primary",   m1P, m1F, veg, "2:00 PM")
+    meal2 = buildVegMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
   } else {
     const day = EGGETARIAN_WEEK[dayIndex % 7]
     meal1 = buildEggPaneerMeal(day.m1Recipe, "primary", m1P, m1F, veg, "2:00 PM")
