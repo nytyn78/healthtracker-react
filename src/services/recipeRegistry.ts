@@ -53,10 +53,12 @@ export const RECIPES: Record<string, Recipe> = {
   // tradition; soy sauce in egg-mushroom stir-fry — anachronistic for Indian
   // household; six vegetables in a single bhurji — kitchen-sink composition).
   //
-  // The IDs are preserved because mealGenerator.ts hardcodes them in its
-  // 7-day rotation. Names and content are updated to match what someone
-  // actually cooks. After the commit-11 generator rewrite, IDs can be
-  // renamed cleanly to match the dishes (e.g. KARELA_EGG_PANEER → KARELA_ANDA).
+  // Three IDs were renamed in commit 11.2a to match their actual dish
+  // content (the post-10.2 reworks dropped paneer/eggs from several
+  // dishes whose original IDs implied those ingredients):
+  //   EGG_PANEER_MASALA → ANDA_PANEER_MASALA
+  //   PALAK_PANEER_EGGS → SAAG_ANDA
+  //   KARELA_EGG_PANEER → KARELA_ANDA
   //
   // Convention (unchanged): compatibleFoods lists ingredients essentially
   // always in the dish. Aromatics (cumin, mustard seeds, asafoetida, ginger-
@@ -80,12 +82,14 @@ export const RECIPES: Record<string, Recipe> = {
     },
   },
 
-  EGG_PANEER_MASALA: {
+  ANDA_PANEER_MASALA: {
     // Anda masala with a few paneer cubes as secondary protein. Cream
     // removed (anda masala isn't a creamy gravy — that conflates it with
     // shahi paneer). Spinach removed from compatibleFoods.
-    id: "EGG_PANEER_MASALA",
-    name: { hi: "अंडा पनीर मसाला", en: "Egg Paneer Masala" },
+    // ID renamed in 11.2a from EGG_PANEER_MASALA (the old ID had English
+    // "EGG" while the dish is Indian; "Anda" is the canonical name).
+    id: "ANDA_PANEER_MASALA",
+    name: { hi: "अंडा पनीर मसाला", en: "Anda Paneer Masala" },
     compatibleFoods: ["EGG", "PANEER", "GHEE", "TOMATO", "ONION"],
     requiredRanges: { EGG: { min: 2, max: 4 }, PANEER: { min: 50, max: 120 } },
     dietTags: ["eggetarian"],
@@ -139,13 +143,15 @@ export const RECIPES: Record<string, Recipe> = {
     },
   },
 
-  PALAK_PANEER_EGGS: {
+  SAAG_ANDA: {
     // Saag with poached eggs — paneer dropped (PALAK_PANEER_VEG covers
-    // the paneer version; this is now a distinct dish, saag-anda).
-    // Cream also dropped — saag-anda is a homely dish, not a restaurant
-    // gravy. Eggs poach directly in the saag in the final step.
-    id: "PALAK_PANEER_EGGS",
-    name: { hi: "पालक अंडा", en: "Saag Anda (Spinach with Poached Eggs)" },
+    // the paneer version; this is a distinct dish). Cream also dropped —
+    // saag-anda is a homely dish, not a restaurant gravy. Eggs poach
+    // directly in the saag in the final step.
+    // ID renamed in 11.2a from PALAK_PANEER_EGGS — the new ID matches
+    // what the dish actually is (saag + anda, no paneer).
+    id: "SAAG_ANDA",
+    name: { hi: "साग अंडा", en: "Saag Anda (Spinach with Poached Eggs)" },
     compatibleFoods: ["EGG", "GHEE", "SPINACH", "ONION", "TOMATO"],
     requiredRanges: { EGG: { min: 2, max: 4 }, SPINACH: { min: 150, max: 300 } },
     dietTags: ["eggetarian"],
@@ -169,15 +175,14 @@ export const RECIPES: Record<string, Recipe> = {
     },
   },
 
-  KARELA_EGG_PANEER: {
+  KARELA_ANDA: {
     // Reworked: Maharashtrian-style karela with eggs and peanut crumble.
     // Paneer dropped (doesn't complement karela's bitterness; competes).
     // PEANUT added — the traditional sweet-bitter-savoury balance for
     // karela uses peanut crumble + onion + jaggery, which is what makes
     // karela palatable to people who otherwise avoid it.
-    // ID retained for mealGenerator.ts compatibility; name updated to
-    // match what the dish actually is.
-    id: "KARELA_EGG_PANEER",
+    // ID renamed in 11.2a from KARELA_EGG_PANEER — the dish has no paneer.
+    id: "KARELA_ANDA",
     name: { hi: "करेला अंडा (महाराष्ट्रियन शैली)", en: "Karela Anda (Maharashtrian-style)" },
     compatibleFoods: ["EGG", "GHEE", "KARELA", "PEANUT", "ONION", "TOMATO"],
     requiredRanges: { EGG: { min: 2, max: 3 }, KARELA: { min: 100, max: 200 }, PEANUT: { min: 15, max: 30 } },
@@ -207,7 +212,7 @@ export const RECIPES: Record<string, Recipe> = {
 
   ANDA_CURRY: {
     // The real "anda masala" — boiled eggs in onion-tomato gravy, no
-    // paneer. (EGG_PANEER_MASALA above keeps a few paneer cubes as a
+    // paneer. (ANDA_PANEER_MASALA above keeps a few paneer cubes as a
     // secondary protein; this one is pure anda curry.) Standard North
     // Indian household preparation.
     id: "ANDA_CURRY",
@@ -412,7 +417,7 @@ export const RECIPES: Record<string, Recipe> = {
   PALAK_PANEER_VEG: {
     id: "PALAK_PANEER_VEG",
     name: { hi: "पालक पनीर", en: "Palak Paneer (Vegetarian)" },
-    // Distinct from PALAK_PANEER_EGGS — pure-veg, no eggs.
+    // Distinct from SAAG_ANDA — pure-veg, no eggs.
     compatibleFoods: ["PANEER", "SPINACH", "GHEE", "ONION", "TOMATO", "CREAM"],
     requiredRanges: { PANEER: { min: 80, max: 200 }, SPINACH: { min: 100, max: 250 } },
     dietTags: ["veg"],
@@ -475,7 +480,7 @@ export const RECIPES: Record<string, Recipe> = {
   KARELA_SABZI_VEG: {
     id: "KARELA_SABZI_VEG",
     name: { hi: "करेले की सब्ज़ी (सादी)", en: "Karela Sabzi (Vegetarian)" },
-    // Distinct from KARELA_EGG_PANEER — pure-veg.
+    // Distinct from KARELA_ANDA — pure-veg.
     compatibleFoods: ["KARELA", "GHEE", "ONION", "TOMATO"],
     requiredRanges: { KARELA: { min: 100, max: 200 } },
     dietTags: ["veg"],

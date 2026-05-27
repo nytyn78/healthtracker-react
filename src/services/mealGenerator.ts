@@ -5,16 +5,12 @@
 // 7-day variety guaranteed — no two consecutive days use the same protein source.
 // Macros computed from ingredients upward — never stored as fixed values.
 //
-// ⚠ STRUCTURAL DEBT — addressed in future commits 11.2–11.4 (not done yet):
+// ⚠ STRUCTURAL DEBT — addressed in future commits 11.3 and 11.4:
 //   - Meal shape is hardcoded to 2 meals + shake (2 PM / 4:30 PM / 6:30 PM).
 //     This is a 19:5 IF schedule baked into the function with no toggle. A
 //     KETO user who eats breakfast at 8 AM is served a 2-meal plan that
 //     ignores morning food. Decoupling meal count + meal times from the
 //     macro mode is commit 11.4.
-//   - Recipe-registry compatibleFoods and requiredRanges are not consulted
-//     — recipes only provide the meal-card name and steps. Ingredient picks
-//     are hardcoded in buildEggPaneerMeal / buildVegMeal / buildProteinMeal.
-//     Consuming the registry properly is commit 11.2.
 //   - BALANCED / LOW_CARB / HPC / RECOMPOSITION modes still get the keto-
 //     shaped meal template — no rice, no roti, no dal-as-staple. Mode-aware
 //     meal templates is commit 11.3.
@@ -22,6 +18,17 @@
 // Commit 11.0 added: macroMode threaded through to validateNutrition.
 // Commit 11.1 added: pure-veg branch (buildVegMeal) using PANEER + HUNG_CURD
 //   + optional TOFU. Vegetarian users no longer silently get eggs.
+// Commit 11.2a added: dispatch by recipe.compatibleFoods. EGG-only recipes
+//   (ANDHRA_EGG_MASALA, ANDA_CURRY, MASALA_OMELETTE, SAAG_ANDA,
+//   BAINGAN_EGG_BHARTA, KARELA_ANDA, EGG_MUSHROOM_STIR_FRY) now route to
+//   buildEggOnlyMeal instead of getting paneer added. PANEER-only recipes
+//   (PANEER_BHURJI, KADHAI_PANEER) route to buildPaneerOnlyMeal instead of
+//   getting eggs added. EGG+PANEER recipes (PANEER_EGG_BHURJI,
+//   METHI_PANEER_BHURJI, ANDA_PANEER_MASALA) keep the existing builder.
+//   Also fixed a pre-existing dispatch bug where non-veg meal1 looked at
+//   m2FoodId instead of m1FoodId. Also renamed 3 misnamed recipe IDs
+//   (KARELA_EGG_PANEER → KARELA_ANDA, PALAK_PANEER_EGGS → SAAG_ANDA,
+//   EGG_PANEER_MASALA → ANDA_PANEER_MASALA).
 
 import type { ComposedDayPlan, ComposedMeal, ComposedIngredient, GeneratorTargets } from "./composedTypes"
 import { validateNutrition } from "./constraintEngine"
@@ -38,24 +45,30 @@ export type DietType = "eggetarian" | "non-veg" | "veg"
 
 // ── Weekly rotation plans ──────────────────────────────────────────────────────
 
-// Eggetarian: rotate protein source variety within eggs+paneer+whey
-// Eggetarian week — 7 distinct days
-// EGG_PANEER = standard eggs+paneer combo
-// EGG_CURD   = eggs + hung curd (lighter, yogurt-based)
-// EGG_TOFU   = eggs + tofu (lower fat, plant protein)
-const EGGETARIAN_WEEK: Array<{ m1Recipe: string; m2Recipe: string; m1Protein: string; m2Protein: string }> = [
-  { m1Recipe: "PANEER_EGG_BHURJI",    m2Recipe: "EGG_PANEER_MASALA",    m1Protein: "EGG_PANEER", m2Protein: "EGG_PANEER" }, // Mon — classic
-  { m1Recipe: "METHI_PANEER_BHURJI",  m2Recipe: "ANDHRA_EGG_MASALA",    m1Protein: "EGG_PANEER", m2Protein: "EGG_PANEER" }, // Tue — methi + andhra
-  { m1Recipe: "EGG_MUSHROOM_STIR_FRY",m2Recipe: "PALAK_PANEER_EGGS",    m1Protein: "EGG_PANEER", m2Protein: "EGG_PANEER" }, // Wed — mushroom + palak
-  { m1Recipe: "BAINGAN_EGG_BHARTA",   m2Recipe: "PANEER_EGG_BHURJI",    m1Protein: "EGG_PANEER", m2Protein: "EGG_PANEER" }, // Thu — smoky baingan
-  { m1Recipe: "ANDHRA_EGG_MASALA",    m2Recipe: "EGG_MUSHROOM_STIR_FRY",m1Protein: "EGG_PANEER", m2Protein: "EGG_PANEER" }, // Fri — andhra spice
-  { m1Recipe: "PALAK_PANEER_EGGS",    m2Recipe: "METHI_PANEER_BHURJI",  m1Protein: "EGG_PANEER", m2Protein: "EGG_PANEER" }, // Sat — green day
-  { m1Recipe: "KARELA_EGG_PANEER",    m2Recipe: "EGG_PANEER_MASALA",    m1Protein: "EGG_PANEER", m2Protein: "EGG_PANEER" }, // Sun — karela (bitter/tonic)
+// Eggetarian week (commit 11.2a). 14 slots across 7 days, 13 distinct
+// dishes — each dish now actually shows the ingredients its name promises
+// because dispatch routes by recipe compatibleFoods (see resolveBuilder
+// below). The pre-11.2a rotation routed every recipe through
+// buildEggPaneerMeal regardless of its compatibleFoods, which is why
+// "Andhra Egg Masala" used to come out with paneer cubes on the plate.
+//
+// Three recipe IDs were renamed in 11.2a for honesty:
+//   EGG_PANEER_MASALA → ANDA_PANEER_MASALA (still uses both eggs + paneer)
+//   PALAK_PANEER_EGGS → SAAG_ANDA          (eggs only post-10.2 rework)
+//   KARELA_EGG_PANEER → KARELA_ANDA        (eggs only post-10.2 rework)
+const EGGETARIAN_WEEK: Array<{ m1Recipe: string; m2Recipe: string }> = [
+  { m1Recipe: "PANEER_EGG_BHURJI",    m2Recipe: "ANDA_CURRY" },             // Mon
+  { m1Recipe: "ANDHRA_EGG_MASALA",    m2Recipe: "METHI_PANEER_BHURJI" },    // Tue
+  { m1Recipe: "MASALA_OMELETTE",      m2Recipe: "KADHAI_PANEER" },          // Wed
+  { m1Recipe: "SAAG_ANDA",            m2Recipe: "PANEER_BHURJI" },          // Thu
+  { m1Recipe: "ANDA_PANEER_MASALA",   m2Recipe: "BAINGAN_EGG_BHARTA" },     // Fri
+  { m1Recipe: "EGG_MUSHROOM_STIR_FRY",m2Recipe: "KARELA_ANDA" },            // Sat
+  { m1Recipe: "ANDA_CURRY",           m2Recipe: "PANEER_EGG_BHURJI" },      // Sun
 ]
 
 // Non-veg: rotate different proteins — chicken, mutton, fish, prawns
 const NON_VEG_WEEK: Array<{ m1Recipe: string; m2Recipe: string; m1FoodId: string; m2FoodId: string }> = [
-  { m1Recipe: "CHICKEN_HANDI",      m2Recipe: "EGG_PANEER_MASALA",    m1FoodId: "CHICKEN_THIGH",  m2FoodId: "EGG_PANEER" },
+  { m1Recipe: "CHICKEN_HANDI",      m2Recipe: "ANDA_PANEER_MASALA",   m1FoodId: "CHICKEN_THIGH",  m2FoodId: "EGG_PANEER" },
   { m1Recipe: "MUTTON_KEEMA_MASALA",m2Recipe: "CHICKEN_SAAG",         m1FoodId: "MUTTON_KEEMA",   m2FoodId: "CHICKEN_BREAST" },
   { m1Recipe: "PRAWN_MASALA",       m2Recipe: "CHICKEN_TIKKA_DRY",    m1FoodId: "PRAWNS",         m2FoodId: "CHICKEN_BREAST" },
   { m1Recipe: "CHICKEN_KALI_MIRCH", m2Recipe: "MUTTON_KEEMA_PALAK",   m1FoodId: "CHICKEN_BREAST", m2FoodId: "MUTTON_KEEMA" },
@@ -147,6 +160,202 @@ function buildEggPaneerMeal(
   const name = recipe?.name.en ?? recipeId
 
   return { name, slot, time, recipeId, ingredients }
+}
+
+// ── buildEggOnlyMeal (commit 11.2a) ──────────────────────────────────────────
+// Egg-only meal builder for recipes whose compatibleFoods is EGG (no PANEER).
+// Pre-11.2a these recipes (ANDHRA_EGG_MASALA, ANDA_CURRY, MASALA_OMELETTE,
+// SAAG_ANDA, BAINGAN_EGG_BHARTA, KARELA_ANDA, EGG_MUSHROOM_STIR_FRY) all
+// silently routed through buildEggPaneerMeal, which appended paneer to a
+// plate where paneer doesn't belong. Now the meal-card plate matches the
+// dish identity.
+//
+// Eggs scale to hit protein target. Each egg gives ~6g protein and ~5g fat
+// (matches PROTEIN_PER_UNIT). Cap at 6 eggs per meal (~36g protein from
+// eggs alone); above that, the day's whey shake + the other meal must
+// cover the rest.
+//
+// High-egg split presentation (≥5 eggs for most recipes, ≥4 for KARELA_ANDA):
+// the same total mass of eggs is shown as two ingredient lines with
+// different prepNotes so the meal card reads as a varied plate. Macros are
+// identical to a single-line presentation. Recipe-specific split rules
+// match each dish's traditional presentation.
+
+type EggSplitRule = {
+  threshold:     number       // split when egg count >= threshold
+  firstFormPrep: { hi: string; en: string }
+  secondFormPrep:{ hi: string; en: string }
+}
+
+const EGG_SPLIT_RULES: Record<string, EggSplitRule> = {
+  ANDHRA_EGG_MASALA: {
+    threshold: 5,
+    firstFormPrep:  { hi: "उबले — मसाले में", en: "boiled, in gravy" },
+    secondFormPrep: { hi: "भुर्जी — फिनिशिंग", en: "scrambled, finish" },
+  },
+  ANDA_CURRY: {
+    threshold: 5,
+    firstFormPrep:  { hi: "उबले — मसाले में", en: "boiled, in gravy" },
+    secondFormPrep: { hi: "भुर्जी — फिनिशिंग", en: "scrambled, finish" },
+  },
+  KARELA_ANDA: {
+    threshold: 4,
+    firstFormPrep:  { hi: "भुर्जी — करेले के साथ", en: "scrambled with karela" },
+    secondFormPrep: { hi: "उबले आधे — ऊपर से", en: "boiled halves on top" },
+  },
+}
+
+function buildEggOnlyMeal(
+  recipeId: string,
+  slot: "primary" | "secondary",
+  targetProtein: number,
+  targetFat: number,
+  veg: { primary: string; vitaminC: string },
+  time: string,
+): ComposedMeal {
+  // Recipe identity overrides the day's vegetable rotation where the
+  // recipe name implies a specific vegetable (mirrors buildVegMeal logic).
+  let effectiveVeg = veg
+  if (recipeId === "SAAG_ANDA") {
+    effectiveVeg = { primary: "SPINACH", vitaminC: "TOMATO" }
+  } else if (recipeId === "BAINGAN_EGG_BHARTA") {
+    effectiveVeg = { primary: "BAINGAN", vitaminC: "TOMATO" }
+  } else if (recipeId === "KARELA_ANDA") {
+    effectiveVeg = { primary: "KARELA", vitaminC: "TOMATO" }
+  } else if (recipeId === "EGG_MUSHROOM_STIR_FRY") {
+    effectiveVeg = { primary: "MUSHROOM", vitaminC: "CAPSICUM" }
+  }
+
+  // Egg count: scale to hit protein, cap at 6 (above that the meal feels
+  // unreasonable on a single plate).
+  const eggs           = clamp(Math.round(targetProtein / 6), 2, 6)
+  const fatFromEggs    = eggs * 5
+  const gheeNeeded     = clamp(roundTo((targetFat - fatFromEggs) / 5, 0.5), 0.5, 4)
+
+  // Build egg ingredient line(s) — split into two forms if recipe rules
+  // apply and egg count meets the threshold.
+  const splitRule = EGG_SPLIT_RULES[recipeId]
+  const ingredients: ComposedIngredient[] = []
+  if (splitRule && eggs >= splitRule.threshold) {
+    const firstForm  = Math.floor(eggs / 2)
+    const secondForm = eggs - firstForm
+    ingredients.push({ foodId: "EGG" as any, quantity: firstForm,  prepNote: splitRule.firstFormPrep })
+    ingredients.push({ foodId: "EGG" as any, quantity: secondForm, prepNote: splitRule.secondFormPrep })
+  } else {
+    const defaultPrep =
+      recipeId === "MASALA_OMELETTE"      ? { hi: "ऑमलेट के लिए फेंटे", en: "whisked for omelette" } :
+      recipeId === "SAAG_ANDA"            ? { hi: "साग में पोच किए", en: "poached in saag" } :
+      recipeId === "BAINGAN_EGG_BHARTA"   ? { hi: "बीच में फोड़े", en: "cracked into wells" } :
+      recipeId === "EGG_MUSHROOM_STIR_FRY"? { hi: "हल्के स्क्रैंबल", en: "soft scramble" } :
+      recipeId === "ANDA_CURRY"           ? { hi: "उबले — मसाले में", en: "boiled, in gravy" } :
+      recipeId === "ANDHRA_EGG_MASALA"    ? { hi: "उबले — मसाले में", en: "boiled, in gravy" } :
+      recipeId === "KARELA_ANDA"          ? { hi: "भुर्जी", en: "scrambled" } :
+                                            { hi: "उबले", en: "boiled" }
+    ingredients.push({ foodId: "EGG" as any, quantity: eggs, prepNote: defaultPrep })
+  }
+
+  ingredients.push({ foodId: "GHEE" as any, quantity: gheeNeeded })
+  ingredients.push({ foodId: effectiveVeg.primary as any, quantity: 80 })
+  if (effectiveVeg.vitaminC !== effectiveVeg.primary) {
+    ingredients.push({ foodId: effectiveVeg.vitaminC as any, quantity: 60 })
+  }
+  ingredients.push({ foodId: "ONION" as any, quantity: 30 })
+  ingredients.push({ foodId: "TOMATO" as any, quantity: 50 })
+
+  const recipe = RECIPES[recipeId]
+  const name = recipe?.name.en ?? recipeId
+
+  return { name, slot, time, recipeId, ingredients }
+}
+
+// ── buildPaneerOnlyMeal (commit 11.2a) ────────────────────────────────────────
+// Paneer-only meal builder for recipes whose compatibleFoods is PANEER
+// (no EGG). Pre-11.2a, eggetarian-tagged PANEER_BHURJI and KADHAI_PANEER
+// silently routed through buildEggPaneerMeal and got eggs added; now they
+// don't.
+//
+// Paneer scales to hit protein target, capped at 200g per meal. Above that
+// the protein target needs adjustment (this is a single keto-veg-style
+// limit; 11.3's mode-aware templates will let LOW_CARB users add dal to
+// spread protein over more sources at lower per-source mass).
+
+function buildPaneerOnlyMeal(
+  recipeId: string,
+  slot: "primary" | "secondary",
+  targetProtein: number,
+  targetFat: number,
+  veg: { primary: string; vitaminC: string },
+  time: string,
+): ComposedMeal {
+  let effectiveVeg = veg
+  if (recipeId === "KADHAI_PANEER") {
+    effectiveVeg = { primary: "CAPSICUM", vitaminC: "CAPSICUM" }
+  }
+  // PANEER_BHURJI accepts any rotation veg.
+
+  // Paneer at 18.86% protein. To hit ~35g protein from paneer alone:
+  // 35 / 0.1886 = ~186g. Cap at 200g per meal for realism.
+  const paneerG          = clamp(roundTo(targetProtein / 0.1886, 10), 80, 200)
+  const fatFromPaneer    = paneerG * 0.2478
+  const gheeNeeded       = clamp(roundTo((targetFat - fatFromPaneer) / 5, 0.5), 0.5, 4)
+
+  const ingredients: ComposedIngredient[] = [
+    { foodId: "PANEER" as any, quantity: paneerG,
+      prepNote: recipeId === "PANEER_BHURJI"
+        ? { hi: "क्रम्बल्ड", en: "crumbled" }
+        : { hi: "क्यूब्स", en: "cubes" } },
+    { foodId: "GHEE" as any, quantity: gheeNeeded },
+    { foodId: effectiveVeg.primary as any, quantity: 80 },
+  ]
+  if (effectiveVeg.vitaminC !== effectiveVeg.primary) {
+    ingredients.push({ foodId: effectiveVeg.vitaminC as any, quantity: 60 })
+  }
+  ingredients.push({ foodId: "ONION" as any, quantity: 30 })
+  ingredients.push({ foodId: "TOMATO" as any, quantity: 50 })
+
+  const recipe = RECIPES[recipeId]
+  const name = recipe?.name.en ?? recipeId
+
+  return { name, slot, time, recipeId, ingredients }
+}
+
+// ── Dispatch helper (commit 11.2a) ────────────────────────────────────────────
+// Routes a recipe to the right builder based on its compatibleFoods.
+// This is what makes the meal-card honest: ANDHRA_EGG_MASALA (compatibleFoods
+// has EGG, no PANEER) now routes to buildEggOnlyMeal instead of getting
+// paneer added to the plate.
+//
+// "EggPaneer" = recipe has BOTH EGG and PANEER in compatibleFoods.
+// "EggOnly"   = recipe has EGG but not PANEER.
+// "PaneerOnly"= recipe has PANEER but not EGG.
+
+type EggetarianBuilder = "EggPaneer" | "EggOnly" | "PaneerOnly"
+
+function resolveEggetarianBuilder(recipeId: string): EggetarianBuilder {
+  const recipe = RECIPES[recipeId]
+  if (!recipe) return "EggPaneer"  // fallback — legacy behavior
+  const hasEgg    = recipe.compatibleFoods.includes("EGG" as any)
+  const hasPaneer = recipe.compatibleFoods.includes("PANEER" as any)
+  if (hasEgg && hasPaneer) return "EggPaneer"
+  if (hasEgg)              return "EggOnly"
+  if (hasPaneer)           return "PaneerOnly"
+  return "EggPaneer"  // fallback — shouldn't happen for eggetarian recipes
+}
+
+function buildEggetarianMeal(
+  recipeId: string,
+  slot: "primary" | "secondary",
+  targetProtein: number,
+  targetFat: number,
+  veg: { primary: string; vitaminC: string },
+  time: string,
+): ComposedMeal {
+  switch (resolveEggetarianBuilder(recipeId)) {
+    case "EggOnly":    return buildEggOnlyMeal(recipeId, slot, targetProtein, targetFat, veg, time)
+    case "PaneerOnly": return buildPaneerOnlyMeal(recipeId, slot, targetProtein, targetFat, veg, time)
+    case "EggPaneer":
+    default:           return buildEggPaneerMeal(recipeId, slot, targetProtein, targetFat, veg, time)
+  }
 }
 
 // ── buildVegMeal (commit 11.1) ────────────────────────────────────────────────
@@ -306,11 +515,14 @@ export function generateDayPlan(
 
   if (diet === "non-veg") {
     const day = NON_VEG_WEEK[dayIndex % 7]
-    meal1 = day.m2FoodId === "EGG_PANEER"
-      ? buildEggPaneerMeal(day.m2Recipe, "primary", m1P, m1F, veg, "2:00 PM")
+    // 11.2a fix: meal1 dispatches on m1FoodId (was incorrectly checking
+    // m2FoodId pre-11.2a, which caused day 0's meal1 to silently become
+    // egg-paneer when m2 was egg-paneer — no chicken at all on day 0).
+    meal1 = day.m1FoodId === "EGG_PANEER"
+      ? buildEggetarianMeal(day.m1Recipe, "primary", m1P, m1F, veg, "2:00 PM")
       : buildProteinMeal(day.m1Recipe, "primary", day.m1FoodId, m1P, m1F, veg, "2:00 PM")
     meal2 = day.m2FoodId === "EGG_PANEER"
-      ? buildEggPaneerMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
+      ? buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
       : buildProteinMeal(day.m2Recipe, "secondary", day.m2FoodId, m2P, m2F, veg, "6:30 PM")
   } else if (diet === "veg") {
     // Pure-veg branch (11.1). Uses paneer + hung curd + optional tofu as
@@ -319,9 +531,15 @@ export function generateDayPlan(
     meal1 = buildVegMeal(day.m1Recipe, "primary",   m1P, m1F, veg, "2:00 PM")
     meal2 = buildVegMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
   } else {
+    // Eggetarian branch — uses buildEggetarianMeal which dispatches to one
+    // of buildEggPaneerMeal / buildEggOnlyMeal / buildPaneerOnlyMeal based
+    // on the recipe's compatibleFoods (commit 11.2a). Pre-11.2a every
+    // eggetarian recipe routed to buildEggPaneerMeal regardless, which
+    // caused "Andhra Egg Masala" etc. to be served with paneer that the
+    // dish doesn't traditionally contain.
     const day = EGGETARIAN_WEEK[dayIndex % 7]
-    meal1 = buildEggPaneerMeal(day.m1Recipe, "primary", m1P, m1F, veg, "2:00 PM")
-    meal2 = buildEggPaneerMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
+    meal1 = buildEggetarianMeal(day.m1Recipe, "primary",   m1P, m1F, veg, "2:00 PM")
+    meal2 = buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
   }
 
   const shake: ComposedMeal = {

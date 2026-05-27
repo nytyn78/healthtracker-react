@@ -116,7 +116,7 @@ export const KETO_TEST_DAY: ComposedDayPlan = {
       name: "Egg Masala with Paneer",
       slot: "secondary",
       time: "6:30 PM",
-      recipeId: "EGG_PANEER_MASALA",
+      recipeId: "ANDA_PANEER_MASALA",
       ingredients: [
         { foodId: "EGG",     quantity: 3, prepNote: { hi: "उबले और छिले", en: "boiled and peeled" } },
         { foodId: "PANEER",  quantity: 80, prepNote: { hi: "मोटे क्यूब्स", en: "thick cubes" } },

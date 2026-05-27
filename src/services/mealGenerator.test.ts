@@ -136,3 +136,153 @@ describe("non-regression — existing branches still work (11.1)", () => {
     expect(totalMeatHits).toBeGreaterThan(0)
   })
 })
+
+// ── 11.2a — recipe-aware dispatch ─────────────────────────────────────────────
+// Pre-11.2a, every eggetarian recipe routed through buildEggPaneerMeal which
+// always added paneer. The recipes whose compatibleFoods is EGG-only got
+// paneer they shouldn't have had; the recipes whose compatibleFoods is
+// PANEER-only got eggs they shouldn't have had. 11.2a fixes the dispatch.
+
+describe("eggetarian dispatch — egg-only recipes get no paneer (11.2a)", () => {
+  const eggOnlyRecipes = [
+    "ANDHRA_EGG_MASALA",
+    "ANDA_CURRY",
+    "MASALA_OMELETTE",
+    "SAAG_ANDA",
+    "BAINGAN_EGG_BHARTA",
+    "KARELA_ANDA",
+    "EGG_MUSHROOM_STIR_FRY",
+  ]
+
+  it.each(eggOnlyRecipes)("%s meal contains EGG but no PANEER", (recipeId) => {
+    // Run a full week and look for the recipe appearing as a meal — then
+    // assert its ingredient list.
+    const week = generateWeekPlan(KETO_VEG_TARGETS, "eggetarian", KETO)
+    const meals = week.flatMap(d => d.plan.meals).filter(m => m.recipeId === recipeId)
+    expect(meals.length).toBeGreaterThan(0)
+    for (const meal of meals) {
+      expect(meal.ingredients.some(i => i.foodId === "EGG")).toBe(true)
+      expect(meal.ingredients.some(i => i.foodId === "PANEER")).toBe(false)
+    }
+  })
+})
+
+describe("eggetarian dispatch — paneer-only recipes get no eggs (11.2a)", () => {
+  const paneerOnlyRecipes = ["PANEER_BHURJI", "KADHAI_PANEER"]
+
+  it.each(paneerOnlyRecipes)("%s meal contains PANEER but no EGG", (recipeId) => {
+    const week = generateWeekPlan(KETO_VEG_TARGETS, "eggetarian", KETO)
+    const meals = week.flatMap(d => d.plan.meals).filter(m => m.recipeId === recipeId)
+    expect(meals.length).toBeGreaterThan(0)
+    for (const meal of meals) {
+      expect(meal.ingredients.some(i => i.foodId === "PANEER")).toBe(true)
+      expect(meal.ingredients.some(i => i.foodId === "EGG")).toBe(false)
+    }
+  })
+})
+
+describe("eggetarian dispatch — egg+paneer recipes get both (11.2a)", () => {
+  const eggPaneerRecipes = ["PANEER_EGG_BHURJI", "METHI_PANEER_BHURJI", "ANDA_PANEER_MASALA"]
+
+  it.each(eggPaneerRecipes)("%s meal contains both EGG and PANEER", (recipeId) => {
+    const week = generateWeekPlan(KETO_VEG_TARGETS, "eggetarian", KETO)
+    const meals = week.flatMap(d => d.plan.meals).filter(m => m.recipeId === recipeId)
+    expect(meals.length).toBeGreaterThan(0)
+    for (const meal of meals) {
+      expect(meal.ingredients.some(i => i.foodId === "EGG")).toBe(true)
+      expect(meal.ingredients.some(i => i.foodId === "PANEER")).toBe(true)
+    }
+  })
+})
+
+describe("eggetarian dispatch — recipe identity matches plate (11.2a)", () => {
+  // The 11.2a fix is fundamentally about making the meal-card honest.
+  // Recipes with name-implied vegetables must contain those vegetables.
+
+  it("SAAG_ANDA contains SPINACH", () => {
+    const week = generateWeekPlan(KETO_VEG_TARGETS, "eggetarian", KETO)
+    const meals = week.flatMap(d => d.plan.meals).filter(m => m.recipeId === "SAAG_ANDA")
+    for (const meal of meals) {
+      expect(meal.ingredients.some(i => i.foodId === "SPINACH")).toBe(true)
+    }
+  })
+
+  it("BAINGAN_EGG_BHARTA contains BAINGAN", () => {
+    const week = generateWeekPlan(KETO_VEG_TARGETS, "eggetarian", KETO)
+    const meals = week.flatMap(d => d.plan.meals).filter(m => m.recipeId === "BAINGAN_EGG_BHARTA")
+    for (const meal of meals) {
+      expect(meal.ingredients.some(i => i.foodId === "BAINGAN")).toBe(true)
+    }
+  })
+
+  it("KARELA_ANDA contains KARELA", () => {
+    const week = generateWeekPlan(KETO_VEG_TARGETS, "eggetarian", KETO)
+    const meals = week.flatMap(d => d.plan.meals).filter(m => m.recipeId === "KARELA_ANDA")
+    for (const meal of meals) {
+      expect(meal.ingredients.some(i => i.foodId === "KARELA")).toBe(true)
+    }
+  })
+
+  it("EGG_MUSHROOM_STIR_FRY contains MUSHROOM", () => {
+    const week = generateWeekPlan(KETO_VEG_TARGETS, "eggetarian", KETO)
+    const meals = week.flatMap(d => d.plan.meals).filter(m => m.recipeId === "EGG_MUSHROOM_STIR_FRY")
+    for (const meal of meals) {
+      expect(meal.ingredients.some(i => i.foodId === "MUSHROOM")).toBe(true)
+    }
+  })
+
+  it("KADHAI_PANEER contains CAPSICUM", () => {
+    const week = generateWeekPlan(KETO_VEG_TARGETS, "eggetarian", KETO)
+    const meals = week.flatMap(d => d.plan.meals).filter(m => m.recipeId === "KADHAI_PANEER")
+    for (const meal of meals) {
+      expect(meal.ingredients.some(i => i.foodId === "CAPSICUM")).toBe(true)
+    }
+  })
+})
+
+describe("eggetarian dispatch — egg split presentation (11.2a)", () => {
+  // High-egg meals split into two ingredient lines for variety. Test that
+  // when egg count crosses the threshold, the meal has two EGG entries.
+
+  it("ANDHRA_EGG_MASALA with high protein target splits eggs", () => {
+    // Boost target so eggs go above the threshold (5).
+    const highEggTarget: GeneratorTargets = {
+      proteinG: 140, fatG: 130, carbsG: 25, calories: 1700,
+    }
+    const week = generateWeekPlan(highEggTarget, "eggetarian", KETO)
+    const meals = week.flatMap(d => d.plan.meals).filter(m => m.recipeId === "ANDHRA_EGG_MASALA")
+    expect(meals.length).toBeGreaterThan(0)
+    // At least one of the ANDHRA_EGG_MASALA meals should have the split.
+    const hasSplitMeal = meals.some(meal => {
+      const eggLines = meal.ingredients.filter(i => i.foodId === "EGG")
+      return eggLines.length === 2
+    })
+    expect(hasSplitMeal).toBe(true)
+  })
+
+  it("MASALA_OMELETTE never splits regardless of egg count (single omelette)", () => {
+    const highEggTarget: GeneratorTargets = {
+      proteinG: 140, fatG: 130, carbsG: 25, calories: 1700,
+    }
+    const week = generateWeekPlan(highEggTarget, "eggetarian", KETO)
+    const meals = week.flatMap(d => d.plan.meals).filter(m => m.recipeId === "MASALA_OMELETTE")
+    for (const meal of meals) {
+      const eggLines = meal.ingredients.filter(i => i.foodId === "EGG")
+      expect(eggLines.length).toBe(1)
+    }
+  })
+})
+
+describe("non-veg dispatch bug fix (11.2a)", () => {
+  // Pre-11.2a, meal1 in the non-veg branch dispatched on day.m2FoodId
+  // instead of day.m1FoodId. On day 0 (CHICKEN_HANDI / ANDA_PANEER_MASALA),
+  // m2FoodId === "EGG_PANEER" caused meal1 to silently become egg-paneer
+  // instead of chicken. Verify the fix: meal1 on day 0 must contain
+  // CHICKEN_THIGH (the m1FoodId for that day).
+
+  it("day 0 meal1 dispatches on m1FoodId (chicken, not egg-paneer)", () => {
+    const result = generateDayPlan(KETO_VEG_TARGETS, 0, "non-veg", KETO)
+    const meal1 = result.plan.meals[0]  // index 0 is primary, before shake
+    expect(meal1.ingredients.some(i => i.foodId === "CHICKEN_THIGH")).toBe(true)
+  })
+})
