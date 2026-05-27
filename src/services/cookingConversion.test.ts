@@ -1,0 +1,217 @@
+// ── cookingConversion.test.ts ─────────────────────────────────────────────────
+// Covers: raw↔cooked conversion, household-unit conversion, atta/roti math.
+//
+// Run:  npm test
+
+import { describe, it, expect } from "vitest"
+import {
+  RAW_TO_COOKED_RICE,
+  RAW_TO_COOKED_DAL,
+  ATTA_PER_ROTI_G,
+  COOKED_ROTI_G,
+  KATORI_COOKED_G,
+  GLASS_LIQUID_G,
+  rawToCookedG,
+  cookedToRawG,
+  householdUnitToRawG,
+  rotisToAttaG,
+  attaToRotis,
+} from "./cookingConversion"
+
+// ── Constants sanity ──────────────────────────────────────────────────────────
+// These guard against accidental tuning of the named ratios. The values are
+// conventional Indian household figures; changing them should be a deliberate
+// commit, not a drive-by edit.
+
+describe("conversion constants", () => {
+  it("rice expands threefold", () => {
+    expect(RAW_TO_COOKED_RICE).toBe(3.0)
+  })
+  it("dal expands 2.5×", () => {
+    expect(RAW_TO_COOKED_DAL).toBe(2.5)
+  })
+  it("standard roti is 25g atta", () => {
+    expect(ATTA_PER_ROTI_G).toBe(25)
+  })
+  it("standard roti weighs 40g cooked", () => {
+    expect(COOKED_ROTI_G).toBe(40)
+  })
+  it("standard katori holds 150g cooked", () => {
+    expect(KATORI_COOKED_G).toBe(150)
+  })
+  it("standard glass is 200ml liquid", () => {
+    expect(GLASS_LIQUID_G).toBe(200)
+  })
+})
+
+// ── rawToCookedG ──────────────────────────────────────────────────────────────
+
+describe("rawToCookedG", () => {
+  it("triples rice mass", () => {
+    expect(rawToCookedG("RICE_WHITE_RAW", 50)).toBe(150)
+    expect(rawToCookedG("RICE_BROWN_RAW", 50)).toBe(150)
+  })
+
+  it("scales dal by 2.5×", () => {
+    expect(rawToCookedG("TOOR_DAL",  60)).toBeCloseTo(150)
+    expect(rawToCookedG("MOONG_DAL", 60)).toBeCloseTo(150)
+    expect(rawToCookedG("RAJMA",     60)).toBeCloseTo(150)
+  })
+
+  it("handles atta via roti math (25g → 40g cooked)", () => {
+    expect(rawToCookedG("ATTA",  25)).toBe(40)
+    expect(rawToCookedG("ATTA",  50)).toBe(80)
+    expect(rawToCookedG("ATTA", 100)).toBe(160)
+  })
+
+  it("treats oats and sooji like rice (3×)", () => {
+    expect(rawToCookedG("OATS_RAW", 40)).toBe(120)
+    expect(rawToCookedG("SOOJI",    50)).toBe(150)
+  })
+
+  it("treats whole grains (bajra/jowar/ragi/barley) as 3×", () => {
+    expect(rawToCookedG("BAJRA",  40)).toBe(120)
+    expect(rawToCookedG("JOWAR",  40)).toBe(120)
+    expect(rawToCookedG("RAGI",   40)).toBe(120)
+    expect(rawToCookedG("BARLEY", 40)).toBe(120)
+  })
+
+  it("rehydrates poha 2× (already pre-cooked)", () => {
+    expect(rawToCookedG("POHA", 30)).toBe(60)
+  })
+
+  it("returns null for foods without a raw/cooked distinction", () => {
+    // Vegetables, meats, dairy — caller uses raw mass directly.
+    expect(rawToCookedG("PANEER",   100)).toBeNull()
+    expect(rawToCookedG("SPINACH",   80)).toBeNull()
+    expect(rawToCookedG("EGG",        2)).toBeNull()
+    expect(rawToCookedG("COW_MILK", 200)).toBeNull()
+    expect(rawToCookedG("GHEE",       1)).toBeNull()
+  })
+})
+
+// ── cookedToRawG (inverse) ────────────────────────────────────────────────────
+
+describe("cookedToRawG", () => {
+  it("inverts rice 3× ratio", () => {
+    expect(cookedToRawG("RICE_WHITE_RAW", 150)).toBe(50)
+  })
+
+  it("inverts dal 2.5× ratio", () => {
+    expect(cookedToRawG("TOOR_DAL", 150)).toBe(60)
+  })
+
+  it("inverts atta/roti math", () => {
+    // 1 cooked roti (40g) is built from 25g atta.
+    expect(cookedToRawG("ATTA", 40)).toBe(25)
+    expect(cookedToRawG("ATTA", 80)).toBe(50)
+  })
+
+  it("is the inverse of rawToCookedG for all supported foods", () => {
+    const samples: Array<[Parameters<typeof rawToCookedG>[0], number]> = [
+      ["RICE_WHITE_RAW", 50],
+      ["TOOR_DAL", 60],
+      ["ATTA", 75],
+      ["OATS_RAW", 40],
+      ["BAJRA", 30],
+      ["POHA", 30],
+    ]
+    for (const [foodId, raw] of samples) {
+      const cooked = rawToCookedG(foodId, raw)
+      expect(cooked).not.toBeNull()
+      const back = cookedToRawG(foodId, cooked!)
+      expect(back).toBeCloseTo(raw, 5)
+    }
+  })
+
+  it("returns null for foods without conversion", () => {
+    expect(cookedToRawG("PANEER",   100)).toBeNull()
+    expect(cookedToRawG("CHICKEN_BREAST", 200)).toBeNull()
+  })
+})
+
+// ── householdUnitToRawG ───────────────────────────────────────────────────────
+
+describe("householdUnitToRawG — katori", () => {
+  it("1 katori rice = 50g dry", () => {
+    // 150g cooked / 3.0 = 50g raw
+    expect(householdUnitToRawG("katori", 1, "RICE_WHITE_RAW")).toBe(50)
+  })
+
+  it("1 katori dal = 60g dry", () => {
+    // 150g cooked / 2.5 = 60g raw
+    expect(householdUnitToRawG("katori", 1, "TOOR_DAL")).toBe(60)
+    expect(householdUnitToRawG("katori", 1, "MOONG_DAL")).toBe(60)
+  })
+
+  it("1.5 katori rice = 75g dry", () => {
+    expect(householdUnitToRawG("katori", 1.5, "RICE_WHITE_RAW")).toBe(75)
+  })
+
+  it("returns null for foods that aren't served by katori", () => {
+    expect(householdUnitToRawG("katori", 1, "PANEER")).toBeNull()
+    expect(householdUnitToRawG("katori", 1, "EGG")).toBeNull()
+    expect(householdUnitToRawG("katori", 1, "COW_MILK")).toBeNull()
+  })
+})
+
+describe("householdUnitToRawG — roti", () => {
+  it("1 roti = 25g atta", () => {
+    expect(householdUnitToRawG("roti", 1, "ATTA")).toBe(25)
+  })
+
+  it("2 rotis = 50g atta", () => {
+    expect(householdUnitToRawG("roti", 2, "ATTA")).toBe(50)
+  })
+
+  it("rejects roti for non-atta foods (category error)", () => {
+    expect(householdUnitToRawG("roti", 1, "RICE_WHITE_RAW")).toBeNull()
+    expect(householdUnitToRawG("roti", 1, "SOOJI")).toBeNull()
+    expect(householdUnitToRawG("roti", 1, "MAIDA")).toBeNull()
+  })
+})
+
+describe("householdUnitToRawG — glass", () => {
+  it("1 glass milk = 200g (cow or buffalo)", () => {
+    expect(householdUnitToRawG("glass", 1, "COW_MILK")).toBe(200)
+    expect(householdUnitToRawG("glass", 1, "BUFFALO_MILK")).toBe(200)
+  })
+
+  it("scales linearly", () => {
+    expect(householdUnitToRawG("glass", 0.5, "COW_MILK")).toBe(100)
+    expect(householdUnitToRawG("glass", 2,   "COW_MILK")).toBe(400)
+  })
+
+  it("rejects glass for non-liquid foods", () => {
+    expect(householdUnitToRawG("glass", 1, "PANEER")).toBeNull()
+    expect(householdUnitToRawG("glass", 1, "RICE_WHITE_RAW")).toBeNull()
+  })
+})
+
+describe("householdUnitToRawG — tsp/tbsp", () => {
+  it("returns null for fats already stored per-tsp (use food's unitType directly)", () => {
+    // GHEE/BUTTER/COCONUT_OIL are stored as unitType: 'tsp' in foodDatabase,
+    // so passing them through here is a category error. Callers should
+    // use the food's native unit, not convert.
+    expect(householdUnitToRawG("tsp",  1, "GHEE")).toBeNull()
+    expect(householdUnitToRawG("tbsp", 1, "BUTTER")).toBeNull()
+    expect(householdUnitToRawG("tsp",  1, "COCONUT_OIL")).toBeNull()
+  })
+})
+
+// ── Convenience helpers ───────────────────────────────────────────────────────
+
+describe("rotisToAttaG / attaToRotis", () => {
+  it("3 rotis cost 75g atta", () => {
+    expect(rotisToAttaG(3)).toBe(75)
+  })
+
+  it("100g atta makes 4 rotis", () => {
+    expect(attaToRotis(100)).toBe(4)
+  })
+
+  it("inverse round-trip is exact", () => {
+    expect(attaToRotis(rotisToAttaG(2))).toBe(2)
+    expect(rotisToAttaG(attaToRotis(50))).toBe(50)
+  })
+})
