@@ -30,92 +30,226 @@ export const GENERIC_PREP: Recipe = {
 export const RECIPES: Record<string, Recipe> = {
 
   // ── Egg + Paneer (eggetarian core) ──────────────────────────────────────────
+  // Reworked in commit 10.2 for taste coherence. The earlier shape of these
+  // recipes optimised for protein-stacking at the expense of dish identity
+  // (e.g. paneer crumbled into baingan bharta — bharta has no dairy in any
+  // tradition; soy sauce in egg-mushroom stir-fry — anachronistic for Indian
+  // household; six vegetables in a single bhurji — kitchen-sink composition).
+  //
+  // The IDs are preserved because mealGenerator.ts hardcodes them in its
+  // 7-day rotation. Names and content are updated to match what someone
+  // actually cooks. After the commit-11 generator rewrite, IDs can be
+  // renamed cleanly to match the dishes (e.g. KARELA_EGG_PANEER → KARELA_ANDA).
+  //
+  // Convention (unchanged): compatibleFoods lists ingredients essentially
+  // always in the dish. Aromatics (cumin, mustard seeds, asafoetida, ginger-
+  // garlic, green chilli, turmeric, garam masala, kasuri methi, curry leaves,
+  // fresh coriander, jaggery pinch, tamarind paste) live in step text only —
+  // they contribute < 5g and < 10 kcal at typical portions, below the macro
+  // noise floor.
 
   PANEER_EGG_BHURJI: {
+    // Real paneer-anda-bhurji (Punjabi dhaba style). Trimmed from the
+    // pre-10.2 six-vegetable kitchen-sink composition to just onion + tomato
+    // + optional capsicum, which is how the dish is actually cooked.
     id: "PANEER_EGG_BHURJI",
-    name: { hi: "पनीर अंडा भुर्जी", en: "Paneer Egg Bhurji" },
-    compatibleFoods: ["EGG", "PANEER", "GHEE", "SPINACH", "TOMATO", "ONION", "CAPSICUM", "MUSHROOM"],
+    name: { hi: "पनीर अंडा भुर्जी", en: "Paneer Anda Bhurji" },
+    compatibleFoods: ["EGG", "PANEER", "GHEE", "ONION", "TOMATO", "CAPSICUM"],
+    requiredRanges: { EGG: { min: 2, max: 4 }, PANEER: { min: 60, max: 150 } },
     dietTags: ["eggetarian"],
     steps: {
-      hi: ["घी गरम करें — जीरा, हरी मिर्च तड़काएं", "प्याज — 2 मिनट सुनहरा", "टमाटर, पालक — 2 मिनट", "अंडे फोड़ें — धीरे हिलाएं", "पनीर क्रम्बल — 1 मिनट — गरम परोसें"],
-      en: ["Heat ghee — cumin, green chilli", "Onion — 2 min golden", "Tomato, spinach — 2 min", "Crack eggs — stir gently", "Crumble paneer — 1 min — serve hot"],
+      hi: ["घी में जीरा, हींग — हरी मिर्च — 15 सेकंड", "प्याज 2 मिनट सुनहरा", "टमाटर — हल्दी, लाल मिर्च — 2 मिनट तेल छूटने तक", "अंडे फोड़ें — भुर्जी बनाएं — 1 मिनट", "पनीर क्रम्बल — 1 मिनट — हरा धनिया — परोसें"],
+      en: ["Ghee — cumin, asafoetida — green chilli — 15 sec", "Onion 2 min golden", "Tomato — turmeric, red chilli — 2 min until oil separates", "Crack eggs — scramble — 1 min", "Crumble paneer — 1 min — coriander — serve"],
     },
   },
 
   EGG_PANEER_MASALA: {
+    // Anda masala with a few paneer cubes as secondary protein. Cream
+    // removed (anda masala isn't a creamy gravy — that conflates it with
+    // shahi paneer). Spinach removed from compatibleFoods.
     id: "EGG_PANEER_MASALA",
     name: { hi: "अंडा पनीर मसाला", en: "Egg Paneer Masala" },
-    compatibleFoods: ["EGG", "PANEER", "GHEE", "TOMATO", "ONION", "SPINACH", "CREAM"],
+    compatibleFoods: ["EGG", "PANEER", "GHEE", "TOMATO", "ONION"],
+    requiredRanges: { EGG: { min: 2, max: 4 }, PANEER: { min: 50, max: 120 } },
     dietTags: ["eggetarian"],
     steps: {
-      hi: ["अंडे 12 मिनट उबालें — छीलें — आधे काटें", "घी में जीरा, करी पत्ता", "प्याज 2 मिनट — अदरक-लहसुन 1 मिनट", "टमाटर 3 मिनट — हल्दी, गरम मसाला", "पनीर 2 मिनट — अंडे डालें — 2 मिनट धीमी आंच", "कसूरी मेथी — हरा धनिया — परोसें"],
-      en: ["Boil eggs 12 min — peel — halve", "Ghee — cumin, curry leaves", "Onion 2 min — ginger-garlic 1 min", "Tomato 3 min — turmeric, garam masala", "Paneer 2 min — add eggs — 2 min low flame", "Kasuri methi — coriander — serve"],
+      hi: ["अंडे 10 मिनट उबालें — छीलें — आधे काटें", "घी में जीरा, तेज़पत्ता", "प्याज 3 मिनट गहरा सुनहरा", "अदरक-लहसुन पेस्ट — 1 मिनट", "टमाटर — हल्दी, लाल मिर्च, धनिया, गरम मसाला — 3 मिनट तेल छूटने तक", "पानी — 2 मिनट उबालें", "पनीर क्यूब्स — 1 मिनट — अंडे डालें कटे हुए चेहरे ऊपर — 2 मिनट धीमी आंच", "हरा धनिया — परोसें"],
+      en: ["Boil eggs 10 min — peel — halve", "Ghee — cumin, bay leaf", "Onion 3 min deep golden", "Ginger-garlic paste — 1 min", "Tomato — turmeric, red chilli, coriander, garam masala — 3 min until oil separates", "Water — simmer 2 min", "Paneer cubes — 1 min — add eggs cut-face up — 2 min low flame", "Coriander — serve"],
     },
   },
 
   METHI_PANEER_BHURJI: {
+    // Genuine Punjabi combo (methi + paneer + egg bhurji). Kept mostly as-is.
     id: "METHI_PANEER_BHURJI",
-    name: { hi: "मेथी पनीर भुर्जी", en: "Methi Paneer with Scrambled Eggs" },
+    name: { hi: "मेथी पनीर भुर्जी", en: "Methi Paneer Bhurji with Egg" },
     compatibleFoods: ["EGG", "PANEER", "GHEE", "METHI", "TOMATO", "ONION"],
+    requiredRanges: { EGG: { min: 2, max: 3 }, PANEER: { min: 60, max: 120 }, METHI: { min: 40, max: 100 } },
     dietTags: ["eggetarian"],
     steps: {
-      hi: ["घी में जीरा, हींग — 15 सेकंड", "प्याज 2 मिनट — अदरक-लहसुन 1 मिनट", "मेथी पत्तियां — 1 मिनट मुरझाने तक", "टमाटर — हल्दी, धनिया — 2 मिनट", "अंडे फोड़ें — भुर्जी बनाएं", "पनीर क्रम्बल — 1 मिनट — परोसें"],
-      en: ["Ghee — cumin, asafoetida — 15 sec", "Onion 2 min — ginger-garlic 1 min", "Methi leaves — 1 min until wilted", "Tomato — turmeric, coriander — 2 min", "Crack eggs — scramble", "Crumble paneer — 1 min — serve"],
+      hi: ["घी में जीरा, हींग — 15 सेकंड", "प्याज 2 मिनट — अदरक-लहसुन 1 मिनट", "मेथी पत्तियां — एक चुटकी नमक — 2 मिनट मुरझाने तक", "टमाटर — हल्दी, लाल मिर्च, धनिया — 2 मिनट", "अंडे फोड़ें — भुर्जी बनाएं", "पनीर क्रम्बल — 1 मिनट — कसूरी मेथी — परोसें"],
+      en: ["Ghee — cumin, asafoetida — 15 sec", "Onion 2 min — ginger-garlic 1 min", "Methi leaves — pinch salt — 2 min until wilted", "Tomato — turmeric, red chilli, coriander — 2 min", "Crack eggs — scramble", "Crumble paneer — 1 min — kasuri methi — serve"],
     },
   },
 
   ANDHRA_EGG_MASALA: {
+    // Real Andhra anda masala is eggs in a spicy onion-tomato gravy — no
+    // paneer (paneer is a North Indian ingredient; Andhra cooking has its
+    // own protein tradition built around eggs, chicken, and lentils).
+    // Capsicum also dropped; not traditional.
     id: "ANDHRA_EGG_MASALA",
     name: { hi: "आंध्रा अंडा मसाला", en: "Andhra Egg Masala" },
-    compatibleFoods: ["EGG", "PANEER", "GHEE", "TOMATO", "ONION", "CAPSICUM"],
+    compatibleFoods: ["EGG", "GHEE", "TOMATO", "ONION"],
+    requiredRanges: { EGG: { min: 3, max: 5 } },
     dietTags: ["eggetarian"],
     steps: {
-      hi: ["अंडे उबालें — छीलें — हल्के से स्कोर करें", "घी में सरसों, करी पत्ता, सूखी लाल मिर्च", "प्याज 3 मिनट गहरा सुनहरा", "टमाटर — लाल मिर्च भरपूर — 3 मिनट", "पनीर क्यूब्स 2 मिनट — अंडे डालें", "3 मिनट धीमी आंच — करी पत्ता — परोसें"],
-      en: ["Boil eggs — peel — lightly score", "Ghee — mustard, curry leaves, dry red chilli", "Onion 3 min deep golden", "Tomato — generous red chilli — 3 min", "Paneer cubes 2 min — add eggs", "3 min low flame — curry leaves — serve"],
+      hi: ["अंडे 10 मिनट उबालें — छीलें — कांटे से हल्के से कोचें", "घी में सरसों, करी पत्ता, सूखी लाल मिर्च, मेथी दाना — 15 सेकंड", "प्याज 4 मिनट गहरा सुनहरा", "अदरक-लहसुन पेस्ट — 1 मिनट", "टमाटर — हल्दी, खूब लाल मिर्च (आंध्रा तीखापन), धनिया — 4 मिनट तेल छूटने तक", "पानी — उबाल — अंडे डालें — 5 मिनट धीमी आंच मसाला अंडों पर चढ़े", "करी पत्ता — परोसें"],
+      en: ["Boil eggs 10 min — peel — prick lightly with fork", "Ghee — mustard, curry leaves, dry red chilli, fenugreek seeds — 15 sec", "Onion 4 min deep golden", "Ginger-garlic paste — 1 min", "Tomato — turmeric, generous red chilli (Andhra heat), coriander — 4 min until oil separates", "Water — boil — add eggs — 5 min low flame so masala coats eggs", "Curry leaves — serve"],
     },
   },
 
   EGG_MUSHROOM_STIR_FRY: {
+    // Indian-kitchen egg-mushroom stir-fry. Paneer removed (it dilutes the
+    // dish without adding anything). Soy sauce removed — that was an
+    // Indo-Chinese touch that doesn't belong here.
     id: "EGG_MUSHROOM_STIR_FRY",
-    name: { hi: "अंडा मशरूम स्टर फ्राई", en: "Egg Mushroom Stir-Fry with Paneer" },
-    compatibleFoods: ["EGG", "PANEER", "GHEE", "MUSHROOM", "CAPSICUM", "ONION", "TOMATO"],
+    name: { hi: "अंडा मशरूम स्टर फ्राई", en: "Egg Mushroom Stir-Fry" },
+    compatibleFoods: ["EGG", "GHEE", "MUSHROOM", "CAPSICUM", "ONION"],
+    requiredRanges: { EGG: { min: 2, max: 4 }, MUSHROOM: { min: 100, max: 200 } },
     dietTags: ["eggetarian"],
     steps: {
-      hi: ["घी में मशरूम — सुनहरा और पानी सूखने तक — अलग रखें", "उसी घी में प्याज, शिमला मिर्च — 2 मिनट", "अदरक-लहसुन, टमाटर — 2 मिनट", "अंडे फोड़ें — भुर्जी बनाएं", "मशरूम और पनीर वापस डालें — 1 मिनट", "काली मिर्च, सोया सॉस — परोसें"],
-      en: ["Ghee — mushrooms until golden and dry — set aside", "Same ghee — onion, capsicum — 2 min", "Ginger-garlic, tomato — 2 min", "Crack eggs — scramble", "Return mushrooms and paneer — 1 min", "Black pepper, soy sauce — serve"],
+      hi: ["घी गरम — मशरूम तेज़ आंच — सुनहरा और पानी सूखने तक 4 मिनट — अलग रखें", "उसी घी में प्याज, शिमला मिर्च — 2 मिनट हल्के कुरकुरे", "अदरक-लहसुन — 30 सेकंड", "अंडे फोड़ें — फेंटें नहीं — हल्के स्क्रैंबल", "मशरूम वापस — काली मिर्च — नमक — 1 मिनट", "हरा धनिया — परोसें"],
+      en: ["Hot ghee — mushrooms on high heat — golden and dry, 4 min — set aside", "Same ghee — onion, capsicum — 2 min lightly crisp", "Ginger-garlic — 30 sec", "Crack eggs — don't beat — soft scramble", "Return mushrooms — black pepper — salt — 1 min", "Coriander — serve"],
     },
   },
 
   PALAK_PANEER_EGGS: {
+    // Saag with poached eggs — paneer dropped (PALAK_PANEER_VEG covers
+    // the paneer version; this is now a distinct dish, saag-anda).
+    // Cream also dropped — saag-anda is a homely dish, not a restaurant
+    // gravy. Eggs poach directly in the saag in the final step.
     id: "PALAK_PANEER_EGGS",
-    name: { hi: "पालक पनीर अंडा", en: "Saag Paneer with Poached Eggs" },
-    compatibleFoods: ["EGG", "PANEER", "GHEE", "SPINACH", "ONION", "TOMATO", "CREAM"],
+    name: { hi: "पालक अंडा", en: "Saag Anda (Spinach with Poached Eggs)" },
+    compatibleFoods: ["EGG", "GHEE", "SPINACH", "ONION", "TOMATO"],
+    requiredRanges: { EGG: { min: 2, max: 4 }, SPINACH: { min: 150, max: 300 } },
     dietTags: ["eggetarian"],
     steps: {
-      hi: ["पालक उबालें — पीसें — प्यूरी बनाएं", "घी में प्याज 3 मिनट — टमाटर 2 मिनट", "पालक प्यूरी — हल्दी, गरम मसाला — 3 मिनट", "पनीर क्यूब्स डालें — मिलाएं", "बीच में जगह बनाएं — अंडे पोच करें — 4 मिनट", "क्रीम — गरम परोसें"],
-      en: ["Blanch spinach — blend to purée", "Ghee — onion 3 min — tomato 2 min", "Spinach purée — turmeric, garam masala — 3 min", "Add paneer cubes — fold", "Make wells — crack eggs — poach 4 min", "Swirl cream — serve hot"],
+      hi: ["पालक उबलते पानी में 2 मिनट — ठंडे पानी में डालें — हल्के से पीसें (दानेदार रखें)", "घी में जीरा — 15 सेकंड", "प्याज 3 मिनट सुनहरा — अदरक-लहसुन 1 मिनट", "टमाटर — हल्दी, लाल मिर्च, धनिया — 2 मिनट", "पालक डालें — 3 मिनट धीमी आंच", "बीच में जगह बनाएं — अंडे फोड़ें (पोच) — ढककर 4 मिनट सफ़ेदी जमने तक", "गरम परोसें"],
+      en: ["Blanch spinach 2 min — shock in cold water — chop coarse (don't fully purée)", "Ghee — cumin — 15 sec", "Onion 3 min golden — ginger-garlic 1 min", "Tomato — turmeric, red chilli, coriander — 2 min", "Add spinach — 3 min low flame", "Make wells — crack eggs in (to poach) — cover 4 min until whites set", "Serve hot"],
     },
   },
 
   BAINGAN_EGG_BHARTA: {
+    // Bharta with eggs cracked into wells. Paneer dropped — bharta has no
+    // dairy in any tradition; mustard oil and smoke are its identity.
     id: "BAINGAN_EGG_BHARTA",
-    name: { hi: "बैंगन अंडा भरता", en: "Smoky Baingan Bharta with Eggs" },
-    compatibleFoods: ["EGG", "PANEER", "GHEE", "BAINGAN", "ONION", "TOMATO"],
+    name: { hi: "बैंगन अंडा भरता", en: "Baingan Bharta with Eggs" },
+    compatibleFoods: ["EGG", "GHEE", "BAINGAN", "ONION", "TOMATO"],
+    requiredRanges: { EGG: { min: 2, max: 4 }, BAINGAN: { min: 200, max: 400 } },
     dietTags: ["eggetarian"],
     steps: {
-      hi: ["बैंगन सीधे आंच पर भूनें — छीलें — मैश करें", "घी में जीरा — प्याज 3 मिनट गहरा सुनहरा", "टमाटर — मसाले — 2 मिनट", "भरता मिलाएं — 2 मिनट", "बीच में जगह — अंडे फोड़ें — ढकें — 3 मिनट", "पनीर क्रम्बल — हरा धनिया — परोसें"],
-      en: ["Char baingan directly over flame — peel — mash", "Ghee — cumin — onion 3 min deep golden", "Tomato — spices — 2 min", "Mix in bharta — 2 min", "Make wells — crack eggs — cover — 3 min", "Crumble paneer — coriander — serve"],
+      hi: ["बैंगन सीधे आंच पर भूनें — सब तरफ काला — 10 मिनट", "ठंडा करें — छीलें — मोटा मैश करें (बारीक नहीं)", "घी में जीरा — हींग", "प्याज 3 मिनट गहरा सुनहरा", "अदरक-लहसुन-हरी मिर्च — 1 मिनट", "टमाटर — हल्दी, लाल मिर्च — 3 मिनट तेल छूटने तक", "भरता मिलाएं — 3 मिनट", "बीच में जगह — अंडे फोड़ें — ढकें — 4 मिनट सफ़ेदी जमने तक", "हरा धनिया — परोसें"],
+      en: ["Char baingan directly over flame — black all sides — 10 min", "Cool — peel — coarse mash (not fine)", "Ghee — cumin — asafoetida", "Onion 3 min deep golden", "Ginger-garlic-green chilli — 1 min", "Tomato — turmeric, red chilli — 3 min until oil separates", "Mix in bharta — 3 min", "Make wells — crack eggs — cover — 4 min until whites set", "Coriander — serve"],
     },
   },
 
   KARELA_EGG_PANEER: {
+    // Reworked: Maharashtrian-style karela with eggs and peanut crumble.
+    // Paneer dropped (doesn't complement karela's bitterness; competes).
+    // PEANUT added — the traditional sweet-bitter-savoury balance for
+    // karela uses peanut crumble + onion + jaggery, which is what makes
+    // karela palatable to people who otherwise avoid it.
+    // ID retained for mealGenerator.ts compatibility; name updated to
+    // match what the dish actually is.
     id: "KARELA_EGG_PANEER",
-    name: { hi: "करेला अंडा पनीर", en: "Karela with Eggs and Paneer" },
-    compatibleFoods: ["EGG", "PANEER", "GHEE", "KARELA", "ONION", "TOMATO"],
+    name: { hi: "करेला अंडा (महाराष्ट्रियन शैली)", en: "Karela Anda (Maharashtrian-style)" },
+    compatibleFoods: ["EGG", "GHEE", "KARELA", "PEANUT", "ONION", "TOMATO"],
+    requiredRanges: { EGG: { min: 2, max: 3 }, KARELA: { min: 100, max: 200 }, PEANUT: { min: 15, max: 30 } },
     dietTags: ["eggetarian"],
     steps: {
-      hi: ["करेला पतला काटें — नमक लगाएं — 10 मिनट — निचोड़ें", "घी में कुरकुरा होने तक भूनें — अलग रखें", "उसी घी में प्याज, टमाटर — 2 मिनट", "पनीर क्यूब्स — 2 मिनट", "अंडे फोड़ें — करेला वापस — मिलाएं", "एक चुटकी गुड़ — परोसें"],
-      en: ["Slice karela thin — salt — 10 min — squeeze", "Fry in ghee until crisp — set aside", "Same ghee — onion, tomato — 2 min", "Paneer cubes — 2 min", "Crack eggs — return karela — fold", "Pinch of jaggery — serve"],
+      hi: ["करेले पतले काटें — नमक लगाएं 15 मिनट — कड़वाहट निकालने पानी से धोएं — निचोड़ें", "मूंगफली सूखी तवे पर भूनें — छिलका रगड़कर निकालें — मोटा कूटें — अलग रखें", "घी में जीरा, सरसों, सौंफ", "प्याज 4 मिनट गहरा सुनहरा (कड़वाहट का संतुलन)", "करेले — 8 मिनट तेज़ आंच कुरकुरे होने तक", "टमाटर — हल्दी, लाल मिर्च, धनिया — 2 मिनट", "अंडे फोड़ें — भुर्जी बनाएं — 2 मिनट", "मूंगफली कूटी हुई — एक चुटकी गुड़ — मिलाएं — परोसें"],
+      en: ["Slice karela thin — salt 15 min — rinse to reduce bitterness — squeeze", "Dry-roast peanuts on tawa — rub skins off — crush coarsely — set aside", "Ghee — cumin, mustard, fennel", "Onion 4 min deep golden (sweetness balances karela's bitterness)", "Karela — 8 min high heat until crisp", "Tomato — turmeric, red chilli, coriander — 2 min", "Crack eggs — scramble — 2 min", "Crushed peanuts — pinch of jaggery — fold in — serve"],
+    },
+  },
+
+  // ── New eggetarian recipes (commit 10.2) ────────────────────────────────────
+
+  MASALA_OMELETTE: {
+    // The Indian breakfast omelette. Set (not scrambled) eggs with onion +
+    // tomato + green chilli + coriander folded in. Distinct from anda
+    // bhurji which is scrambled.
+    id: "MASALA_OMELETTE",
+    name: { hi: "मसाला ऑमलेट", en: "Masala Omelette" },
+    compatibleFoods: ["EGG", "GHEE", "ONION", "TOMATO"],
+    requiredRanges: { EGG: { min: 2, max: 4 } },
+    dietTags: ["eggetarian"],
+    steps: {
+      hi: ["अंडे एक कटोरे में फेंटें — नमक, काली मिर्च, हल्दी एक चुटकी", "बारीक कटा प्याज, टमाटर, हरी मिर्च, धनिया मिलाएं", "तवा गरम — घी — मिश्रण डालें फैलाएं", "धीमी आंच — किनारे जमने तक 2 मिनट", "एक तरफ से उठाकर पलटें — 30 सेकंड — मोड़कर परोसें"],
+      en: ["Whisk eggs in a bowl — salt, black pepper, pinch of turmeric", "Stir in finely chopped onion, tomato, green chilli, coriander", "Hot tawa — ghee — pour mixture and spread", "Low flame — until edges set, 2 min", "Lift one edge and flip — 30 sec — fold and serve"],
+    },
+  },
+
+  ANDA_CURRY: {
+    // The real "anda masala" — boiled eggs in onion-tomato gravy, no
+    // paneer. (EGG_PANEER_MASALA above keeps a few paneer cubes as a
+    // secondary protein; this one is pure anda curry.) Standard North
+    // Indian household preparation.
+    id: "ANDA_CURRY",
+    name: { hi: "अंडा करी", en: "Anda Curry" },
+    compatibleFoods: ["EGG", "GHEE", "TOMATO", "ONION"],
+    requiredRanges: { EGG: { min: 3, max: 5 } },
+    dietTags: ["eggetarian"],
+    steps: {
+      hi: ["अंडे 10 मिनट उबालें — छीलें — हल्के से स्कोर करें (मसाला अंदर जाने के लिए)", "घी में जीरा, तेज़पत्ता, लौंग", "प्याज पीसकर — 4 मिनट गहरा सुनहरा", "अदरक-लहसुन पेस्ट — 1 मिनट", "टमाटर पीसकर — हल्दी, लाल मिर्च, धनिया पाउडर, गरम मसाला — 4 मिनट तेल छूटने तक", "पानी — उबाल आने तक", "अंडे डालें — 6 मिनट धीमी आंच मसाला चढ़ने तक — हरा धनिया — परोसें"],
+      en: ["Boil eggs 10 min — peel — score lightly (so masala penetrates)", "Ghee — cumin, bay leaf, clove", "Pureed onion — 4 min deep golden", "Ginger-garlic paste — 1 min", "Pureed tomato — turmeric, red chilli, coriander powder, garam masala — 4 min until oil separates", "Water — bring to boil", "Add eggs — 6 min low flame so masala coats — coriander — serve"],
+    },
+  },
+
+  PANEER_BHURJI: {
+    // Pure paneer bhurji — no eggs. Distinct from PANEER_EGG_BHURJI (which
+    // is paneer + egg both crumbled). This is the simpler everyday version.
+    id: "PANEER_BHURJI",
+    name: { hi: "पनीर भुर्जी", en: "Paneer Bhurji" },
+    compatibleFoods: ["PANEER", "GHEE", "ONION", "TOMATO", "CAPSICUM"],
+    requiredRanges: { PANEER: { min: 100, max: 200 } },
+    // Note: contains no eggs, but tagged eggetarian rather than veg because
+    // it sits in the eggetarian recipe block stylistically and the pure-veg
+    // PALAK_PANEER_VEG already covers a paneer dish for veg users. A future
+    // commit could move this to veg-tagged; defer to the registry-cleanup
+    // pass after commit 11.
+    dietTags: ["eggetarian"],
+    steps: {
+      hi: ["पनीर हल्के हाथ से क्रम्बल करें", "घी में जीरा, हींग, हरी मिर्च — 15 सेकंड", "प्याज 2 मिनट सुनहरा", "शिमला मिर्च (वैकल्पिक) — 1 मिनट", "टमाटर — हल्दी, लाल मिर्च, धनिया — 2 मिनट तेल छूटने तक", "पनीर क्रम्बल — मिलाएं — 2 मिनट धीमी आंच (ज़्यादा न पकाएं — पनीर रबर हो जाता है)", "कसूरी मेथी — हरा धनिया — परोसें"],
+      en: ["Crumble paneer gently by hand", "Ghee — cumin, asafoetida, green chilli — 15 sec", "Onion 2 min golden", "Capsicum (optional) — 1 min", "Tomato — turmeric, red chilli, coriander — 2 min until oil separates", "Add paneer crumble — fold — 2 min low flame (don't overcook — paneer turns rubbery)", "Kasuri methi — coriander — serve"],
+    },
+  },
+
+  MATAR_PANEER: {
+    // Mid-carb dish (peas at 12g carb/100g) — suited to BALANCED and
+    // LOW_CARB modes, not keto. Standard Punjabi home preparation.
+    id: "MATAR_PANEER",
+    name: { hi: "मटर पनीर", en: "Matar Paneer" },
+    compatibleFoods: ["PANEER", "MUTTER", "GHEE", "TOMATO", "ONION"],
+    requiredRanges: { PANEER: { min: 80, max: 150 }, MUTTER: { min: 60, max: 120 } },
+    dietTags: ["eggetarian"],
+    steps: {
+      hi: ["पनीर क्यूब्स काटें — हल्के से घी में सेकें (वैकल्पिक) — अलग रखें", "घी में जीरा, तेज़पत्ता", "प्याज पीसकर — 4 मिनट गहरा सुनहरा", "अदरक-लहसुन पेस्ट — 1 मिनट", "टमाटर पीसकर — हल्दी, लाल मिर्च, धनिया, गरम मसाला — 4 मिनट", "(वैकल्पिक: 5-6 काजू भिगोकर पीसकर डालें गाढ़ी ग्रेवी के लिए)", "पानी — उबाल — मटर डालें — 5 मिनट धीमी आंच", "पनीर डालें — 2 मिनट (ज़्यादा न पकाएं)", "कसूरी मेथी — परोसें"],
+      en: ["Cube paneer — lightly pan-fry in ghee (optional) — set aside", "Ghee — cumin, bay leaf", "Pureed onion — 4 min deep golden", "Ginger-garlic paste — 1 min", "Pureed tomato — turmeric, red chilli, coriander, garam masala — 4 min", "(Optional: 5-6 cashews soaked and ground, added now for a richer gravy)", "Water — boil — add mutter — 5 min low flame", "Add paneer — 2 min (don't overcook)", "Kasuri methi — serve"],
+    },
+  },
+
+  KADHAI_PANEER: {
+    // Dry-ish paneer with capsicum in a tomato-onion kadhai masala. Coarser
+    // textured than matar paneer's smooth gravy. A semi-dry restaurant
+    // staple but the home version skips the cream — built around the
+    // freshly-pounded coriander seed + cumin seed + dry red chilli masala.
+    id: "KADHAI_PANEER",
+    name: { hi: "कढ़ाई पनीर", en: "Kadhai Paneer" },
+    compatibleFoods: ["PANEER", "CAPSICUM", "GHEE", "TOMATO", "ONION"],
+    requiredRanges: { PANEER: { min: 100, max: 200 }, CAPSICUM: { min: 80, max: 150 } },
+    dietTags: ["eggetarian"],
+    steps: {
+      hi: ["कढ़ाई मसाला: साबुत धनिया, जीरा, सूखी लाल मिर्च, सौंफ — सूखी कढ़ाई में 30 सेकंड भूनें — मोटा कूटें", "पनीर मोटे लंबे टुकड़े काटें", "शिमला मिर्च लंबे टुकड़ों में", "घी गरम — प्याज लंबे कटे — 2 मिनट हल्के सुनहरे (कुरकुरापन रखें)", "अदरक-लहसुन — 30 सेकंड", "टमाटर मोटा कटा — 3 मिनट (पीसें नहीं — टुकड़े दिखें)", "कढ़ाई मसाला — हल्दी — 1 मिनट", "शिमला मिर्च — 2 मिनट तेज़ आंच", "पनीर — हल्के हाथ से मिलाएं — 2 मिनट", "कसूरी मेथी — हरा धनिया — परोसें"],
+      en: ["Kadhai masala: whole coriander, cumin, dry red chilli, fennel — dry-roast in kadhai 30 sec — crush coarse", "Cube paneer in long pieces", "Capsicum in long strips", "Hot ghee — onion in long slices — 2 min light golden (keep crunch)", "Ginger-garlic — 30 sec", "Tomato roughly chopped — 3 min (don't purée — keep chunks)", "Kadhai masala — turmeric — 1 min", "Capsicum — 2 min high heat", "Paneer — fold gently — 2 min", "Kasuri methi — coriander — serve"],
     },
   },
 
