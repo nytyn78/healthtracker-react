@@ -12,6 +12,7 @@ import { getISTDate } from "../utils/dateHelpers"
 import { GoalMode, getFlags, isMaternalMode, isGeriatricMode, loadGoalMode, saveGoalMode } from "../services/goalModeConfig"
 import MicronutrientChecklist from "./MicronutrientChecklist"
 import MealPlanSync from "./MealPlanSync"
+import TomorrowSection from "./TomorrowSection"
 import { loadMealPlan, MealPlanEntry } from "../store/useHealthStore"
 import { getDayName } from "../data/mealPlan"
 import { formatDailySummaryForShare, shareOrCopy } from "../services/shareUtils"
@@ -1008,6 +1009,9 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
               users (or anyone not taking whey). If the user's generated meal
               plan includes a shake, it appears as a normal meal entry above. */}
         </Section>
+
+        {/* ── TOMORROW (for the cook) ── */}
+        <TomorrowSection />
 
         {/* ── FOOD LOG ── */}
         {day.entries.length > 0 && (
