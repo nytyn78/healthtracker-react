@@ -13,16 +13,26 @@ import { GoalMode, getFlags, isMaternalMode, isGeriatricMode, loadGoalMode, save
 import MicronutrientChecklist from "./MicronutrientChecklist"
 import MealPlanSync from "./MealPlanSync"
 import TomorrowSection from "./TomorrowSection"
-import { loadMealPlan, MealPlanEntry } from "../store/useHealthStore"
 import { getDayName } from "../data/mealPlan"
+import {
+  getEffectiveMeals,
+  getSwapCandidates,
+  saveSwap,
+  clearSwap,
+  isSwapped,
+  pruneSwaps,
+} from "../services/mealSwap"
+import { getDateForOffset } from "../utils/dateHelpers"
+import MealSwapPicker from "./MealSwapPicker"
+import type { DietTag } from "../store/useHealthStore"
 import { formatDailySummaryForShare, shareOrCopy } from "../services/shareUtils"
 
 // ── Get today's meals — from stored plan if available, else hardcoded fallback ─
-function getTodayMeals(dayName: string): { meals: StoredMeal[]; fromStore: boolean } {
-  const stored = loadMealPlan()
-  const todayEntries = stored.filter(e =>
-    !e.day || e.day.toLowerCase() === dayName.toLowerCase()
-  )
+// Routes through getEffectiveMeals so per-slot swaps for `date` are overlaid on
+// the canonical plan before mapping to StoredMeal. `date` is YYYY-MM-DD and must
+// match the swap key the picker writes (getISTDate()).
+function getTodayMeals(dayName: string, date: string): { meals: StoredMeal[]; fromStore: boolean } {
+  const todayEntries = getEffectiveMeals(date, dayName)
   if (todayEntries.length > 0) {
     return {
       fromStore: true,
@@ -489,6 +499,12 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
     return () => clearInterval(interval)
   }, [today])
 
+  // Prune stale meal-swap keys (older than yesterday) once on mount, so
+  // localStorage doesn't accumulate dead date-stamped swap entries over time.
+  useEffect(() => {
+    pruneSwaps(today)
+  }, [today])
+
   const persist = useCallback((updated: DayData) => {
     setDay(updated)
     saveDayData(updated)
@@ -513,8 +529,22 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
     : DEFAULT_TARGETS
 
   const tots = sumMacros(day.entries)
-  const { meals: todayMeals } = getTodayMeals(getDayName())
   const dayName = getDayName()
+  const { meals: todayMeals } = getTodayMeals(dayName, today)
+
+  // ── Swap-as-substitution state (commit 13) ─────────────────────────────────
+  // pickerSlot = which slot's picker is open (null = closed). swapVersion forces
+  // a re-read after save/clear since localStorage isn't reactive.
+  const [pickerSlot, setPickerSlot]   = useState<number | null>(null)
+  const [swapVersion, setSwapVersion] = useState(0)
+  void swapVersion
+  const swapDietTag: DietTag = (() => {
+    try {
+      const cfg = JSON.parse(localStorage.getItem(KEYS.DIET_CONFIG) || "{}")
+      if (cfg.tag === "veg" || cfg.tag === "eggetarian" || cfg.tag === "non_veg") return cfg.tag
+    } catch { /* fall through */ }
+    return "veg"
+  })()
   const dateLabel = new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })
 
   // ── Task completion ───────────────────────────────────────────────────────
@@ -990,7 +1020,8 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
           {/* Compact sync warning — tap takes user to Meals tab */}
           <MealPlanSync compact onRegenerated={() => window.location.reload()} />
           {todayMeals.map((meal, i) => {
-            const logged = day.entries.some(e => e.name === meal.name)
+            const logged  = day.entries.some(e => e.name === meal.name)
+            const swapped = isSwapped(today, i)
             return (
               <div key={i} className="relative">
                 {logged && (
@@ -999,6 +1030,27 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
                   </div>
                 )}
                 <MealCard meal={meal} index={i} onLog={(sf) => logMealFromPlan(meal, sf)} />
+                <div className="flex items-center gap-2 mt-1 mb-2 px-1">
+                  {swapped && (
+                    <span className="text-[9px] font-bold uppercase tracking-wide bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded">
+                      Swapped
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setPickerSlot(i)}
+                    className="text-[11px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg"
+                  >
+                    🔄 Swap
+                  </button>
+                  {swapped && (
+                    <button
+                      onClick={() => { clearSwap(today, i); setSwapVersion(v => v + 1) }}
+                      className="text-[11px] font-semibold bg-gray-50 hover:bg-gray-100 text-gray-500 px-2.5 py-1 rounded-lg"
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
               </div>
             )
           })}
@@ -1008,6 +1060,26 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
               content that didn't belong as a default UI element for non-keto
               users (or anyone not taking whey). If the user's generated meal
               plan includes a shake, it appears as a normal meal entry above. */}
+
+          <MealSwapPicker
+            open={pickerSlot !== null}
+            slotLabel={
+              pickerSlot !== null
+                ? `Meal ${pickerSlot + 1} · ${todayMeals[pickerSlot]?.time ?? ""}`
+                : ""
+            }
+            candidates={
+              pickerSlot !== null ? getSwapCandidates(dayName, pickerSlot, swapDietTag) : []
+            }
+            onPick={meal => {
+              if (pickerSlot !== null) {
+                saveSwap(today, pickerSlot, meal)
+                setPickerSlot(null)
+                setSwapVersion(v => v + 1)
+              }
+            }}
+            onClose={() => setPickerSlot(null)}
+          />
         </Section>
 
         {/* ── TOMORROW (for the cook) ── */}

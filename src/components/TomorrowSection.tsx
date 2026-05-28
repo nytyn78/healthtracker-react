@@ -1,22 +1,23 @@
 // ── TomorrowSection.tsx ───────────────────────────────────────────────────────
-// Renders tomorrow's plan on the Today tab (commit 12).
+// Renders tomorrow's plan on the Today tab (commit 12), now with
+// swap-as-substitution (commit 13).
 //
 // Layout, top to bottom:
 //   1. "Tomorrow — Monday" header with daily totals row
-//   2. Meal cards (read-only — can't log against tomorrow's meals)
-//   3. Grocery list (computed from ingredients with light parsing)
+//   2. Meal cards — each with a Swap button + SWAPPED badge/Reset when overridden
+//   3. Grocery list (computed from EFFECTIVE meals, post-swap)
 //   4. "Send to Cook" actions: copy + WhatsApp for grocery + recipes
 //   5. Rules-for-Cook card (mode + diet aware)
 //
-// Always visible (per user spec: tomorrow's planning happens any time of day,
-// not gated on today being complete). If no plan is stored, renders a
-// terse "no plan yet — generate one" hint.
+// Swaps are substitution, not mutation: the canonical plan is untouched; an
+// override for (tomorrowDate, slotIndex) is stored separately and overlaid at
+// render time. Tomorrow's overrides naturally become "today's" when the date
+// rolls (same date-stamped key).
 
 import { useState } from "react"
 import { useHealthStore } from "../store/useHealthStore"
 import { resolveMacroMode } from "../services/adaptiveTDEE"
 import {
-  getTomorrowMeals,
   computeDailyTotals,
   computeGroceryList,
   formatGroceryForSharing,
@@ -24,9 +25,19 @@ import {
   getRulesForCook,
   openWhatsAppShare,
 } from "../services/tomorrowPlan"
+import {
+  getEffectiveMeals,
+  getSwapCandidates,
+  saveSwap,
+  clearSwap,
+  isSwapped,
+} from "../services/mealSwap"
 import { shareOrCopy } from "../services/shareUtils"
 import { KEYS } from "../services/storageKeys"
-import type { DietTag } from "../store/useHealthStore"
+import { getDayName } from "../data/mealPlan"
+import { getDateForOffset } from "../utils/dateHelpers"
+import type { DietTag, MealPlanEntry } from "../store/useHealthStore"
+import MealSwapPicker from "./MealSwapPicker"
 
 function getDietTag(): DietTag {
   try {
@@ -40,15 +51,23 @@ export default function TomorrowSection() {
   const { settings } = useHealthStore()
   const macroMode = resolveMacroMode(settings.macroSplit)
   const dietTag   = getDietTag()
-  const [showRules, setShowRules]      = useState(false)
-  const [copyStatus, setCopyStatus]    = useState<string>("")
+  const [showRules, setShowRules]   = useState(false)
+  const [copyStatus, setCopyStatus] = useState<string>("")
 
-  const { meals, dayName } = getTomorrowMeals()
+  // Slot index whose swap picker is open, or null. Bumping `swapVersion` forces
+  // a re-read of localStorage-backed swaps after save/clear (storage isn't
+  // reactive on its own).
+  const [pickerSlot, setPickerSlot]   = useState<number | null>(null)
+  const [swapVersion, setSwapVersion] = useState(0)
+
+  const tomorrowDate = getDateForOffset(1)
+  const dayName      = getDayName(1)
+  // swapVersion is referenced so re-render after swap save/clear is explicit.
+  void swapVersion
+  const meals = getEffectiveMeals(tomorrowDate, dayName)
 
   // Empty state — no plan generated, or generated plan has no entries for
-  // tomorrow's day. The MealPlanSync banner higher up the Today tab handles
-  // the call-to-action ("Generate your meal plan"); here we render a quiet
-  // placeholder so the user knows the section exists.
+  // tomorrow's day.
   if (meals.length === 0) {
     return (
       <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3">
@@ -77,6 +96,16 @@ export default function TomorrowSection() {
     setTimeout(() => setCopyStatus(""), 2500)
   }
 
+  function handlePick(slotIndex: number, meal: MealPlanEntry) {
+    saveSwap(tomorrowDate, slotIndex, meal)
+    setPickerSlot(null)
+    setSwapVersion(v => v + 1)
+  }
+  function handleReset(slotIndex: number) {
+    clearSwap(tomorrowDate, slotIndex)
+    setSwapVersion(v => v + 1)
+  }
+
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-4 mb-3 space-y-3">
       {/* ── Header + totals ──────────────────────────────────────────────── */}
@@ -93,37 +122,66 @@ export default function TomorrowSection() {
         </div>
       </div>
 
-      {/* ── Meal cards (read-only) ───────────────────────────────────────── */}
+      {/* ── Meal cards (read-only + swap) ─────────────────────────────────── */}
       <div className="space-y-2">
-        {meals.map((meal, i) => (
-          <details key={meal.id ?? i} className="border border-gray-100 rounded-xl p-3 bg-gray-50">
-            <summary className="cursor-pointer flex items-center justify-between text-sm">
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-gray-900 truncate">{meal.name}</div>
-                <div className="text-[11px] text-gray-500">{meal.time}</div>
+        {meals.map((meal, i) => {
+          const swapped = isSwapped(tomorrowDate, i)
+          return (
+            <details key={`${meal.id ?? "m"}-${i}`} className="border border-gray-100 rounded-xl p-3 bg-gray-50">
+              <summary className="cursor-pointer flex items-center justify-between text-sm">
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-gray-900 truncate flex items-center gap-1.5">
+                    {meal.name}
+                    {swapped && (
+                      <span className="text-[9px] font-bold uppercase tracking-wide bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded">
+                        Swapped
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-gray-500">{meal.time}</div>
+                </div>
+                <div className="text-[11px] text-gray-600 ml-2 whitespace-nowrap">
+                  {Math.round(meal.protein)}P · {Math.round(meal.carbs)}C · {Math.round(meal.fat)}F · {Math.round(meal.cal)}kcal
+                </div>
+              </summary>
+
+              {/* Swap / Reset controls */}
+              <div className="mt-2 flex gap-2">
+                <button
+                  onClick={() => setPickerSlot(i)}
+                  className="text-[11px] font-semibold bg-gray-100 hover:bg-gray-200 text-gray-700 px-2.5 py-1 rounded-lg"
+                >
+                  🔄 Swap
+                </button>
+                {swapped && (
+                  <button
+                    onClick={() => handleReset(i)}
+                    className="text-[11px] font-semibold bg-gray-50 hover:bg-gray-100 text-gray-500 px-2.5 py-1 rounded-lg"
+                  >
+                    Reset
+                  </button>
+                )}
               </div>
-              <div className="text-[11px] text-gray-600 ml-2 whitespace-nowrap">
-                {Math.round(meal.protein)}P · {Math.round(meal.carbs)}C · {Math.round(meal.fat)}F · {Math.round(meal.cal)}kcal
-              </div>
-            </summary>
-            {meal.ingredients?.length > 0 && (
-              <div className="mt-2">
-                <div className="text-[10px] uppercase tracking-wide text-gray-500 mb-1">Ingredients</div>
-                <ul className="text-xs text-gray-700 space-y-0.5">
-                  {meal.ingredients.map((ing, j) => <li key={j}>• {ing}</li>)}
-                </ul>
-              </div>
-            )}
-            {meal.steps?.length > 0 && (
-              <div className="mt-2">
-                <div className="text-[10px] uppercase tracking-wide text-gray-500 mb-1">Steps</div>
-                <ol className="text-xs text-gray-700 space-y-0.5 list-decimal pl-4">
-                  {meal.steps.map((step, j) => <li key={j}>{step}</li>)}
-                </ol>
-              </div>
-            )}
-          </details>
-        ))}
+
+              {meal.ingredients?.length > 0 && (
+                <div className="mt-2">
+                  <div className="text-[10px] uppercase tracking-wide text-gray-500 mb-1">Ingredients</div>
+                  <ul className="text-xs text-gray-700 space-y-0.5">
+                    {meal.ingredients.map((ing, j) => <li key={j}>• {ing}</li>)}
+                  </ul>
+                </div>
+              )}
+              {meal.steps?.length > 0 && (
+                <div className="mt-2">
+                  <div className="text-[10px] uppercase tracking-wide text-gray-500 mb-1">Steps</div>
+                  <ol className="text-xs text-gray-700 space-y-0.5 list-decimal pl-4">
+                    {meal.steps.map((step, j) => <li key={j}>{step}</li>)}
+                  </ol>
+                </div>
+              )}
+            </details>
+          )
+        })}
       </div>
 
       {/* ── Grocery list ─────────────────────────────────────────────────── */}
@@ -179,6 +237,21 @@ export default function TomorrowSection() {
           </ul>
         )}
       </div>
+
+      {/* ── Swap picker ──────────────────────────────────────────────────── */}
+      <MealSwapPicker
+        open={pickerSlot !== null}
+        slotLabel={
+          pickerSlot !== null
+            ? `Meal ${pickerSlot + 1} · ${meals[pickerSlot]?.time ?? ""}`
+            : ""
+        }
+        candidates={
+          pickerSlot !== null ? getSwapCandidates(dayName, pickerSlot, dietTag) : []
+        }
+        onPick={meal => pickerSlot !== null && handlePick(pickerSlot, meal)}
+        onClose={() => setPickerSlot(null)}
+      />
     </div>
   )
 }
