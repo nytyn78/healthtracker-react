@@ -34,6 +34,11 @@ export const KEYS = {
   MEAL_PLAN:            K("meal_plan"),
   DIET_CONFIG:          K("diet_config"),
 
+  // Swap-as-substitution (commit 13): per-date, per-slot meal overrides.
+  // Date-stamped (YYYY-MM-DD) so today's swaps auto-expire at midnight and
+  // tomorrow's become today's when the date rolls. Pruned on app load.
+  MEAL_SWAP:            (date: string) => K(`meal_swap_${date}`),
+
   // ── Workout ───────────────────────────────────────────────────────────────
   WORKOUT_PLAN:         K("workout_plan"),
   DONE_EXERCISES:       (date: string) => K(`done_ex_${date}`),
@@ -75,3 +80,7 @@ export const KEYS = {
   // Note: supp_offer uses sessionStorage not localStorage — no prefix needed
   // as sessionStorage is cleared when tab closes anyway
 }
+
+// Raw prefix for keyspace scans (e.g. pruning date-stamped swap keys on load).
+// The only sanctioned use of the bare prefix outside the K() helper.
+export const MEAL_SWAP_KEY_PREFIX = `${PREFIX}meal_swap_`
