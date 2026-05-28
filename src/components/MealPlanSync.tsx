@@ -7,14 +7,12 @@
  */
 
 import { useState } from "react"
-import { computeMacros, resolveMacroMode } from "../services/adaptiveTDEE"
-import { useHealthStore, saveMealPlan, MealPlanEntry, DietTag, DIET_TAG_LABELS } from "../store/useHealthStore"
-import { generateWeekPlan, GeneratorTargets } from "../services/mealGenerator"
-import { toDayMealPlanEntries } from "../services/transformer"
+import { computeMacros } from "../services/adaptiveTDEE"
+import { useHealthStore, DietTag, DIET_TAG_LABELS } from "../store/useHealthStore"
+import { GeneratorTargets } from "../services/mealGenerator"
 import { loadGoalMode } from "../services/goalModeConfig"
+import { autoGenerateAndSaveMealPlan } from "../services/mealPlanGeneration"
 import { KEYS } from "../services/storageKeys"
-
-const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
 
 // ── Diet tag resolution ──────────────────────────────────────────────────────
 // Reads the user's chosen dietary tag from storage. Defaults to "veg" (was
@@ -51,9 +49,9 @@ function getSavedHash(): string {
   try { return localStorage.getItem(KEYS.MEAL_PLAN + "_target_hash") || "" } catch { return "" }
 }
 
-function saveHash(hash: string) {
-  try { localStorage.setItem(KEYS.MEAL_PLAN + "_target_hash", hash) } catch {}
-}
+// saveHash() moved into autoGenerateAndSaveMealPlan in commit 14 — both
+// generation paths (MealPlanSync button + Onboarding auto-gen) now write
+// the hash via the shared helper.
 
 interface Props {
   onRegenerated?: () => void
@@ -97,34 +95,16 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
   function regenerate() {
     setGenerating(true)
     try {
-      // Map stored diet tag to generator's expected diet type.
-      // Three branches now supported: veg (11.1), eggetarian, non-veg.
-      // The veg branch uses paneer + hung curd + tofu — no eggs, no meat.
-      const diet =
-        dietTag === "non_veg"    ? "non-veg" :
-        dietTag === "eggetarian" ? "eggetarian" :
-                                   "veg"
-      // Macro mode is derived from settings.macroSplit at call time — same
-      // resolution used by the engine, so validator + generator agree.
-      // Pre-11.0 the generator forced "keto" inside validateNutrition; now
-      // the user's actual mode flows through.
-      const macroMode = resolveMacroMode(settings.macroSplit)
-      const weekResults = generateWeekPlan(targets, diet, macroMode)
-
-      // Convert each day to MealPlanEntry[] and flatten
-      const allEntries: MealPlanEntry[] = weekResults.flatMap((result, i) =>
-        toDayMealPlanEntries(result.plan, {
-          lang:    "en",
-          dietTag: dietTag,
-          day:     DAYS[i],
-        })
-      )
-
-      saveMealPlan(allEntries)
-      saveHash(currentHash)
-      setJustDone(true)
-      setTimeout(() => setJustDone(false), 3000)
-      onRegenerated?.()
+      // Delegates to the shared autoGenerateAndSaveMealPlan helper (commit
+      // 14). Same logic is used by Onboarding's complete() handler so new
+      // users get a real generated plan from day one instead of static
+      // presets that ignored their actual macro targets.
+      const success = autoGenerateAndSaveMealPlan(dietTag)
+      if (success) {
+        setJustDone(true)
+        setTimeout(() => setJustDone(false), 3000)
+        onRegenerated?.()
+      }
     } catch (e) {
       console.error("Meal plan generation failed:", e)
     }

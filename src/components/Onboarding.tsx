@@ -37,6 +37,7 @@ import {
   GoalMode, GOAL_MODE_INFO, saveGoalMode,
   isMaternalMode,
 } from "../services/goalModeConfig"
+import { autoGenerateAndSaveMealPlan } from "../services/mealPlanGeneration"
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -319,9 +320,23 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
       saveWorkoutPlan(getWorkoutPlanForLevel(DEFAULT_FITNESS_LEVEL))
     }
 
-    // Meal plan — use existing preset for the user's diet tag
-    // (Mode-specific presets — low-carb/keto variants — coming in a future iteration.)
-    saveMealPlan(getMealPresetForDiet(dietTag, eatingMode === "keto"))
+    // Meal plan — auto-generate from the user's actual macro targets (commit 14).
+    // Pre-14, onboarding silently wrote a static preset (getMealPresetForDiet)
+    // that ignored the user's mode, profile, and computed targets. New users
+    // never saw the generator output until they manually pressed "Generate"
+    // on the dashboard — so all the work in commits 11.0–11.2a was invisible
+    // on first run. Now the same generator that powers the dashboard runs
+    // here too, using the freshly-saved profile/goals/settings (read via
+    // useHealthStore.getState() inside the helper, bypassing this closure's
+    // stale snapshots).
+    //
+    // Fallback: if generation fails (missing profile data, generator throws),
+    // fall back to the static preset so onboarding never blocks. The preset
+    // is the same shape the app shipped pre-14, so this is a safe degrade.
+    const generated = autoGenerateAndSaveMealPlan(dietTag)
+    if (!generated) {
+      saveMealPlan(getMealPresetForDiet(dietTag, eatingMode === "keto"))
+    }
 
     saveOnboarding({ completed: true, step: TOTAL_STEPS, doIF: !isMaternal && !isChild })
     onComplete()
