@@ -566,8 +566,8 @@ export default function TodayTab({ onNavigate, goalMode: propGoalMode }: {
     { id: "meals",   icon: "🍽", line1: "Meals",   line2: `${mealsLogged}/${todayMeals.length}`, done: mealsOk,   tab: "food" },
     { id: "water",   icon: "💧", line1: "Water",   line2: `${(day.water||0).toFixed(1)}L`,      done: waterOk,   tab: "" },
     { id: "carbs",   icon: "🌾", line1: "Carbs",   line2: "On Track",                           done: carbsOk,   tab: "food" },
-    // Fast task hidden in pregnancy/postpartum/breastfeeding
-    ...(!flags.showFasting ? [] : [
+    // Fast task hidden when the mode doesn't use fasting OR the user has it off
+    ...(!flags.showFasting || !settings.ifProtocol.fastingEnabled ? [] : [
       { id: "fast", icon: "⏱", line1: "Fast", line2: "Active", done: fastOk, tab: "fasting" },
     ]),
     { id: "workout", icon: "🏋", line1: "Workout", line2: "Done",                               done: workoutOk, tab: "workout" },

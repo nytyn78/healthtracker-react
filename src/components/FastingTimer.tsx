@@ -110,7 +110,7 @@ interface FastingTimerProps {
 }
 
 export default function FastingTimer({ goalMode = "fat_loss" }: FastingTimerProps) {
-  const { settings } = useHealthStore()
+  const { settings, updateIFProtocol } = useHealthStore()
   const { fastingHours, fastStartHour } = settings.ifProtocol
 
   // Pre-conception: show caveat note but allow fasting
@@ -129,6 +129,34 @@ export default function FastingTimer({ goalMode = "fat_loss" }: FastingTimerProp
         <div className="mt-4 text-xs text-gray-400">
           The Fast tab will return when you switch to a non-pregnancy goal mode.
         </div>
+      </div>
+    )
+  }
+
+  // Fasting is available for this mode but the user has turned it off (or never
+  // opted in). Show an enable prompt instead of a running protocol, rather than
+  // a misleading "12:12 Protocol" with a target the user never chose.
+  if (!settings.ifProtocol.fastingEnabled) {
+    return (
+      <div className="p-6 flex flex-col items-center justify-center min-h-64 text-center">
+        <div className="text-4xl mb-3">⏱</div>
+        <div className="text-base font-bold text-gray-800 mb-2">Fasting is off</div>
+        <div className="text-sm text-gray-500 max-w-xs leading-relaxed">
+          You're not currently using intermittent fasting. You can turn it on
+          whenever you'd like to give it a try.
+        </div>
+        {flags.showFastingCaveat && (
+          <div className="mt-3 text-xs text-amber-700 max-w-xs leading-snug">
+            Worth discussing fasting with your doctor first, especially with any
+            medications or health conditions.
+          </div>
+        )}
+        <button
+          onClick={() => updateIFProtocol({ fastingEnabled: true })}
+          className="mt-5 bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm px-5 py-2.5 rounded-xl"
+        >
+          Turn on fasting
+        </button>
       </div>
     )
   }

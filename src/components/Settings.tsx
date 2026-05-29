@@ -999,6 +999,26 @@ export default function Settings({ onGoalModeChange }: { onGoalModeChange?: (mod
 
       {/* ── IF Protocol ── */}
       <Section title="Intermittent Fasting Protocol">
+        {/* Master on/off. When off, the protocol sliders are hidden and all
+            fasting UI (Fast tab content, Today bubble) is suppressed. This is
+            the real "off" switch — previously the 12h slider floor was a fake
+            one that still showed a "12:12 Protocol". */}
+        <Field label="Use intermittent fasting">
+          <button
+            role="switch"
+            aria-checked={ifProtocol.fastingEnabled}
+            onClick={() => updateIFProtocol({ fastingEnabled: !ifProtocol.fastingEnabled })}
+            className={`w-11 h-6 rounded-full transition-colors relative ${
+              ifProtocol.fastingEnabled ? "bg-teal-600" : "bg-gray-300"
+            }`}
+          >
+            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all ${
+              ifProtocol.fastingEnabled ? "left-[22px]" : "left-0.5"
+            }`} />
+          </button>
+        </Field>
+        {ifProtocol.fastingEnabled && (
+        <>
         <Field label={`Fasting window: ${ifProtocol.fastingHours}h fast / ${ifProtocol.eatingHours}h eat`}>
           <input type="range" min={12} max={23} value={ifProtocol.fastingHours}
             className="w-full accent-teal-600"
@@ -1019,6 +1039,8 @@ export default function Settings({ onGoalModeChange }: { onGoalModeChange?: (mod
           <p>🍽 Eating window: <span className="font-semibold">{formatHour(eatStart)} → {formatHour(eatEnd)}</span></p>
           <p className="mt-1">🚫 Fasting: <span className="font-semibold">{formatHour(ifProtocol.fastStartHour)} → {formatHour(eatStart)}</span></p>
         </div>
+        </>
+        )}
       </Section>
 
       {/* ── Calculated Targets ── */}
