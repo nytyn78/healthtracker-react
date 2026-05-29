@@ -85,6 +85,11 @@ export type IFProtocol = {
   fastingHours: number
   eatingHours: number
   fastStartHour: number
+  // Master on/off for intermittent fasting. Decoupled from showFasting (which
+  // is whether fasting is *offered* for a goal mode) and from fastingHours
+  // (which no longer doubles as a fake "off" via its 12h floor). Set at
+  // onboarding from the mode's fastingDefaultOn; toggleable in Settings.
+  fastingEnabled: boolean
 }
 
 export type AppSettings = {
@@ -153,16 +158,15 @@ export function dietModeFromMacroSplit(macroSplit: MacroSplit): DietMode {
 // works for the broadest user base.
 const DEFAULT_MACRO_SPLIT: MacroSplit = MACRO_SPLIT_FOR_MODE.balanced
 
-// Default IF protocol. 16:8 (eating window 12pm–8pm) is the most common
-// mainstream IF schedule and a reasonable default for users who haven't
-// configured fasting. Previously defaulted to 19:5 — the developer's
-// personal schedule — which silently applied an aggressive fast window
-// to every new user. (TODO Commit 7: Settings IF on/off toggle so users
-// who don't want IF at all can disable it cleanly.)
+// Default IF protocol. fastingEnabled defaults true here so existing users
+// (whose saved ifProtocol predates this field) keep their current behavior via
+// the { ...DEFAULT_IF, ...saved } merge. New users get fastingEnabled set
+// explicitly at onboarding from their goal mode's fastingDefaultOn flag.
 const DEFAULT_IF: IFProtocol = {
   fastingHours: 16,
   eatingHours: 8,
   fastStartHour: 20,
+  fastingEnabled: true,
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -761,14 +765,13 @@ export type OnboardingData = {
   step: number
   fitnessLevel?: FitnessLevel
   eatingStyle?: EatingStyle
-  doIF: boolean
 }
 
 export function loadOnboarding(): OnboardingData {
   try {
     const raw = localStorage.getItem(KEYS.ONBOARDING)
-    return raw ? JSON.parse(raw) : { completed: false, step: 0, doIF: true }
-  } catch { return { completed: false, step: 0, doIF: true } }
+    return raw ? JSON.parse(raw) : { completed: false, step: 0 }
+  } catch { return { completed: false, step: 0 } }
 }
 
 export function saveOnboarding(data: OnboardingData) {
