@@ -261,6 +261,21 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
   type EatingMode = "balanced" | "low_carb" | "high_protein" | "keto"
   const [eatingMode, setEatingMode] = useState<EatingMode>("balanced")
 
+  // Fasting opt-in. Starts at the goal mode's default (on for fat-loss/recomp,
+  // off for geriatric/maintenance) but the user can flip it on the summary
+  // screen. Never silently forced. Only meaningful when the mode shows fasting.
+  const [fastingOn, setFastingOn] = useState<boolean>(
+    getFlags(goalMode).fastingDefaultOn
+  )
+
+  // Changing goal mode re-applies that mode's fasting default (e.g. tapping
+  // "Switch to Healthy Ageing" flips fasting off). Use this everywhere instead
+  // of setGoal directly so the fasting default never desyncs from the mode.
+  function selectGoal(mode: GoalMode) {
+    setGoal(mode)
+    setFastingOn(getFlags(mode).fastingDefaultOn)
+  }
+
   const TOTAL_STEPS = 7
   const isMaternal  = isMaternalMode(goalMode)
   const isChild     = goalMode === "child" || goalMode === "teen_early"
@@ -292,13 +307,21 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
       updateProfile({ sex: "female" })
     }
 
-    // IF — only set a default protocol for modes that actually use fasting.
-    // showFasting is false for geriatric, child, and maternal modes, where
-    // imposing a fast is inappropriate (or unsafe). Those modes hide the Fast
-    // tab and fasting task bubble entirely (see getFlags consumers), so "no
-    // fasting" needs no separate flag — not setting a protocol is sufficient.
+    // IF — set the protocol from the user's explicit fasting choice (made on
+    // the summary screen, defaulted per goal mode). showFasting gates whether
+    // fasting applies at all; within that, fastingOn is the user's opt-in.
+    // fastingEnabled is the master switch every consumer respects — fasting is
+    // never silently forced on anyone.
     if (getFlags(goalMode).showFasting) {
-      updateIFProtocol({ fastingHours: 16, eatingHours: 8, fastStartHour: 20 })
+      updateIFProtocol({
+        fastingHours: 16,
+        eatingHours: 8,
+        fastStartHour: 20,
+        fastingEnabled: fastingOn,
+      })
+    } else {
+      // Mode doesn't use fasting (child/maternal) — ensure it's off.
+      updateIFProtocol({ fastingEnabled: false })
     }
 
     // Target weight — default to 10% below current if not set
@@ -342,7 +365,7 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
       saveMealPlan(getMealPresetForDiet(dietTag, eatingMode === "keto"))
     }
 
-    saveOnboarding({ completed: true, step: TOTAL_STEPS, doIF: getFlags(goalMode).showFasting })
+    saveOnboarding({ completed: true, step: TOTAL_STEPS })
     onComplete()
   }
 
@@ -384,7 +407,7 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
             if (g.id === "_advanced") {
               setShowAdvanced(true)
             } else {
-              setGoal(g.id as GoalMode)
+              selectGoal(g.id as GoalMode)
               setShowAdvanced(false)
             }
           }}
@@ -397,7 +420,7 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-2">Select mode</label>
           <select
             value={goalMode}
-            onChange={e => setGoal(e.target.value as GoalMode)}
+            onChange={e => selectGoal(e.target.value as GoalMode)}
             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-800 bg-white focus:outline-none focus:border-teal-500"
           >
             {ADVANCED_GOALS.map(g => (
@@ -532,7 +555,7 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
               <span className="font-semibold">{suggestedLabel}</span> mode might fit better than your
               current selection. It uses safer, age-appropriate nutrition targets.
             </p>
-            <button onClick={() => setGoal(suggested)}
+            <button onClick={() => selectGoal(suggested)}
               className="text-xs font-bold text-amber-900 underline">
               Switch to {suggestedLabel} →
             </button>
@@ -751,13 +774,38 @@ export default function Onboarding({ onComplete }: { onComplete: () => void }) {
           </div>
         </div>
 
-        {!isMaternal && !isChild && (
-          <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 flex items-center gap-3">
-            <span className="text-xl shrink-0">⏱</span>
-            <div>
-              <div className="text-xs font-bold text-purple-700">Fasting</div>
-              <div className="text-sm text-purple-900">16:8 — eating window 12pm–8pm · adjust in Settings</div>
+        {getFlags(goalMode).showFasting && (
+          <div className="bg-purple-50 border border-purple-100 rounded-xl p-3">
+            <div className="flex items-center gap-3">
+              <span className="text-xl shrink-0">⏱</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold text-purple-700">Intermittent fasting</div>
+                <div className="text-sm text-purple-900">
+                  {fastingOn
+                    ? "16:8 — eating window 12pm–8pm · adjust in Settings"
+                    : "Off — you can turn it on anytime in Settings"}
+                </div>
+              </div>
+              {/* Opt-in toggle. Default per goal mode; user decides here. */}
+              <button
+                role="switch"
+                aria-checked={fastingOn}
+                onClick={() => setFastingOn(v => !v)}
+                className={`shrink-0 w-11 h-6 rounded-full transition-colors relative ${
+                  fastingOn ? "bg-purple-600" : "bg-gray-300"
+                }`}
+              >
+                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all ${
+                  fastingOn ? "left-[22px]" : "left-0.5"
+                }`} />
+              </button>
             </div>
+            {getFlags(goalMode).showFastingCaveat && fastingOn && (
+              <p className="text-[11px] text-purple-700 leading-snug mt-2 pl-9">
+                Worth discussing fasting with your doctor first, especially with
+                any medications or health conditions.
+              </p>
+            )}
           </div>
         )}
 
