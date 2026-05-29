@@ -47,6 +47,10 @@ import { validateNutrition } from "./constraintEngine"
 import type { ValidationResult } from "./constraintEngine"
 import { RECIPES } from "./recipeRegistry"
 import type { MacroMode } from "./adaptiveTDEE"
+import { type MealSchedule, LEGACY_IF_SCHEDULE } from "./mealSchedule"
+
+// Re-export so callers can build schedules without a second import.
+export { deriveMealSchedule, type MealSchedule } from "./mealSchedule"
 
 // Re-export for callers that previously imported GeneratorTargets from here.
 export type { GeneratorTargets } from "./composedTypes"
@@ -1646,10 +1650,35 @@ export function generateDayPlan(
   dayIndex:  number,
   diet:      DietType = "eggetarian",
   macroMode: MacroMode = "KETO",
+  schedule:  MealSchedule = LEGACY_IF_SCHEDULE,
 ): GenerationResult {
-  const veg    = VEG_ROTATION[dayIndex % 7]
-  const shakeP = 25
-  const shakeF = 1
+  const veg = VEG_ROTATION[dayIndex % 7]
+
+  // ── Meal times come from the schedule (commit 11.4) ───────────────────────
+  // Pre-11.4 these were hardcoded "2:00 PM" / "4:30 PM" / "6:30 PM". Now they
+  // come from the injected MealSchedule, which is derived from the user's IF
+  // settings. When no schedule is supplied the LEGACY_IF_SCHEDULE default
+  // reproduces the exact pre-11.4 clock times, so existing callers and tests
+  // are unaffected.
+  //
+  // The generator consumes the first two main-meal times (the MealSlot
+  // vocabulary supports two main meals + a shake; see mealSchedule.ts header
+  // for why 3+ main meals is deferred). If a schedule somehow carries fewer
+  // than two times we fall back to the legacy clock for the missing slot so
+  // we never emit an undefined time.
+  const m1Time    = schedule.mealTimes[0] ?? LEGACY_IF_SCHEDULE.mealTimes[0]
+  const m2Time    = schedule.mealTimes[1] ?? LEGACY_IF_SCHEDULE.mealTimes[1]
+  const shakeTime = schedule.shakeTime ?? LEGACY_IF_SCHEDULE.shakeTime!
+
+  // ── Macro split across meals (commit 11.4 shake-aware) ────────────────────
+  // The whey shake covers a fixed slice of the day's protein/fat. When the
+  // schedule omits the shake, that slice must be redistributed across the two
+  // main meals so the day still hits its target — otherwise a no-shake plan
+  // would silently fall ~25g protein short. We therefore decide the shake
+  // contribution first, then split only the REMAINDER between the two meals.
+  const includeShake = schedule.includeShake
+  const shakeP = includeShake ? 25 : 0
+  const shakeF = includeShake ? 1  : 0
   const remP   = targets.proteinG - shakeP
   const remF   = targets.fatG     - shakeF
   const m1P    = roundTo(remP * 0.48, 1)
@@ -1666,58 +1695,58 @@ export function generateDayPlan(
     case "nonveg_keto": {
       const day = rotation.week[dayIndex % 7]
       meal1 = day.m1FoodId === "EGG_PANEER"
-        ? buildEggetarianMeal(day.m1Recipe, "primary",   m1P, m1F, veg, "2:00 PM")
-        : buildProteinMeal(day.m1Recipe, "primary", day.m1FoodId, m1P, m1F, veg, "2:00 PM")
+        ? buildEggetarianMeal(day.m1Recipe, "primary",   m1P, m1F, veg, m1Time)
+        : buildProteinMeal(day.m1Recipe, "primary", day.m1FoodId, m1P, m1F, veg, m1Time)
       meal2 = day.m2FoodId === "EGG_PANEER"
-        ? buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
-        : buildProteinMeal(day.m2Recipe, "secondary", day.m2FoodId, m2P, m2F, veg, "6:30 PM")
+        ? buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, m2Time)
+        : buildProteinMeal(day.m2Recipe, "secondary", day.m2FoodId, m2P, m2F, veg, m2Time)
       break
     }
 
     case "keto": {
       const day = rotation.week[dayIndex % 7]
       if (diet === "veg") {
-        meal1 = buildVegMeal(day.m1Recipe, "primary",   m1P, m1F, veg, "2:00 PM")
-        meal2 = buildVegMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
+        meal1 = buildVegMeal(day.m1Recipe, "primary",   m1P, m1F, veg, m1Time)
+        meal2 = buildVegMeal(day.m2Recipe, "secondary", m2P, m2F, veg, m2Time)
       } else {
-        meal1 = buildEggetarianMeal(day.m1Recipe, "primary",   m1P, m1F, veg, "2:00 PM")
-        meal2 = buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
+        meal1 = buildEggetarianMeal(day.m1Recipe, "primary",   m1P, m1F, veg, m1Time)
+        meal2 = buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, m2Time)
       }
       break
     }
 
     case "thali": {
       const day = rotation.week[dayIndex % 7]
-      meal1 = buildThaliMeal(day.m1, "primary",   m1P, m1F, diet, veg, "2:00 PM")
-      meal2 = buildThaliMeal(day.m2, "secondary", m2P, m2F, diet, veg, "6:30 PM")
+      meal1 = buildThaliMeal(day.m1, "primary",   m1P, m1F, diet, veg, m1Time)
+      meal2 = buildThaliMeal(day.m2, "secondary", m2P, m2F, diet, veg, m2Time)
       break
     }
 
     case "nonveg_thali": {
       const day = rotation.week[dayIndex % 7]
-      meal1 = buildNonVegThaliMeal(day.m1, "primary",   m1P, m1F, veg, "2:00 PM")
-      meal2 = buildNonVegThaliMeal(day.m2, "secondary", m2P, m2F, veg, "6:30 PM")
+      meal1 = buildNonVegThaliMeal(day.m1, "primary",   m1P, m1F, veg, m1Time)
+      meal2 = buildNonVegThaliMeal(day.m2, "secondary", m2P, m2F, veg, m2Time)
       break
     }
 
     case "dal": {
       const day = rotation.week[dayIndex % 7]
-      meal1 = buildDalMeal(day.m1, "primary",   m1P, m1F, diet, veg, "2:00 PM")
-      meal2 = buildDalMeal(day.m2, "secondary", m2P, m2F, diet, veg, "6:30 PM")
+      meal1 = buildDalMeal(day.m1, "primary",   m1P, m1F, diet, veg, m1Time)
+      meal2 = buildDalMeal(day.m2, "secondary", m2P, m2F, diet, veg, m2Time)
       break
     }
 
     case "rice_bowl": {
       const day = rotation.week[dayIndex % 7]
-      meal1 = buildRiceBowlMeal(day.m1, "primary",   m1P, m1F, diet, veg, "2:00 PM")
-      meal2 = buildRiceBowlMeal(day.m2, "secondary", m2P, m2F, diet, veg, "6:30 PM")
+      meal1 = buildRiceBowlMeal(day.m1, "primary",   m1P, m1F, diet, veg, m1Time)
+      meal2 = buildRiceBowlMeal(day.m2, "secondary", m2P, m2F, diet, veg, m2Time)
       break
     }
 
     case "nonveg_rice_bowl": {
       const day = rotation.week[dayIndex % 7]
-      meal1 = buildNonVegRiceBowlMeal(day.m1, "primary",   m1P, m1F, veg, "2:00 PM")
-      meal2 = buildNonVegRiceBowlMeal(day.m2, "secondary", m2P, m2F, veg, "6:30 PM")
+      meal1 = buildNonVegRiceBowlMeal(day.m1, "primary",   m1P, m1F, veg, m1Time)
+      meal2 = buildNonVegRiceBowlMeal(day.m2, "secondary", m2P, m2F, veg, m2Time)
       break
     }
 
@@ -1725,25 +1754,37 @@ export function generateDayPlan(
       // TypeScript exhaustive check — should never reach
       const _exhaustive: never = rotation
       const day = EGGETARIAN_WEEK[dayIndex % 7]
-      meal1 = buildEggetarianMeal(day.m1Recipe, "primary",   m1P, m1F, veg, "2:00 PM")
-      meal2 = buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, "6:30 PM")
+      meal1 = buildEggetarianMeal(day.m1Recipe, "primary",   m1P, m1F, veg, m1Time)
+      meal2 = buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, m2Time)
     }
   }
 
-  const shake: ComposedMeal = {
-    name: "Whey Protein Shake",
-    slot: "shake",
-    time: "4:30 PM",
-    recipeId: "WHEY_SHAKE",
-    ingredients: [{ foodId: "WHEY" as any, quantity: 1 }],
+  // ── Assemble the day's meals, time-sorted ─────────────────────────────────
+  // The shake (when included) sits between the two main meals. Downstream
+  // slot-index logic (mealSwap, tomorrowPlan) keys off the time-sorted
+  // position, so we keep the array ordered by clock time. With the legacy
+  // schedule this reproduces [meal1, shake, meal2] exactly.
+  const meals: ComposedMeal[] = [meal1, meal2]
+  if (includeShake) {
+    const shake: ComposedMeal = {
+      name: "Whey Protein Shake",
+      slot: "shake",
+      time: shakeTime,
+      recipeId: "WHEY_SHAKE",
+      ingredients: [{ foodId: "WHEY" as any, quantity: 1 }],
+    }
+    meals.push(shake)
   }
+  meals.sort((a, b) => parseClockToMinutes(a.time) - parseClockToMinutes(b.time))
 
+  const shakeNote = includeShake ? "with shake" : "no shake"
   const plan: ComposedDayPlan = {
-    meals: [meal1, shake, meal2],
+    meals,
     meta: {
       decisions: [
         `Diet: ${diet} | Mode: ${macroMode} | Day: ${dayIndex} | Veg: ${veg.primary}`,
         `Target: P${targets.proteinG}g F${targets.fatG}g C${targets.carbsG}g ${targets.calories}kcal`,
+        `Schedule: ${meals.map(m => m.time).join(" / ")} (${shakeNote})`,
       ],
     },
   }
@@ -1752,10 +1793,26 @@ export function generateDayPlan(
   return { plan, validation, dayIndex }
 }
 
+// Parse a "H:MM AM/PM" clock string to minutes since midnight, for time-
+// sorting the day's meals. Mirrors mealSwap.parseTimeForSort (kept local to
+// avoid a cross-module dependency from the engine layer into the store-facing
+// swap layer). Unparseable strings sort to the end.
+function parseClockToMinutes(time: string): number {
+  const m = time.match(/(\d+)(?::(\d+))?\s*(AM|PM)?/i)
+  if (!m) return 9999
+  let h = parseInt(m[1], 10)
+  const min = m[2] ? parseInt(m[2], 10) : 0
+  const ampm = m[3]?.toUpperCase()
+  if (ampm === "PM" && h < 12) h += 12
+  if (ampm === "AM" && h === 12) h = 0
+  return h * 60 + min
+}
+
 export function generateWeekPlan(
   targets:   GeneratorTargets,
   diet:      DietType = "eggetarian",
   macroMode: MacroMode = "KETO",
+  schedule:  MealSchedule = LEGACY_IF_SCHEDULE,
 ): GenerationResult[] {
-  return Array.from({ length: 7 }, (_, i) => generateDayPlan(targets, i, diet, macroMode))
+  return Array.from({ length: 7 }, (_, i) => generateDayPlan(targets, i, diet, macroMode, schedule))
 }

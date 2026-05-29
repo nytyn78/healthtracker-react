@@ -12,7 +12,7 @@ import { useHealthStore, saveMealPlan, DietTag } from "../store/useHealthStore"
 import { KEYS } from "./storageKeys"
 import { computeMacros, resolveMacroMode } from "./adaptiveTDEE"
 import { loadGoalMode } from "./goalModeConfig"
-import { generateWeekPlan, GeneratorTargets } from "./mealGenerator"
+import { generateWeekPlan, GeneratorTargets, deriveMealSchedule } from "./mealGenerator"
 import { toDayMealPlanEntries } from "./transformer"
 import type { MealPlanEntry } from "../store/useHealthStore"
 
@@ -68,8 +68,19 @@ export function autoGenerateAndSaveMealPlan(dietTag: DietTag): boolean {
 
   const macroMode = resolveMacroMode(settings.macroSplit)
 
+  // ── Meal schedule from the user's IF settings (commit 11.4) ───────────────
+  // Pre-11.4 the generator baked in a 19:5 schedule (2 PM / 4:30 PM / 6:30 PM)
+  // for everyone. Now meal times come from the user's actual IFProtocol: an
+  // IF user keeps a compressed eating window, a non-IF user (maintenance,
+  // geriatric) gets meals spread across a normal day. The whey shake is kept
+  // for fasting users (it fits the compressed window and the protein target
+  // assumes it) and dropped for non-fasting users, who get that protein
+  // redistributed into their main meals instead.
+  const ifp = settings.ifProtocol
+  const schedule = deriveMealSchedule(ifp, { includeShake: ifp.fastingEnabled })
+
   try {
-    const weekResults = generateWeekPlan(targets, diet, macroMode)
+    const weekResults = generateWeekPlan(targets, diet, macroMode, schedule)
 
     // Flatten 7 days × 3 meals into a single MealPlanEntry[] with the day
     // label on each entry. This matches MealPlanSync's pre-14 behavior.
