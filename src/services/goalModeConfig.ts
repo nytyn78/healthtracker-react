@@ -39,6 +39,11 @@ export interface PregnancySettings {
 export interface GoalModeFeatureFlags {
   showFasting: boolean
   showFastingCaveat: boolean        // pre-conception caveat note
+  // Whether the onboarding fasting toggle starts ON for this mode. Only
+  // meaningful when showFasting is true. On for active fat-loss/recomp users
+  // who typically seek IF out; OFF for geriatric/maintenance/pre-conception
+  // where fasting should be a deliberate opt-in, not a default.
+  fastingDefaultOn: boolean
   showPlateauDetector: boolean
   showWeightLossRate: boolean
   showMetabolicAdaptation: boolean
@@ -59,6 +64,7 @@ export interface GoalModeFeatureFlags {
 const PREGNANCY_FLAGS: Partial<GoalModeFeatureFlags> = {
   showFasting: false,
   showFastingCaveat: false,
+  fastingDefaultOn: false,        // maternal modes: fasting never offered
   showPlateauDetector: false,
   showWeightLossRate: false,
   showMetabolicAdaptation: false,
@@ -77,6 +83,7 @@ export const GOAL_MODE_FLAGS: Record<GoalMode, GoalModeFeatureFlags> = {
   fat_loss: {
     showFasting: true,
     showFastingCaveat: false,
+    fastingDefaultOn: true,        // active fat-loss users typically seek IF out
     showPlateauDetector: true,
     showWeightLossRate: true,
     showMetabolicAdaptation: true,
@@ -94,6 +101,7 @@ export const GOAL_MODE_FLAGS: Record<GoalMode, GoalModeFeatureFlags> = {
   recomposition: {
     showFasting: true,
     showFastingCaveat: false,
+    fastingDefaultOn: true,        // recomp users typically use IF
     showPlateauDetector: true,
     showWeightLossRate: true,
     showMetabolicAdaptation: true,
@@ -111,6 +119,7 @@ export const GOAL_MODE_FLAGS: Record<GoalMode, GoalModeFeatureFlags> = {
   maintenance: {
     showFasting: true,
     showFastingCaveat: false,
+    fastingDefaultOn: false,        // deliberate opt-in, not default
     showPlateauDetector: false,
     showWeightLossRate: false,
     showMetabolicAdaptation: false,
@@ -128,6 +137,7 @@ export const GOAL_MODE_FLAGS: Record<GoalMode, GoalModeFeatureFlags> = {
   geriatric: {
     showFasting: true,
     showFastingCaveat: true,
+    fastingDefaultOn: false,        // opt-in only — see fasting caveat
     showPlateauDetector: true,
     showWeightLossRate: true,
     showMetabolicAdaptation: true,
@@ -145,6 +155,7 @@ export const GOAL_MODE_FLAGS: Record<GoalMode, GoalModeFeatureFlags> = {
   child: {
     showFasting: false,             // Never — dangerous for growing children
     showFastingCaveat: false,
+    fastingDefaultOn: false,        // N/A — showFasting false
     showPlateauDetector: false,
     showWeightLossRate: false,      // No weight loss framing for children
     showMetabolicAdaptation: false,
@@ -162,6 +173,7 @@ export const GOAL_MODE_FLAGS: Record<GoalMode, GoalModeFeatureFlags> = {
   teen_early: {
     showFasting: false,             // Not recommended during puberty (ages 13–16)
     showFastingCaveat: false,
+    fastingDefaultOn: false,        // N/A — showFasting false
     showPlateauDetector: false,
     showWeightLossRate: false,
     showMetabolicAdaptation: false,
@@ -179,6 +191,7 @@ export const GOAL_MODE_FLAGS: Record<GoalMode, GoalModeFeatureFlags> = {
   teen_older: {
     showFasting: true,              // 17–19: allowed with education
     showFastingCaveat: true,        // Caveat about growth and bone density
+    fastingDefaultOn: true,        // allowed with caveat
     showPlateauDetector: true,
     showWeightLossRate: true,
     showMetabolicAdaptation: false,
@@ -196,6 +209,7 @@ export const GOAL_MODE_FLAGS: Record<GoalMode, GoalModeFeatureFlags> = {
   pre_conception: {
     showFasting: true,
     showFastingCaveat: true,
+    fastingDefaultOn: false,        // opt-in only — see fasting caveat
     showPlateauDetector: false,
     showWeightLossRate: false,
     showMetabolicAdaptation: false,
