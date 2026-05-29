@@ -33,8 +33,26 @@ export function toMealPlanEntry(
     return formatIngredientDisplay(ing.foodId, ing.quantity, ing.prepNote, lang)
   })
 
-  // Steps from recipe registry
-  const steps = recipe.steps[lang]
+  // Steps from recipe registry. For composite meals (thali = dal + sabzi +
+  // protein), concatenate each sub-recipe's steps under its own dish header so
+  // the cook gets instructions for every component, not just the main dish.
+  // Single-recipe meals (extraRecipeIds absent) keep a flat step list with no
+  // header, exactly as before.
+  let steps: string[]
+  if (meal.extraRecipeIds && meal.extraRecipeIds.length > 0) {
+    const allRecipeIds = [meal.recipeId, ...meal.extraRecipeIds]
+    steps = []
+    for (const rid of allRecipeIds) {
+      const r = getRecipe(rid)
+      const rSteps = r.steps[lang]
+      if (!rSteps || rSteps.length === 0) continue
+      // Dish header — recipe's localized name, so the cook can tell sections apart.
+      steps.push(`— ${r.name[lang]} —`)
+      for (const s of rSteps) steps.push(s)
+    }
+  } else {
+    steps = recipe.steps[lang]
+  }
 
   return {
     id:          opts.id ?? `gen-${meal.slot}-${Date.now()}-${Math.random().toString(36).slice(2)}`,

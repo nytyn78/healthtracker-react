@@ -1305,11 +1305,17 @@ function buildThaliMeal(
   }
 
   // ── Sabzi ─────────────────────────────────────────────────────────────────
-  // Fixed vegetable portion. Uses rotation vegetable for the day's veg.
-  // Sabzi contributes negligible protein; it's a volume + micronutrient filler.
-  const sabziVegG = 150  // substantial sabzi portion for fiber / satiety
-  ingredients.push({ foodId: veg.primary as any, quantity: sabziVegG })
-  if (veg.vitaminC !== veg.primary) ingredients.push({ foodId: veg.vitaminC as any, quantity: 60 })
+  // Build the sabzi from its ACTUAL recipe (slot.sabziRecipe), not from the
+  // day's rotation vegetable. Pre-fix this section added veg.primary (always
+  // the rotation veg, e.g. cauliflower) regardless of what the recipe was
+  // named — so "Aloo Gobhi" contained no aloo and no gobhi-specific steps,
+  // and the same rotation veg appeared in both the day's meals. Now the
+  // vegetables come from the sabzi recipe's requiredRanges (e.g. ALOO_GOBHI →
+  // potato + cauliflower) and the recipe's steps are surfaced via
+  // extraRecipeIds. (11.3 regression fix.)
+  const sabziFoods = buildSabziFromRecipe(slot.sabziRecipe)
+  for (const ing of sabziFoods) ingredients.push(ing)
+  // Aromatics for the sabzi (onion/tomato) added once at thali level.
   ingredients.push({ foodId: "ONION" as any, quantity: 40 })
   ingredients.push({ foodId: "TOMATO" as any, quantity: 60 })
 
@@ -1330,6 +1336,11 @@ function buildThaliMeal(
   const baseFatG = baseFatTsp * 5  // each tsp = 5g fat (GHEE macros)
   const residualFat = Math.max(targetFat - baseFatG, 0)
 
+  // Recipes whose steps should appear: the sabzi always; the protein dish when
+  // one is built. (Grain steps are trivial — boil rice / make rotis — and are
+  // intentionally not surfaced to keep the step list focused.)
+  const extraRecipeIds: string[] = [slot.sabziRecipe]
+
   if (slot.proteinRecipe !== null && residualProtein > 5) {
     // Build the protein dish using the appropriate diet branch.
     // Pass reduced targets so the protein builder sizes correctly
@@ -1337,22 +1348,70 @@ function buildThaliMeal(
     const innerMeal = diet === "veg"
       ? buildVegMeal(slot.proteinRecipe, mealSlot, residualProtein, residualFat, veg, time)
       : buildEggetarianMeal(slot.proteinRecipe, mealSlot, residualProtein, residualFat, veg, time)
-    // Incorporate the protein dish's ingredients (skip duplicates: onion/tomato already present).
-    const alreadyPresent = new Set(["ONION", "TOMATO", "GHEE"])
+    // Incorporate the protein dish's ingredients. Skip foods already present —
+    // including VEGETABLES (the pre-fix dedup set omitted veg, so the inner
+    // builder's rotation veg appeared as a second cauliflower line). We dedup
+    // on foodId across everything already added.
+    const alreadyPresent = new Set(ingredients.map(i => i.foodId as string))
     for (const ing of innerMeal.ingredients) {
       if (!alreadyPresent.has(ing.foodId as string)) {
         ingredients.push(ing)
+        alreadyPresent.add(ing.foodId as string)
       }
     }
+    extraRecipeIds.push(slot.proteinRecipe)
   }
 
   return {
-    name:        slot.mealName.en,
-    slot:        mealSlot,
+    name:           slot.mealName.en,
+    slot:           mealSlot,
     time,
-    recipeId:    slot.proteinRecipe ?? slot.grainRecipe,
+    recipeId:       slot.proteinRecipe ?? slot.grainRecipe,
+    extraRecipeIds,
     ingredients,
   }
+}
+
+// ── buildSabziFromRecipe ──────────────────────────────────────────────────────
+// Produce a sabzi's vegetable ingredients from its recipe definition, so the
+// dish actually contains what its name says (ALOO_GOBHI → potato + cauliflower)
+// rather than whatever the day's rotation vegetable happens to be.
+//
+// Portions: for each vegetable in the recipe's requiredRanges we use the
+// midpoint of [min, max], rounded to 10g — a sensible single-serving sabzi
+// portion. Recipes without requiredRanges fall back to their first non-fat,
+// non-aromatic compatibleFood at a default portion. Fats (GHEE, oils) and
+// aromatics (ONION, TOMATO) are intentionally excluded here — the thali adds
+// those once at the meal level so they aren't double-counted.
+const SABZI_AROMATICS_AND_FATS = new Set<string>([
+  "GHEE", "MUSTARD_OIL", "COCONUT_OIL", "ONION", "TOMATO",
+])
+const SABZI_DEFAULT_VEG_G = 150
+
+function buildSabziFromRecipe(recipeId: string): ComposedIngredient[] {
+  const recipe = RECIPES[recipeId]
+  if (!recipe) {
+    // Unknown recipe — fall back to a generic vegetable portion so the meal
+    // is never empty. Should not happen for the curated thali rotations.
+    return [{ foodId: "CAULIFLOWER" as any, quantity: SABZI_DEFAULT_VEG_G }]
+  }
+
+  const out: ComposedIngredient[] = []
+  const ranges = recipe.requiredRanges ?? {}
+  for (const [foodId, range] of Object.entries(ranges)) {
+    if (!range) continue
+    if (SABZI_AROMATICS_AND_FATS.has(foodId)) continue
+    const midpoint = roundTo((range.min + range.max) / 2, 10)
+    out.push({ foodId: foodId as any, quantity: midpoint })
+  }
+
+  // No usable ranges — take the first vegetable from compatibleFoods.
+  if (out.length === 0) {
+    const veg = recipe.compatibleFoods.find(f => !SABZI_AROMATICS_AND_FATS.has(f as string))
+    if (veg) out.push({ foodId: veg as any, quantity: SABZI_DEFAULT_VEG_G })
+  }
+
+  return out
 }
 
 // ── buildNonVegThaliMeal ──────────────────────────────────────────────────────

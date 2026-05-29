@@ -15,6 +15,7 @@
 import { describe, it, expect } from "vitest"
 import { generateDayPlan, generateWeekPlan, GeneratorTargets } from "./mealGenerator"
 import type { MacroMode } from "./adaptiveTDEE"
+import { toMealPlanEntry } from "./transformer"
 
 // ── Shared targets ──────────────────────────────────────────────────────────
 
@@ -249,6 +250,74 @@ describe("BALANCED mode — thali templates (11.3)", () => {
     )
     // At least 3 different meat types across a week
     expect(meatTypesPresent.size).toBeGreaterThanOrEqual(3)
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ── Thali content fixes (11.3 regression guards) ───────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// Two bugs were shipped in 11.3's thali builder and fixed later:
+//   (a) the sabzi was built from the day's rotation vegetable, not from the
+//       named sabzi recipe — so "Aloo Gobhi" had no potato and no aloo-gobhi
+//       steps, and both of a day's meals shared the same rotation vegetable.
+//   (b) the inner protein dish re-added a rotation vegetable, producing a
+//       duplicate vegetable line within one meal.
+// These guards lock in the fix.
+
+describe("thali content — sabzi from recipe, not rotation veg (11.3 fix)", () => {
+  const BAL: GeneratorTargets = { proteinG: 90, fatG: 50, carbsG: 160, calories: 1450 }
+
+  it("an Aloo Gobhi thali actually contains potato (ALOO)", () => {
+    const week = generateWeekPlan(BAL, "veg", "BALANCED")
+    const alooGobhiMeals = week.flatMap(d => d.plan.meals).filter(m => m.name.includes("Aloo Gobhi"))
+    expect(alooGobhiMeals.length).toBeGreaterThan(0)
+    for (const meal of alooGobhiMeals) {
+      expect(meal.ingredients.some(i => i.foodId === "ALOO")).toBe(true)
+    }
+  })
+
+  it("an Aloo Gobhi thali surfaces the Aloo Gobhi recipe steps", () => {
+    const week = generateWeekPlan(BAL, "veg", "BALANCED")
+    const meal = week.flatMap(d => d.plan.meals).find(m => m.name.includes("Aloo Gobhi"))!
+    const entry = toMealPlanEntry(meal, { lang: "en", dietTag: "veg" })
+    const hasAlooGobhiStep = entry.steps.some(s => /aloo and gobhi|aloo-gobhi/i.test(s))
+    expect(hasAlooGobhiStep).toBe(true)
+  })
+
+  it("no thali meal contains a duplicate vegetable foodId", () => {
+    const week = generateWeekPlan(BAL, "veg", "BALANCED")
+    for (const day of week) {
+      for (const meal of day.plan.meals) {
+        const foodIds = meal.ingredients.map(i => i.foodId as string)
+        const dupes = foodIds.filter((id, i) => foodIds.indexOf(id) !== i)
+        expect(dupes).toEqual([])
+      }
+    }
+  })
+
+  it("a thali with a protein recipe surfaces BOTH sabzi and protein steps", () => {
+    const week = generateWeekPlan(BAL, "veg", "BALANCED")
+    const meal = week.flatMap(d => d.plan.meals).find(m =>
+      m.extraRecipeIds && m.extraRecipeIds.length >= 2
+    )
+    expect(meal).toBeDefined()
+    const entry = toMealPlanEntry(meal!, { lang: "en", dietTag: "veg" })
+    const headers = entry.steps.filter(s => /^—\s.*\s—$/.test(s))
+    expect(headers.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it("two meals on the same day do not always share the same sabzi vegetable", () => {
+    const week = generateWeekPlan(BAL, "veg", "BALANCED")
+    let daysWithDifferentVeg = 0
+    const VEG = new Set(["ALOO","CAULIFLOWER","SPINACH","MUTTER","KATHAL","KARELA","CAPSICUM","BHINDI","BAINGAN"])
+    for (const day of week) {
+      const mains = day.plan.meals.filter(m => m.slot !== "shake")
+      if (mains.length < 2) continue
+      const veg0 = mains[0].ingredients.filter(i => VEG.has(i.foodId as string)).map(i => i.foodId).sort().join(",")
+      const veg1 = mains[1].ingredients.filter(i => VEG.has(i.foodId as string)).map(i => i.foodId).sort().join(",")
+      if (veg0 !== veg1) daysWithDifferentVeg++
+    }
+    expect(daysWithDifferentVeg).toBeGreaterThanOrEqual(4)
   })
 })
 

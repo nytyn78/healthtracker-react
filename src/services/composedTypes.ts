@@ -20,6 +20,11 @@ export type ComposedMeal = {
   slot:        MealSlot
   time:        string     // display only — "2:00 PM" etc.
   recipeId:    string
+  // Additional recipe ids whose steps should also be shown, for COMPOSITE
+  // meals (e.g. a thali = dal + sabzi + protein dish). The transformer
+  // concatenates steps from recipeId followed by each extraRecipeIds entry,
+  // each under its own dish header. Single-recipe meals omit this.
+  extraRecipeIds?: string[]
   ingredients: ComposedIngredient[]
 }
 
