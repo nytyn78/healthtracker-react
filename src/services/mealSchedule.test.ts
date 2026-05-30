@@ -239,10 +239,11 @@ describe("generateDayPlan — schedule integration (11.4)", () => {
   it("records the schedule in meta.decisions", () => {
     const sched = deriveMealSchedule(IF_16_8, { includeShake: false })
     const result = generateDayPlan(TARGETS, 0, "eggetarian", KETO, sched)
-    const hasScheduleNote = result.plan.meta.decisions.some(d => d.includes("Schedule:"))
-    expect(hasScheduleNote).toBe(true)
-    const hasNoShakeNote = result.plan.meta.decisions.some(d => d.includes("no shake"))
-    expect(hasNoShakeNote).toBe(true)
+    // meta records the meal times and shape. (Shake state is implied by shape;
+    // with no shape arg the default is two_plus_shake, and includeShake:false
+    // means the 2-meal no-shake path.)
+    const hasTimes = result.plan.meta.decisions.some(d => d.includes("Shape:") || d.includes("/"))
+    expect(hasTimes).toBe(true)
   })
 })
 

@@ -1344,21 +1344,23 @@ function buildThaliMeal(
   diet: DietType,
   veg: { primary: string; vitaminC: string },
   time: string,
+  grainScale: number = 1,
 ): ComposedMeal {
   const ingredients: ComposedIngredient[] = []
 
   // ── Dal ───────────────────────────────────────────────────────────────────
-  // Fixed portion per meal. Protein contribution is accounted for before
-  // sizing the protein dish.
-  ingredients.push({ foodId: slot.dalFoodId as any, quantity: DAL_RAW_PER_MEAL_G,
-    prepNote: { hi: "पकी हुई — 1 कटोरी", en: "cooked — 1 katori" } })
+  // Portion scales with grainScale (meal-shape elasticity): bigger for high
+  // calorie targets (teens), smaller across a 3-meal day (elderly).
+  const dalG = roundTo(DAL_RAW_PER_MEAL_G * grainScale, 5)
+  ingredients.push({ foodId: slot.dalFoodId as any, quantity: dalG,
+    prepNote: { hi: "पकी हुई", en: "cooked" } })
 
   // ── Grain ─────────────────────────────────────────────────────────────────
   // Rice meals: 50g raw rice (1 katori cooked). Roti meals: 50g atta (2 rotis).
-  // JEERA_RICE adds ghee — reflected in fat accounting below.
+  // Both scale with grainScale. JEERA_RICE adds ghee — in fat accounting below.
   const isRiceMeal = slot.grainRecipe === "PLAIN_RICE" || slot.grainRecipe === "JEERA_RICE"
-  const attaG = isRiceMeal ? 0 : ATTA_2_ROTI_G
-  const riceRawG = isRiceMeal ? RICE_RAW_PER_MEAL_G : 0
+  const attaG = isRiceMeal ? 0 : roundTo(ATTA_2_ROTI_G * grainScale, 5)
+  const riceRawG = isRiceMeal ? roundTo(RICE_RAW_PER_MEAL_G * grainScale, 5) : 0
   if (isRiceMeal) {
     ingredients.push({ foodId: "RICE_WHITE_RAW" as any, quantity: riceRawG,
       prepNote: { hi: "पका हुआ — 1 कटोरी", en: "cooked — 1 katori" } })
@@ -1392,7 +1394,7 @@ function buildThaliMeal(
   // Protein remaining after dal's contribution. Dal protein ≈ 13–15g per
   // 60g raw serving (varies by dal type; we use 13g as a conservative anchor
   // so we don't under-prescribe the protein dish).
-  const DAL_PROTEIN_ESTIMATE_G = 13
+  const DAL_PROTEIN_ESTIMATE_G = 13 * grainScale
   const residualProtein = Math.max(targetProtein - DAL_PROTEIN_ESTIMATE_G, 0)
 
   // Fat remaining after base ghee.
@@ -1517,23 +1519,24 @@ function buildNonVegThaliMeal(
   targetFat: number,
   veg: { primary: string; vitaminC: string },
   time: string,
+  grainScale: number = 1,
 ): ComposedMeal {
   const ingredients: ComposedIngredient[] = []
 
   // ── Dal (optional) ────────────────────────────────────────────────────────
-  const DAL_PROTEIN_ESTIMATE_G = slot.dalFoodId ? 13 : 0
+  const DAL_PROTEIN_ESTIMATE_G = slot.dalFoodId ? 13 * grainScale : 0
   if (slot.dalFoodId) {
-    ingredients.push({ foodId: slot.dalFoodId as any, quantity: DAL_RAW_PER_MEAL_G,
+    ingredients.push({ foodId: slot.dalFoodId as any, quantity: roundTo(DAL_RAW_PER_MEAL_G * grainScale, 5),
       prepNote: { hi: "पकी हुई — 1 कटोरी", en: "cooked — 1 katori" } })
   }
 
   // ── Grain ─────────────────────────────────────────────────────────────────
   const isRiceMeal = slot.grainRecipe === "PLAIN_RICE" || slot.grainRecipe === "JEERA_RICE"
   if (isRiceMeal) {
-    ingredients.push({ foodId: "RICE_WHITE_RAW" as any, quantity: RICE_RAW_PER_MEAL_G,
+    ingredients.push({ foodId: "RICE_WHITE_RAW" as any, quantity: roundTo(RICE_RAW_PER_MEAL_G * grainScale, 5),
       prepNote: { hi: "पका हुआ — 1 कटोरी", en: "cooked — 1 katori" } })
   } else {
-    ingredients.push({ foodId: "ATTA" as any, quantity: ATTA_2_ROTI_G,
+    ingredients.push({ foodId: "ATTA" as any, quantity: roundTo(ATTA_2_ROTI_G * grainScale, 5),
       prepNote: { hi: "2 रोटी", en: "2 rotis" } })
   }
 
@@ -1581,23 +1584,24 @@ function buildDalMeal(
   diet: DietType,
   veg: { primary: string; vitaminC: string },
   time: string,
+  grainScale: number = 1,
 ): ComposedMeal {
   const ingredients: ComposedIngredient[] = []
 
   // Dal — fixed standard portion
-  ingredients.push({ foodId: slot.dalFoodId as any, quantity: DAL_RAW_PER_MEAL_G,
+  ingredients.push({ foodId: slot.dalFoodId as any, quantity: roundTo(DAL_RAW_PER_MEAL_G * grainScale, 5),
     prepNote: { hi: "पकी हुई — 1 कटोरी", en: "cooked — 1 katori" } })
 
   // Optional 1 roti (some LC meals have a small grain, others don't)
   const hasRoti = slot.grainRecipe !== null
   if (hasRoti) {
-    ingredients.push({ foodId: "ATTA" as any, quantity: ATTA_1_ROTI_G,
+    ingredients.push({ foodId: "ATTA" as any, quantity: roundTo(ATTA_1_ROTI_G * grainScale, 5),
       prepNote: { hi: "1 रोटी", en: "1 roti" } })
   }
 
   // Sabzi / protein dish — this IS the protein vehicle in LC meals.
   // The sabziRecipe field doubles as protein recipe in the LC rotation.
-  const DAL_PROTEIN_ESTIMATE_G = 13
+  const DAL_PROTEIN_ESTIMATE_G = 13 * grainScale
   const residualP = Math.max(targetProtein - DAL_PROTEIN_ESTIMATE_G, 0)
   const baseFatG  = 10  // 2 tsp ghee for dal + roti cooking base
   const residualF = Math.max(targetFat - baseFatG, 0)
@@ -1650,11 +1654,12 @@ function buildRiceBowlMeal(
   diet: DietType,
   veg: { primary: string; vitaminC: string },
   time: string,
+  grainScale: number = 1,
 ): ComposedMeal {
   const ingredients: ComposedIngredient[] = []
 
   // Rice — cooked portion sized at standard 1 katori (50g raw → 150g cooked)
-  ingredients.push({ foodId: "RICE_WHITE_RAW" as any, quantity: RICE_RAW_PER_MEAL_G,
+  ingredients.push({ foodId: "RICE_WHITE_RAW" as any, quantity: roundTo(RICE_RAW_PER_MEAL_G * grainScale, 5),
     prepNote: { hi: "पका हुआ — 1 कटोरी", en: "cooked — 1 katori" } })
 
   // Add ghee for jeera rice
@@ -1696,10 +1701,11 @@ function buildNonVegRiceBowlMeal(
   targetFat: number,
   veg: { primary: string; vitaminC: string },
   time: string,
+  grainScale: number = 1,
 ): ComposedMeal {
   const ingredients: ComposedIngredient[] = []
 
-  ingredients.push({ foodId: "RICE_WHITE_RAW" as any, quantity: RICE_RAW_PER_MEAL_G,
+  ingredients.push({ foodId: "RICE_WHITE_RAW" as any, quantity: roundTo(RICE_RAW_PER_MEAL_G * grainScale, 5),
     prepNote: { hi: "पका हुआ — 1 कटोरी", en: "cooked — 1 katori" } })
   if (slot.riceRecipe === "JEERA_RICE") {
     ingredients.push({ foodId: "GHEE" as any, quantity: 1 })
@@ -1797,146 +1803,307 @@ export type GenerationResult = {
   dayIndex:   number
 }
 
+// ═════════════════════════════════════════════════════════════════════════════
+// ── Meal-shape + portion elasticity ──────────────────────────────────────────
+// ═════════════════════════════════════════════════════════════════════════════
+// Two decisions the day's plan must make, then honour in the builders:
+//
+//   1. MEAL COUNT — 2 meals (+ shake) for fasting users; 3 meals (breakfast +
+//      lunch + dinner) for non-fasting; + a snack for growing minors. Derived
+//      from (fastingEnabled, goalMode) so a non-fasting user gets 3 meals
+//      automatically, no toggle required. child/teen_early can NEVER be in the
+//      2-meal fasting shape (showFasting:false in goalModeConfig).
+//
+//   2. PORTION SIZE — the carb/protein-bearing components of each meal scale to
+//      hit that meal's calorie share, instead of being fixed katoris. This is
+//      what lets the engine feed a 2500 kcal teen (scale up) and a 1400 kcal
+//      elderly woman across 3 small meals (scale down) from the same builders.
+//      Vegetables/aromatics stay fixed (you don't eat 3× the onion).
+//
+// MAX_MEAL_SCALE 1.75: a baseline thali plate is ~650-700 kcal; 1.75× ≈ 1150-
+// 1225 kcal — a large but still realistic plate (≈2 katori dal, 1.5 katori
+// rice, 3 rotis). Beyond ~1.8× it stops resembling a single sitting, so we cap
+// there and let MEAL COUNT (+ snack) absorb the rest. MIN keeps small meals
+// from collapsing to nothing.
+const MAX_MEAL_SCALE = 1.75
+const MIN_MEAL_SCALE = 0.6
+
+// Estimate the calories a builder produces at its UNSCALED baseline portions,
+// so we can compute the scale needed to reach a target. These are approximate
+// (the real total depends on the protein dish), used only to size the scale
+// factor; the builders still compute exact macros from real ingredients.
+// Anchored on the thali baseline (dal 60g + rice/atta 50g + sabzi + ~1 protein).
+const BASELINE_MEAL_CAL = 680
+
+// Compute the portion scale for a meal to approach its calorie share.
+function computeMealScale(targetMealCal: number): number {
+  if (targetMealCal <= 0) return 1
+  return clamp(roundTo(targetMealCal / BASELINE_MEAL_CAL, 0.05), MIN_MEAL_SCALE, MAX_MEAL_SCALE)
+}
+
+// ── Meal-count resolution ─────────────────────────────────────────────────────
+// Returns the day's shape. Driven by fasting state + goalMode, not a toggle.
+//   - fasting ON  → 2 meals + shake (compressed eating window)
+//   - fasting OFF → 3 meals (breakfast/lunch/dinner), no shake
+//   - minors (child/teen_early), fasting always OFF → 3 meals + snack
+// A user override (mealShapeOverride) can force "two" or "three" but can never
+// enable fasting/2-meal for a minor.
+export type MealShapeKind = "two_plus_shake" | "three" | "three_plus_snack"
+
+export function resolveMealShape(
+  fastingEnabled: boolean,
+  isGrowingMinor: boolean,
+  override?: "two" | "three",
+): MealShapeKind {
+  // Growing minors always get 3 meals + snack, never fasting/2-meal. Hard rule.
+  if (isGrowingMinor) return "three_plus_snack"
+  if (override === "two") return "two_plus_shake"
+  if (override === "three") return "three"
+  return fastingEnabled ? "two_plus_shake" : "three"
+}
+
+// ── Breakfast + snack builders ────────────────────────────────────────────────
+// Breakfast is a lighter meal (smaller macro share). Per mode: grain-based
+// (poha/upma) for carb-anchored modes, egg/dahi for keto/HPC. Snack is the
+// growing-minor top-up (banana + peanut + curd). All ingredients are in the
+// food DB; all recipes are cited.
+type BreakfastKind = "poha" | "upma" | "chilla" | "egg" | "dahi"
+
+const BREAKFAST_BY_MODE_DIET: Record<string, Record<DietType, BreakfastKind>> = {
+  BALANCED:         { eggetarian: "poha",  veg: "poha",   "non-veg": "egg"  },
+  LOW_CARB:         { eggetarian: "egg",   veg: "chilla", "non-veg": "egg"  },
+  KETO:             { eggetarian: "egg",   veg: "dahi",   "non-veg": "egg"  },
+  VERY_LOW_CARB:    { eggetarian: "egg",   veg: "dahi",   "non-veg": "egg"  },
+  HIGH_PROTEIN_CUT: { eggetarian: "egg",   veg: "dahi",   "non-veg": "egg"  },
+  RECOMPOSITION:    { eggetarian: "poha",  veg: "poha",   "non-veg": "egg"  },
+}
+
+function buildBreakfastMeal(
+  macroMode: MacroMode, diet: DietType, dayIndex: number,
+  targetProtein: number, targetFat: number,
+  veg: { primary: string; vitaminC: string }, time: string,
+  grainScale: number,
+): ComposedMeal {
+  const kind = (BREAKFAST_BY_MODE_DIET[macroMode] ?? BREAKFAST_BY_MODE_DIET.BALANCED)[diet]
+  const ingredients: ComposedIngredient[] = []
+  let recipeId: string
+
+  if (kind === "poha") {
+    recipeId = "POHA_BREAKFAST"
+    ingredients.push({ foodId: "POHA" as any, quantity: roundTo(50 * grainScale, 5),
+      prepNote: { hi: "धोकर", en: "rinsed" } })
+    ingredients.push({ foodId: "PEANUT" as any, quantity: 15 })
+    ingredients.push({ foodId: "ONION" as any, quantity: 30 })
+    ingredients.push({ foodId: "MUTTER" as any, quantity: 30 })
+    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, 50 * grainScale * 0.0114 + 15 * 0.49) })
+  } else if (kind === "upma") {
+    recipeId = "VEG_UPMA"
+    ingredients.push({ foodId: "SOOJI" as any, quantity: roundTo(50 * grainScale, 5),
+      prepNote: { hi: "भुनी", en: "roasted" } })
+    ingredients.push({ foodId: "ONION" as any, quantity: 30 })
+    ingredients.push({ foodId: "MUTTER" as any, quantity: 30 })
+    ingredients.push({ foodId: "CAPSICUM" as any, quantity: 30 })
+    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, 5) })
+  } else if (kind === "chilla") {
+    recipeId = "BESAN_CHILLA"
+    ingredients.push({ foodId: "BESAN" as any, quantity: roundTo(60 * grainScale, 5),
+      prepNote: { hi: "घोल", en: "batter" } })
+    ingredients.push({ foodId: "ONION" as any, quantity: 30 })
+    ingredients.push({ foodId: "TOMATO" as any, quantity: 30 })
+    ingredients.push({ foodId: "CAPSICUM" as any, quantity: 30 })
+    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, 60 * grainScale * 0.0531) })
+  } else if (kind === "dahi") {
+    recipeId = "DAHI_BOWL"
+    const paneerByProtein = targetProtein / 0.1886
+    const paneerByFat = targetFat / 0.2478
+    const paneerG = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 30, 150)
+    ingredients.push({ foodId: "PANEER" as any, quantity: paneerG, prepNote: { hi: "क्यूब्स", en: "cubes" } })
+    ingredients.push({ foodId: "DAHI" as any, quantity: 150, prepNote: { hi: "फेंटा", en: "whisked" } })
+  } else {
+    recipeId = "EGG_BREAKFAST"
+    const eggsByProtein = Math.round(targetProtein / 6)
+    const eggsByFat     = Math.floor(targetFat / 5)
+    const eggs          = clamp(Math.min(eggsByProtein, eggsByFat), 2, 5)
+    ingredients.push({ foodId: "EGG" as any, quantity: eggs, prepNote: { hi: "उबले/भुर्जी", en: "boiled/scrambled" } })
+    const gap = targetProtein - eggs * 6
+    const whites = gap > 4 ? clamp(Math.round(gap / 3.6), 0, 6) : 0
+    if (whites > 0) ingredients.push({ foodId: "EGG_WHITE" as any, quantity: whites, prepNote: { hi: "अतिरिक्त प्रोटीन", en: "lean protein" } })
+    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, eggs * 5) })
+    ingredients.push({ foodId: "ONION" as any, quantity: 20 })
+    ingredients.push({ foodId: "TOMATO" as any, quantity: 30 })
+  }
+
+  return { name: RECIPES[recipeId]?.name.en ?? recipeId, slot: "breakfast", time, recipeId, mealRole: "breakfast", ingredients }
+}
+
+// Growing-minor snack: banana + peanut + curd. Sized to its (small) calorie share.
+function buildSnackMeal(targetCal: number, time: string): ComposedMeal {
+  // Banana ~1.05 kcal/g, peanut ~5.6, curd ~0.61. A simple fixed-ish snack
+  // scaled by target: more banana for bigger gaps.
+  const bananaG = clamp(roundTo(targetCal * 0.5 / 1.05, 10), 60, 150)
+  const peanutG = 20
+  const dahiG   = 100
+  return {
+    name: "Banana + Peanuts + Curd", slot: "snack", time, recipeId: "GROWTH_SNACK", mealRole: "snack",
+    ingredients: [
+      { foodId: "BANANA" as any, quantity: bananaG },
+      { foodId: "PEANUT" as any, quantity: peanutG },
+      { foodId: "DAHI" as any,   quantity: dahiG },
+    ],
+  }
+}
+
 export function generateDayPlan(
   targets:   GeneratorTargets,
   dayIndex:  number,
   diet:      DietType = "eggetarian",
   macroMode: MacroMode = "KETO",
   schedule:  MealSchedule = LEGACY_IF_SCHEDULE,
+  shape:     MealShapeKind = "two_plus_shake",
 ): GenerationResult {
   const veg = VEG_ROTATION[dayIndex % 7]
-
-  // ── Meal times come from the schedule (commit 11.4) ───────────────────────
-  // Pre-11.4 these were hardcoded "2:00 PM" / "4:30 PM" / "6:30 PM". Now they
-  // come from the injected MealSchedule, which is derived from the user's IF
-  // settings. When no schedule is supplied the LEGACY_IF_SCHEDULE default
-  // reproduces the exact pre-11.4 clock times, so existing callers and tests
-  // are unaffected.
-  //
-  // The generator consumes the first two main-meal times (the MealSlot
-  // vocabulary supports two main meals + a shake; see mealSchedule.ts header
-  // for why 3+ main meals is deferred). If a schedule somehow carries fewer
-  // than two times we fall back to the legacy clock for the missing slot so
-  // we never emit an undefined time.
-  const m1Time    = schedule.mealTimes[0] ?? LEGACY_IF_SCHEDULE.mealTimes[0]
-  const m2Time    = schedule.mealTimes[1] ?? LEGACY_IF_SCHEDULE.mealTimes[1]
-  const shakeTime = schedule.shakeTime ?? LEGACY_IF_SCHEDULE.shakeTime!
-
-  // ── Macro split across meals (commit 11.4 shake-aware) ────────────────────
-  // The whey shake covers a fixed slice of the day's protein/fat. When the
-  // schedule omits the shake, that slice must be redistributed across the two
-  // main meals so the day still hits its target — otherwise a no-shake plan
-  // would silently fall ~25g protein short. We therefore decide the shake
-  // contribution first, then split only the REMAINDER between the two meals.
-  const includeShake = schedule.includeShake
-  const shakeP = includeShake ? 25 : 0
-  const shakeF = includeShake ? 1  : 0
-  const remP   = targets.proteinG - shakeP
-  const remF   = targets.fatG     - shakeF
-  const m1P    = roundTo(remP * 0.48, 1)
-  const m2P    = remP - m1P
-  const m1F    = roundTo(remF * 0.50, 1)
-  const m2F    = remF - m1F
-
   const rotation = resolveRotation(diet, macroMode)
 
-  let meal1: ComposedMeal
-  let meal2: ComposedMeal
-
-  switch (rotation.kind) {
-    case "nonveg_keto": {
-      const day = rotation.week[dayIndex % 7]
-      meal1 = day.m1FoodId === "EGG_PANEER"
-        ? buildEggetarianMeal(day.m1Recipe, "primary",   m1P, m1F, veg, m1Time)
-        : buildProteinMeal(day.m1Recipe, "primary", day.m1FoodId, m1P, m1F, veg, m1Time)
-      meal2 = day.m2FoodId === "EGG_PANEER"
-        ? buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, m2Time)
-        : buildProteinMeal(day.m2Recipe, "secondary", day.m2FoodId, m2P, m2F, veg, m2Time)
-      break
-    }
-
-    case "keto": {
-      const day = rotation.week[dayIndex % 7]
-      if (diet === "veg") {
-        meal1 = buildVegMeal(day.m1Recipe, "primary",   m1P, m1F, veg, m1Time)
-        meal2 = buildVegMeal(day.m2Recipe, "secondary", m2P, m2F, veg, m2Time)
-      } else {
-        meal1 = buildEggetarianMeal(day.m1Recipe, "primary",   m1P, m1F, veg, m1Time)
-        meal2 = buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, m2Time)
+  // ── Build the two main meals (lunch/dinner) via the rotation switch. ────────
+  // Extracted so both 2-meal and 3-meal shapes reuse it. Each main meal gets
+  // its own protein/fat target and a grainScale (portion elasticity).
+  function buildMains(
+    p1: number, f1: number, t1: string, s1: number,
+    p2: number, f2: number, t2: string, s2: number,
+  ): [ComposedMeal, ComposedMeal] {
+    let meal1: ComposedMeal, meal2: ComposedMeal
+    switch (rotation.kind) {
+      case "nonveg_keto": {
+        const day = rotation.week[dayIndex % 7]
+        meal1 = day.m1FoodId === "EGG_PANEER"
+          ? buildEggetarianMeal(day.m1Recipe, "primary",   p1, f1, veg, t1)
+          : buildProteinMeal(day.m1Recipe, "primary", day.m1FoodId, p1, f1, veg, t1)
+        meal2 = day.m2FoodId === "EGG_PANEER"
+          ? buildEggetarianMeal(day.m2Recipe, "secondary", p2, f2, veg, t2)
+          : buildProteinMeal(day.m2Recipe, "secondary", day.m2FoodId, p2, f2, veg, t2)
+        break
       }
-      break
+      case "keto": {
+        const day = rotation.week[dayIndex % 7]
+        if (diet === "veg") {
+          meal1 = buildVegMeal(day.m1Recipe, "primary",   p1, f1, veg, t1)
+          meal2 = buildVegMeal(day.m2Recipe, "secondary", p2, f2, veg, t2)
+        } else {
+          meal1 = buildEggetarianMeal(day.m1Recipe, "primary",   p1, f1, veg, t1)
+          meal2 = buildEggetarianMeal(day.m2Recipe, "secondary", p2, f2, veg, t2)
+        }
+        break
+      }
+      case "thali": {
+        const day = rotation.week[dayIndex % 7]
+        meal1 = buildThaliMeal(day.m1, "primary",   p1, f1, diet, veg, t1, s1)
+        meal2 = buildThaliMeal(day.m2, "secondary", p2, f2, diet, veg, t2, s2)
+        break
+      }
+      case "nonveg_thali": {
+        const day = rotation.week[dayIndex % 7]
+        meal1 = buildNonVegThaliMeal(day.m1, "primary",   p1, f1, veg, t1, s1)
+        meal2 = buildNonVegThaliMeal(day.m2, "secondary", p2, f2, veg, t2, s2)
+        break
+      }
+      case "dal": {
+        const day = rotation.week[dayIndex % 7]
+        meal1 = buildDalMeal(day.m1, "primary",   p1, f1, diet, veg, t1, s1)
+        meal2 = buildDalMeal(day.m2, "secondary", p2, f2, diet, veg, t2, s2)
+        break
+      }
+      case "rice_bowl": {
+        const day = rotation.week[dayIndex % 7]
+        meal1 = buildRiceBowlMeal(day.m1, "primary",   p1, f1, diet, veg, t1, s1)
+        meal2 = buildRiceBowlMeal(day.m2, "secondary", p2, f2, diet, veg, t2, s2)
+        break
+      }
+      case "nonveg_rice_bowl": {
+        const day = rotation.week[dayIndex % 7]
+        meal1 = buildNonVegRiceBowlMeal(day.m1, "primary",   p1, f1, veg, t1, s1)
+        meal2 = buildNonVegRiceBowlMeal(day.m2, "secondary", p2, f2, veg, t2, s2)
+        break
+      }
+      default: {
+        const _exhaustive: never = rotation
+        const day = EGGETARIAN_WEEK[dayIndex % 7]
+        meal1 = buildEggetarianMeal(day.m1Recipe, "primary",   p1, f1, veg, t1)
+        meal2 = buildEggetarianMeal(day.m2Recipe, "secondary", p2, f2, veg, t2)
+      }
     }
-
-    case "thali": {
-      const day = rotation.week[dayIndex % 7]
-      meal1 = buildThaliMeal(day.m1, "primary",   m1P, m1F, diet, veg, m1Time)
-      meal2 = buildThaliMeal(day.m2, "secondary", m2P, m2F, diet, veg, m2Time)
-      break
-    }
-
-    case "nonveg_thali": {
-      const day = rotation.week[dayIndex % 7]
-      meal1 = buildNonVegThaliMeal(day.m1, "primary",   m1P, m1F, veg, m1Time)
-      meal2 = buildNonVegThaliMeal(day.m2, "secondary", m2P, m2F, veg, m2Time)
-      break
-    }
-
-    case "dal": {
-      const day = rotation.week[dayIndex % 7]
-      meal1 = buildDalMeal(day.m1, "primary",   m1P, m1F, diet, veg, m1Time)
-      meal2 = buildDalMeal(day.m2, "secondary", m2P, m2F, diet, veg, m2Time)
-      break
-    }
-
-    case "rice_bowl": {
-      const day = rotation.week[dayIndex % 7]
-      meal1 = buildRiceBowlMeal(day.m1, "primary",   m1P, m1F, diet, veg, m1Time)
-      meal2 = buildRiceBowlMeal(day.m2, "secondary", m2P, m2F, diet, veg, m2Time)
-      break
-    }
-
-    case "nonveg_rice_bowl": {
-      const day = rotation.week[dayIndex % 7]
-      meal1 = buildNonVegRiceBowlMeal(day.m1, "primary",   m1P, m1F, veg, m1Time)
-      meal2 = buildNonVegRiceBowlMeal(day.m2, "secondary", m2P, m2F, veg, m2Time)
-      break
-    }
-
-    default: {
-      // TypeScript exhaustive check — should never reach
-      const _exhaustive: never = rotation
-      const day = EGGETARIAN_WEEK[dayIndex % 7]
-      meal1 = buildEggetarianMeal(day.m1Recipe, "primary",   m1P, m1F, veg, m1Time)
-      meal2 = buildEggetarianMeal(day.m2Recipe, "secondary", m2P, m2F, veg, m2Time)
-    }
+    return [meal1, meal2]
   }
 
-  // ── Assemble the day's meals, time-sorted ─────────────────────────────────
-  // The shake (when included) sits between the two main meals. Downstream
-  // slot-index logic (mealSwap, tomorrowPlan) keys off the time-sorted
-  // position, so we keep the array ordered by clock time. With the legacy
-  // schedule this reproduces [meal1, shake, meal2] exactly.
-  const meals: ComposedMeal[] = [meal1, meal2]
-  if (includeShake) {
-    const shake: ComposedMeal = {
-      name: "Whey Protein Shake",
-      slot: "shake",
-      time: shakeTime,
-      recipeId: "WHEY_SHAKE",
-      ingredients: [{ foodId: "WHEY" as any, quantity: 1 }],
+  const meals: ComposedMeal[] = []
+
+  if (shape === "two_plus_shake") {
+    // ── 2 meals + optional shake (fasting / legacy). Unchanged behaviour. ─────
+    const includeShake = schedule.includeShake
+    const shakeP = includeShake ? 25 : 0
+    const shakeF = includeShake ? 1  : 0
+    const remP = targets.proteinG - shakeP
+    const remF = targets.fatG     - shakeF
+    const m1P = roundTo(remP * 0.48, 1), m2P = remP - m1P
+    const m1F = roundTo(remF * 0.50, 1), m2F = remF - m1F
+    const m1Time = schedule.mealTimes[0] ?? LEGACY_IF_SCHEDULE.mealTimes[0]
+    const m2Time = schedule.mealTimes[1] ?? LEGACY_IF_SCHEDULE.mealTimes[1]
+    const shakeTime = schedule.shakeTime ?? LEGACY_IF_SCHEDULE.shakeTime!
+    // Per-meal scale to hit ~half the day each (minus shake). grain modes only.
+    const perMealCal = (targets.calories - (includeShake ? 120 : 0)) / 2
+    const sc = computeMealScale(perMealCal)
+    const [meal1, meal2] = buildMains(m1P, m1F, m1Time, sc, m2P, m2F, m2Time, sc)
+    meals.push(meal1, meal2)
+    if (includeShake) {
+      meals.push({ name: "Whey Protein Shake", slot: "shake", time: shakeTime,
+        recipeId: "WHEY_SHAKE", ingredients: [{ foodId: "WHEY" as any, quantity: 1 }] })
     }
-    meals.push(shake)
+  } else {
+    // ── 3 meals (breakfast + lunch + dinner), optional growth snack. ──────────
+    // Macro split: breakfast lighter (25% P / 20% F), lunch & dinner share the
+    // rest. Snack (minors) takes a small slice off the top first.
+    const hasSnack = shape === "three_plus_snack"
+    const snackP = hasSnack ? roundTo(targets.proteinG * 0.10, 1) : 0
+    const snackF = hasSnack ? roundTo(targets.fatG * 0.10, 1) : 0
+    const snackCal = hasSnack ? Math.round(targets.calories * 0.12) : 0
+
+    const afterSnackP = targets.proteinG - snackP
+    const afterSnackF = targets.fatG     - snackF
+    const bP = roundTo(afterSnackP * 0.25, 1)
+    const bF = roundTo(afterSnackF * 0.20, 1)
+    const restP = afterSnackP - bP
+    const restF = afterSnackF - bF
+    const lP = roundTo(restP * 0.5, 1), dP = restP - lP
+    const lF = roundTo(restF * 0.5, 1), dF = restF - lF
+
+    // Times: schedule provides 3 (breakfast/lunch/dinner). Snack mid-afternoon.
+    const bTime = schedule.mealTimes[0] ?? "8:30 AM"
+    const lTime = schedule.mealTimes[1] ?? "1:00 PM"
+    const dTime = schedule.mealTimes[2] ?? "7:30 PM"
+    const snackTime = "4:30 PM"
+
+    // Per-meal calorie shares → scales.
+    const mainsCal = targets.calories - snackCal
+    const bCal = mainsCal * 0.25
+    const ldCal = mainsCal * 0.375
+    const bScale  = computeMealScale(bCal)
+    const ldScale = computeMealScale(ldCal)
+
+    const breakfast = buildBreakfastMeal(macroMode, diet, dayIndex, bP, bF, veg, bTime, bScale)
+    const [lunch, dinner] = buildMains(lP, lF, lTime, ldScale, dP, dF, dTime, ldScale)
+    lunch.mealRole = "lunch"; dinner.mealRole = "dinner"
+    meals.push(breakfast, lunch, dinner)
+    if (hasSnack) meals.push(buildSnackMeal(snackCal, snackTime))
   }
+
   meals.sort((a, b) => parseClockToMinutes(a.time) - parseClockToMinutes(b.time))
 
-  const shakeNote = includeShake ? "with shake" : "no shake"
   const plan: ComposedDayPlan = {
     meals,
     meta: {
       decisions: [
         `Diet: ${diet} | Mode: ${macroMode} | Day: ${dayIndex} | Veg: ${veg.primary}`,
         `Target: P${targets.proteinG}g F${targets.fatG}g C${targets.carbsG}g ${targets.calories}kcal`,
-        `Schedule: ${meals.map(m => m.time).join(" / ")} (${shakeNote})`,
+        `Shape: ${shape} | ${meals.map(m => m.time).join(" / ")}`,
       ],
     },
   }
@@ -1965,6 +2132,7 @@ export function generateWeekPlan(
   diet:      DietType = "eggetarian",
   macroMode: MacroMode = "KETO",
   schedule:  MealSchedule = LEGACY_IF_SCHEDULE,
+  shape:     MealShapeKind = "two_plus_shake",
 ): GenerationResult[] {
-  return Array.from({ length: 7 }, (_, i) => generateDayPlan(targets, i, diet, macroMode, schedule))
+  return Array.from({ length: 7 }, (_, i) => generateDayPlan(targets, i, diet, macroMode, schedule, shape))
 }

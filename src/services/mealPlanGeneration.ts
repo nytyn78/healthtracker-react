@@ -12,7 +12,7 @@ import { useHealthStore, saveMealPlan, DietTag } from "../store/useHealthStore"
 import { KEYS } from "./storageKeys"
 import { computeMacros, resolveMacroMode } from "./adaptiveTDEE"
 import { loadGoalMode } from "./goalModeConfig"
-import { generateWeekPlan, GeneratorTargets, deriveMealSchedule } from "./mealGenerator"
+import { generateWeekPlan, GeneratorTargets, deriveMealSchedule, resolveMealShape } from "./mealGenerator"
 import { toDayMealPlanEntries } from "./transformer"
 import type { MealPlanEntry } from "../store/useHealthStore"
 
@@ -24,6 +24,23 @@ function getMealPlanTargetHash(targets: GeneratorTargets): string {
 
 function saveHash(hash: string) {
   try { localStorage.setItem(KEYS.MEAL_PLAN + "_target_hash", hash) } catch {}
+}
+
+// Build the growing-minor top-up note (meal-shape feature). Returns "" when the
+// plan reaches target (no note needed), else a clear, non-deficit message
+// telling a parent how much to add via a snack. Exported for testing.
+const MINOR_SHORTFALL_TOLERANCE = 0.08  // within 8% of target = adequately fed
+export function computeMinorTopupNote(
+  weekResults: { validation: { computed: { calories: number } } }[],
+  targetCalories: number,
+): string {
+  if (weekResults.length === 0) return ""
+  const avgCal = weekResults.reduce((s, r) => s + r.validation.computed.calories, 0) / weekResults.length
+  const shortfall = targetCalories - avgCal
+  if (shortfall <= targetCalories * MINOR_SHORTFALL_TOLERANCE) return ""
+  const gap = Math.round(shortfall / 10) * 10
+  return `This plan provides about ${Math.round(avgCal)} of the ~${targetCalories} kcal a growing body needs each day. ` +
+         `Add roughly ${gap} kcal as a snack — fruit, nuts, milk, curd, a paratha, or an egg. Don't skip it.`
 }
 
 /**
@@ -77,10 +94,24 @@ export function autoGenerateAndSaveMealPlan(dietTag: DietTag): boolean {
   // assumes it) and dropped for non-fasting users, who get that protein
   // redistributed into their main meals instead.
   const ifp = settings.ifProtocol
-  const schedule = deriveMealSchedule(ifp, { includeShake: ifp.fastingEnabled })
+  // ── Meal shape (meal-shape feature) ───────────────────────────────────────
+  // Non-fasting users get 3 meals (breakfast/lunch/dinner) by default; fasting
+  // users keep 2 meals + shake. Growing minors (child/early teen) always get
+  // 3 meals + a growth snack and are never placed in a fasting/2-meal shape.
+  // A user override (settings.mealShape) can force two/three for non-minors.
+  const isGrowingMinor = goalMode === "child" || goalMode === "teen_early"
+  const override = settings.mealShape === "two" || settings.mealShape === "three"
+    ? settings.mealShape : undefined
+  const shape = resolveMealShape(ifp.fastingEnabled, isGrowingMinor, override)
+  const threeMeal = shape === "three" || shape === "three_plus_snack"
+
+  const schedule = deriveMealSchedule(ifp, {
+    mainMealCount: threeMeal ? 3 : 2,
+    includeShake:  threeMeal ? false : ifp.fastingEnabled,
+  })
 
   try {
-    const weekResults = generateWeekPlan(targets, diet, macroMode, schedule)
+    const weekResults = generateWeekPlan(targets, diet, macroMode, schedule, shape)
 
     // Flatten 7 days × 3 meals into a single MealPlanEntry[] with the day
     // label on each entry. This matches MealPlanSync's pre-14 behavior.
@@ -94,6 +125,19 @@ export function autoGenerateAndSaveMealPlan(dietTag: DietTag): boolean {
 
     saveMealPlan(allEntries)
     saveHash(getMealPlanTargetHash(targets))
+
+    // ── Growing-minor calorie safety (meal-shape feature) ─────────────────────
+    // A child/teen must never be silently under-fed. If the generated plan's
+    // average day falls meaningfully short of their calorie target (the builders
+    // cap at realistic portions), persist a clear top-up note so a parent adds
+    // a snack — rather than presenting a deficit plan as complete. Never a
+    // deficit *frame* (no "eat less"); always "add more".
+    if (isGrowingMinor) {
+      const note = computeMinorTopupNote(weekResults, targets.calories)
+      try { localStorage.setItem(KEYS.MINOR_TOPUP_NOTE, note) } catch {}
+    } else {
+      try { localStorage.removeItem(KEYS.MINOR_TOPUP_NOTE) } catch {}
+    }
     return true
   } catch (e) {
     // Generator threw — log and let caller fall back to preset.

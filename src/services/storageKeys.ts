@@ -33,6 +33,11 @@ export const KEYS = {
   // ── Meal plan ─────────────────────────────────────────────────────────────
   MEAL_PLAN:            K("meal_plan"),
   DIET_CONFIG:          K("diet_config"),
+  // Growing-minor calorie top-up note. Set when a child/teen's generated plan
+  // can't fully reach their (high) calorie target in the available meals — the
+  // UI surfaces it so a parent adds a snack rather than the child silently
+  // under-eating. Empty string / absent = no shortfall.
+  MINOR_TOPUP_NOTE:     K("minor_topup_note"),
 
   // Swap-as-substitution (commit 13): per-date, per-slot meal overrides.
   // Date-stamped (YYYY-MM-DD) so today's swaps auto-expire at midnight and

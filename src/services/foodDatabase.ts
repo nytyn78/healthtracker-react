@@ -958,6 +958,39 @@ export const FOODS = {
     displayName: { hi: "चना दाल", en: "Chana Dal" },
   },
 
+  // B001 (via CHANA_DAL) — Besan is milled Bengal-gram dal. Grinding does not
+  // change proximate composition, so besan carries the same per-gram macros as
+  // CHANA_DAL (IFCT B001). Used for chilla (savoury breakfast pancake), kadhi.
+  BESAN: {
+    id: "BESAN", name: "Gram Flour (Besan)",
+    unitType: "grams",
+    macros: {
+      protein: 0.2155, carbs: 0.4672, fat: 0.0531,
+      calories: 3.29, fiber: 0.1515,
+      calcium: 0.4632, iron: 0.0608,
+    },
+    tags: ["veg", "eggetarian", "fiber-source"],
+    quantization: { step: 5, min: 20, max: 120 },
+    displayName: { hi: "बेसन", en: "Besan (Gram Flour)" },
+  },
+
+  // IFCT — Banana, ripe (robusta), Musa x paradisiaca. Per 100g: protein 1.23,
+  // carb 23.63, fat 0.33, fibre 1.94, energy 440 kJ = 105 kcal. n=6. The
+  // canonical Indian growth/recovery snack — used in the kids' snack slot.
+  BANANA: {
+    id: "BANANA", name: "Banana, ripe",
+    unitType: "grams",
+    macros: {
+      protein: 0.0123, carbs: 0.2363, fat: 0.0033,
+      calories: 1.05, fiber: 0.0194,
+      calcium: 0.08, iron: 0.0004,
+    },
+    tags: ["veg", "eggetarian"],
+    quantization: { step: 10, min: 60, max: 150 },
+    displayName: { hi: "केला", en: "Banana" },
+  },
+
+
   // B002 — Bengal gram, whole. Desi black chickpea (kala chana) and the
   // closest IFCT proxy for kabuli chana (see header note above). Very high
   // fibre because the seed coat is intact. Good calcium and iron. n=6.

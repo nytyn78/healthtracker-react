@@ -4,7 +4,7 @@
 
 import type { FoodId } from "./foodDatabase"
 
-export type MealSlot = "primary" | "secondary" | "shake"
+export type MealSlot = "breakfast" | "primary" | "secondary" | "snack" | "shake"
 
 export type ComposedIngredient = {
   foodId:    FoodId
@@ -20,6 +20,10 @@ export type ComposedMeal = {
   slot:        MealSlot
   time:        string     // display only — "2:00 PM" etc.
   recipeId:    string
+  // Human label for the meal's role in the day (breakfast/lunch/dinner/snack),
+  // shown in the UI. Distinct from `slot` (structural). Optional — 2-meal
+  // plans leave it unset and fall back to "Meal 1 / Meal 2".
+  mealRole?:   "breakfast" | "lunch" | "dinner" | "snack"
   // Additional recipe ids whose steps should also be shown, for COMPOSITE
   // meals (e.g. a thali = dal + sabzi + protein dish). The transformer
   // concatenates steps from recipeId followed by each extraRecipeIds entry,

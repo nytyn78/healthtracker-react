@@ -724,6 +724,72 @@ export const RECIPES: Record<string, Recipe> = {
     },
   },
 
+  // ── Breakfast + snack recipes (meal-shape feature) ────────────────────────────
+  VEG_UPMA: {
+    id: "VEG_UPMA",
+    name: { hi: "सूजी उपमा", en: "Sooji Upma" },
+    compatibleFoods: ["SOOJI", "ONION", "MUTTER", "CAPSICUM", "GHEE"],
+    requiredRanges: { SOOJI: { min: 40, max: 100 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["सूजी सूखा भून लें — 3 मिनट — अलग रखें", "घी में सरसों, करी पत्ता, हरी मिर्च — 30 सेकंड", "प्याज 2 मिनट — मटर, शिमला मिर्च — 3 मिनट", "गरम पानी 1:2.5 — नमक — उबाल", "सूजी डालें — लगातार चलाएं — 3 मिनट ढककर", "नींबू — हरा धनिया — परोसें"],
+      en: ["Dry-roast sooji 3 min — set aside", "Ghee — mustard seeds, curry leaves, chilli — 30 sec", "Onion 2 min — mutter, capsicum — 3 min", "Hot water 1:2.5 — salt — boil", "Add sooji — stir constantly — 3 min covered", "Lemon — coriander — serve"],
+    },
+  },
+  BESAN_CHILLA: {
+    id: "BESAN_CHILLA",
+    name: { hi: "बेसन चीला", en: "Besan Chilla" },
+    compatibleFoods: ["BESAN", "ONION", "TOMATO", "CAPSICUM", "GHEE"],
+    requiredRanges: { BESAN: { min: 40, max: 100 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["बेसन + पानी — पतला घोल — नमक, हल्दी, अजवाइन — 10 मिनट", "बारीक प्याज, टमाटर, शिमला मिर्च मिलाएं", "तवा गरम — थोड़ा घी — घोल फैलाएं", "दोनों तरफ सुनहरा — 2 मिनट प्रति साइड", "हरी चटनी के साथ परोसें"],
+      en: ["Besan + water — thin batter — salt, turmeric, ajwain — rest 10 min", "Mix in chopped onion, tomato, capsicum", "Hot tawa — little ghee — spread batter", "Golden both sides — 2 min per side", "Serve with green chutney"],
+    },
+  },
+  POHA_BREAKFAST: {
+    id: "POHA_BREAKFAST",
+    name: { hi: "पोहा", en: "Poha" },
+    compatibleFoods: ["POHA", "PEANUT", "ONION", "MUTTER", "GHEE"],
+    requiredRanges: { POHA: { min: 40, max: 100 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["पोहा धोकर छान लें — नरम होने दें", "घी में सरसों, करी पत्ता, मूंगफली — 1 मिनट", "प्याज, मटर — 3 मिनट", "पोहा डालें — हल्दी, नमक, नींबू — 2 मिनट", "हरा धनिया — परोसें"],
+      en: ["Rinse and drain poha — let soften", "Ghee — mustard, curry leaves, peanuts — 1 min", "Onion, mutter — 3 min", "Add poha — turmeric, salt, lemon — 2 min", "Coriander — serve"],
+    },
+  },
+  EGG_BREAKFAST: {
+    id: "EGG_BREAKFAST",
+    name: { hi: "अंडा नाश्ता", en: "Egg Breakfast" },
+    compatibleFoods: ["EGG", "EGG_WHITE", "ONION", "TOMATO", "GHEE"],
+    dietTags: ["eggetarian"],
+    steps: {
+      hi: ["अंडे उबालें (8 मिनट) या घी में स्क्रैंबल करें", "स्क्रैंबल — प्याज, टमाटर 2 मिनट — फिर अंडे", "नमक, काली मिर्च — परोसें"],
+      en: ["Boil eggs (8 min) or scramble in ghee", "If scrambling — onion, tomato 2 min — then eggs", "Salt, pepper — serve"],
+    },
+  },
+  DAHI_BOWL: {
+    id: "DAHI_BOWL",
+    name: { hi: "दही", en: "Curd Bowl" },
+    compatibleFoods: ["DAHI"],
+    requiredRanges: { DAHI: { min: 150, max: 300 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["दही फेंटें — चिकना करें", "चुटकी भर नमक या भुना जीरा", "ठंडा परोसें"],
+      en: ["Whisk curd smooth", "Pinch of salt or roasted cumin", "Serve chilled"],
+    },
+  },
+  GROWTH_SNACK: {
+    id: "GROWTH_SNACK",
+    name: { hi: "केला + मूंगफली + दही", en: "Banana + Peanuts + Curd" },
+    compatibleFoods: ["BANANA", "PEANUT", "DAHI"],
+    dietTags: ["veg"],
+    steps: {
+      hi: ["केला काटें", "ऊपर से मूंगफली और दही", "तुरंत परोसें — स्कूल/खेल से पहले या बाद"],
+      en: ["Slice banana", "Top with peanuts and curd", "Serve fresh — before/after school or play"],
+    },
+  },
+
 }
 
 export function getRecipe(recipeId: string): Recipe {
