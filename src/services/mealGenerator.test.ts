@@ -605,3 +605,100 @@ describe("structural invariants — all modes (11.3)", () => {
     }
   })
 })
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ── Macro fidelity (builder accuracy) ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// The builders turn per-meal protein/fat targets into real food. Before this
+// commit they drifted badly: an audit showed RECOMP/veg fat +103%, HPC fat
+// +58%, BALANCED calories +23%, KETO/non-veg calories −17%. Root causes were a
+// forced ghee floor, paneer sized by protein only (ignoring its heavy intrinsic
+// fat), whole eggs capping protein too low for lean cuts, and the thali
+// stacking multiple protein sources + a paneer sabzi.
+//
+// Fixes: solveGhee (no floor; zero ghee when sources already meet fat),
+// paneer/whole-egg capped by the fat budget with lean tofu/egg-white filling
+// the protein gap, the thali adding only a lean protein centrepiece, and the
+// sabzi contributing vegetables only (never a second protein).
+//
+// These guards assert the WHOLE-DAY calorie error stays within ±15% of target
+// across every mode×diet. 15% is the achievable bar given fixed household
+// portions (whole katoris, rotis, eggs) — not a clinical target, a regression
+// fence so the builders can't drift back to the pre-fix state.
+
+describe("macro fidelity — whole-day calorie accuracy (builder audit)", () => {
+  const CALORIE_TOLERANCE = 0.15
+
+  // Representative targets per mode×diet (centre-of-band, realistic fat-loss
+  // calorie levels for this app's users).
+  const cases: Array<[MacroMode, DietType, GeneratorTargets]> = [
+    ["KETO",             "eggetarian", { proteinG: 110, fatG: 120, carbsG: 25,  calories: 1600 }],
+    ["KETO",             "veg",        { proteinG: 100, fatG: 120, carbsG: 25,  calories: 1550 }],
+    ["KETO",             "non-veg",    { proteinG: 120, fatG: 115, carbsG: 25,  calories: 1600 }],
+    ["VERY_LOW_CARB",    "eggetarian", { proteinG: 110, fatG: 110, carbsG: 60,  calories: 1600 }],
+    ["LOW_CARB",         "eggetarian", { proteinG: 95,  fatG: 65,  carbsG: 100, calories: 1380 }],
+    ["LOW_CARB",         "veg",        { proteinG: 90,  fatG: 70,  carbsG: 100, calories: 1400 }],
+    ["BALANCED",         "eggetarian", { proteinG: 95,  fatG: 50,  carbsG: 160, calories: 1480 }],
+    ["BALANCED",         "veg",        { proteinG: 90,  fatG: 50,  carbsG: 160, calories: 1450 }],
+    ["BALANCED",         "non-veg",    { proteinG: 100, fatG: 55,  carbsG: 150, calories: 1500 }],
+    ["HIGH_PROTEIN_CUT", "eggetarian", { proteinG: 130, fatG: 50,  carbsG: 90,  calories: 1340 }],
+    ["HIGH_PROTEIN_CUT", "veg",        { proteinG: 125, fatG: 50,  carbsG: 90,  calories: 1320 }],
+    ["HIGH_PROTEIN_CUT", "non-veg",    { proteinG: 135, fatG: 48,  carbsG: 85,  calories: 1330 }],
+    ["RECOMPOSITION",    "veg",        { proteinG: 120, fatG: 55,  carbsG: 180, calories: 1680 }],
+    ["RECOMPOSITION",    "non-veg",    { proteinG: 130, fatG: 55,  carbsG: 175, calories: 1700 }],
+  ]
+
+  function avgDailyCalories(week: ReturnType<typeof generateWeekPlan>, tag: any): number {
+    let total = 0
+    for (const day of week) {
+      for (const meal of day.plan.meals) {
+        total += toMealPlanEntry(meal, { lang: "en", dietTag: tag }).cal
+      }
+    }
+    return total / week.length
+  }
+
+  for (const [mode, diet, targets] of cases) {
+    it(`${mode}/${diet} lands within ±15% of calorie target`, () => {
+      const tag = diet === "non-veg" ? "non_veg" : diet
+      const week = generateWeekPlan(targets, diet, mode)
+      const avgCal = avgDailyCalories(week, tag)
+      const lower = targets.calories * (1 - CALORIE_TOLERANCE)
+      const upper = targets.calories * (1 + CALORIE_TOLERANCE)
+      expect(avgCal).toBeGreaterThanOrEqual(lower)
+      expect(avgCal).toBeLessThanOrEqual(upper)
+    })
+  }
+
+  it("no single meal grossly overshoots its share of the day", () => {
+    // Guards the specific bug where a thali stacked multiple protein sources to
+    // >1000 kcal in one meal. A legitimate 2-meal plan can put ~55-60% of the
+    // day in one meal, so we flag only meals exceeding 65% of the daily target.
+    for (const [mode, diet, targets] of cases) {
+      const tag = diet === "non-veg" ? "non_veg" : diet
+      const week = generateWeekPlan(targets, diet, mode)
+      const cap = targets.calories * 0.65
+      for (const day of week) {
+        for (const meal of day.plan.meals) {
+          const cal = toMealPlanEntry(meal, { lang: "en", dietTag: tag }).cal
+          expect(cal).toBeLessThanOrEqual(cap)
+        }
+      }
+    }
+  })
+
+  it("solveGhee adds no ghee when sources already meet the fat target", () => {
+    // A high-fat protein source (paneer) at a low fat target should yield a
+    // plan whose fat isn't inflated by a forced ghee floor. Proxy: a BALANCED
+    // veg plan (lean fat target) keeps average daily fat within +20% — the old
+    // floor drove this to +26%+.
+    const targets: GeneratorTargets = { proteinG: 90, fatG: 50, carbsG: 160, calories: 1450 }
+    const week = generateWeekPlan(targets, "veg", "BALANCED")
+    let totalFat = 0
+    for (const day of week)
+      for (const meal of day.plan.meals)
+        totalFat += toMealPlanEntry(meal, { lang: "en", dietTag: "veg" }).fat
+    const avgFat = totalFat / week.length
+    expect(avgFat).toBeLessThanOrEqual(targets.fatG * 1.20)
+  })
+})

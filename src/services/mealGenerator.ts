@@ -977,6 +977,24 @@ const DAL_RAW_PER_MEAL_G    = 60
 function clamp(n: number, min: number, max: number) { return Math.min(max, Math.max(min, n)) }
 function roundTo(n: number, step: number) { return Math.round(n / step) * step }
 
+// Compute cooking ghee (in tsp) to close the gap between a meal's fat target
+// and the fat already supplied by its protein/veg sources.
+//
+// Macro-fidelity fix: the previous builders used clamp(..., FLOOR, 4) with a
+// FLOOR of 0.5–1 tsp, which FORCED ghee onto meals whose protein source
+// (paneer ≈ 0.25 g fat/g) already met or exceeded the fat target — the main
+// driver of the +20–100% fat overshoot in the audit. This helper:
+//   - returns 0 when sources already meet/exceed target (no forced floor),
+//   - otherwise adds just enough ghee (¼-tsp resolution) to reach target,
+//   - caps at maxTsp so a single meal never drowns in ghee.
+// 1 tsp ghee = 5 g fat (GHEE macros).
+const GHEE_FAT_PER_TSP = 5
+function solveGhee(targetFat: number, fatFromSources: number, maxTsp = 5): number {
+  const gap = targetFat - fatFromSources
+  if (gap <= 0) return 0
+  return clamp(roundTo(gap / GHEE_FAT_PER_TSP, 0.5), 0, maxTsp)
+}
+
 // ═════════════════════════════════════════════════════════════════════════════
 // ── Existing keto builders (unchanged from 11.2a) ───────────────────────────
 // ═════════════════════════════════════════════════════════════════════════════
@@ -993,7 +1011,7 @@ function buildEggPaneerMeal(
   const proteinFromEggs = eggs * 6
   const paneerG = clamp(roundTo((targetProtein - proteinFromEggs) / 0.18, 10), 50, 150)
   const fatFromSources = eggs * 5 + paneerG * 0.20
-  const gheeNeeded = clamp(roundTo((targetFat - fatFromSources) / 5, 0.5), 1, 4)
+  const gheeNeeded = solveGhee(targetFat, fatFromSources)
 
   const ingredients: ComposedIngredient[] = [
     { foodId: "EGG" as any,    quantity: eggs,
@@ -1054,9 +1072,22 @@ function buildEggOnlyMeal(
     effectiveVeg = { primary: "MUSHROOM", vitaminC: "CAPSICUM" }
   }
 
-  const eggs           = clamp(Math.round(targetProtein / 6), 2, 6)
-  const fatFromEggs    = eggs * 5
-  const gheeNeeded     = clamp(roundTo((targetFat - fatFromEggs) / 5, 0.5), 0.5, 4)
+  // Macro-fidelity: whole eggs carry ~5 g fat each (0.83 g fat/g protein). For
+  // a lean high-protein meal (HPC: high protein, low fat) protein-sized whole
+  // eggs blow the fat target AND cap out at 6 eggs (36 g protein) — the audit's
+  // HPC protein −20% / fat +35%. So we cap whole eggs at the fat budget, then
+  // fill the protein gap with EGG_WHITE (3.6 g protein, ~0 fat each). For
+  // higher-fat targets (keto) the fat budget allows the full egg count and no
+  // whites are needed — same behaviour as before.
+  const WHOLE_EGG_PROTEIN = 6, WHOLE_EGG_FAT = 5
+  const eggsByProtein = Math.round(targetProtein / WHOLE_EGG_PROTEIN)
+  const eggsByFat     = Math.floor(targetFat / WHOLE_EGG_FAT)
+  const eggs          = clamp(Math.min(eggsByProtein, eggsByFat), 2, 6)
+  const proteinFromEggs = eggs * WHOLE_EGG_PROTEIN
+  const proteinGap      = targetProtein - proteinFromEggs
+  const eggWhites       = proteinGap > 4 ? clamp(Math.round(proteinGap / 3.6), 0, 8) : 0
+  const fatFromEggs    = eggs * WHOLE_EGG_FAT
+  const gheeNeeded     = solveGhee(targetFat, fatFromEggs)
 
   const splitRule = EGG_SPLIT_RULES[recipeId]
   const ingredients: ComposedIngredient[] = []
@@ -1076,6 +1107,11 @@ function buildEggOnlyMeal(
       recipeId === "KARELA_ANDA"           ? { hi: "भुर्जी", en: "scrambled" } :
                                              { hi: "उबले", en: "boiled" }
     ingredients.push({ foodId: "EGG" as any, quantity: eggs, prepNote: defaultPrep })
+  }
+
+  if (eggWhites > 0) {
+    ingredients.push({ foodId: "EGG_WHITE" as any, quantity: eggWhites,
+      prepNote: { hi: "अतिरिक्त प्रोटीन", en: "added for lean protein" } })
   }
 
   ingredients.push({ foodId: "GHEE" as any, quantity: gheeNeeded })
@@ -1104,18 +1140,28 @@ function buildPaneerOnlyMeal(
     effectiveVeg = { primary: "CAPSICUM", vitaminC: "CAPSICUM" }
   }
 
-  const paneerG          = clamp(roundTo(targetProtein / 0.1886, 10), 80, 200)
-  const fatFromPaneer    = paneerG * 0.2478
-  const gheeNeeded       = clamp(roundTo((targetFat - fatFromPaneer) / 5, 0.5), 0.5, 4)
+  // Macro-fidelity: cap paneer by the fat budget, not just protein, then fill
+  // any protein gap with lean tofu (see buildVegMeal for rationale). Prevents
+  // the fat overshoot on lean targets while still hitting protein.
+  const P_PROT = 0.1886, P_FAT = 0.2478
+  const paneerByProtein = targetProtein / P_PROT
+  const paneerByFat     = targetFat / P_FAT
+  const paneerG          = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 40, 200)
+  const proteinFromPaneer = paneerG * P_PROT
+  const proteinGap        = targetProtein - proteinFromPaneer
+  const tofuG = proteinGap > 5 ? clamp(roundTo(proteinGap / 0.081, 10), 0, 200) : 0
+  const fatFromPaneer    = paneerG * P_FAT + tofuG * 0.049
+  const gheeNeeded       = solveGhee(targetFat, fatFromPaneer)
 
   const ingredients: ComposedIngredient[] = [
     { foodId: "PANEER" as any, quantity: paneerG,
       prepNote: recipeId === "PANEER_BHURJI"
         ? { hi: "क्रम्बल्ड", en: "crumbled" }
         : { hi: "क्यूब्स", en: "cubes" } },
-    { foodId: "GHEE" as any, quantity: gheeNeeded },
-    { foodId: effectiveVeg.primary as any, quantity: 80 },
   ]
+  if (tofuG > 0) ingredients.push({ foodId: "TOFU_FIRM" as any, quantity: tofuG })
+  ingredients.push({ foodId: "GHEE" as any, quantity: gheeNeeded })
+  ingredients.push({ foodId: effectiveVeg.primary as any, quantity: 80 })
   if (effectiveVeg.vitaminC !== effectiveVeg.primary) {
     ingredients.push({ foodId: effectiveVeg.vitaminC as any, quantity: 60 })
   }
@@ -1171,20 +1217,35 @@ function buildVegMeal(
     effectiveVeg = { primary: "CAPSICUM", vitaminC: "CAPSICUM" }
   }
 
-  const hungCurdG       = 80
+  // Hung curd adds texture + protein but also fat (0.05 g/g). For lean targets
+  // a flat 80 g curd contributed to the BALANCED/veg + HPC/veg fat overshoot,
+  // so we scale it: full 80 g when the fat budget is comfortable, down to 30 g
+  // when it's tight. Keeps the marinade/texture role without blowing fat.
+  const hungCurdG       = targetFat >= 35 ? 80 : targetFat >= 22 ? 50 : 30
   const proteinFromCurd = hungCurdG * 0.097
+  const fatFromCurd     = hungCurdG * 0.05
 
-  const paneerNeeded    = (targetProtein - proteinFromCurd) / 0.1886
-  const paneerG         = clamp(roundTo(paneerNeeded, 10), 80, 180)
-  const proteinFromPaneer = paneerG * 0.1886
+  // Macro-fidelity: size paneer by the LESSER of what protein needs and what
+  // the fat budget allows. Paneer carries ~0.2478 g fat/g, so for a lean meal
+  // (low targetFat) protein-sized paneer blows the fat target (the RECOMP/veg
+  // +98% and BALANCED/HPC overshoots in the audit). We cap paneer at the fat
+  // budget remaining after curd, then meet the protein gap with lean tofu
+  // (0.081 g protein/g, only 0.049 g fat/g) — protein without the fat load.
+  const PANEER_PROTEIN_PER_G = 0.1886
+  const PANEER_FAT_PER_G     = 0.2478
+  const fatBudgetForPaneer   = Math.max(targetFat - fatFromCurd, 0)
+  const paneerByProtein      = (targetProtein - proteinFromCurd) / PANEER_PROTEIN_PER_G
+  const paneerByFat          = fatBudgetForPaneer / PANEER_FAT_PER_G
+  const paneerG              = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 40, 180)
+  const proteinFromPaneer    = paneerG * PANEER_PROTEIN_PER_G
 
   const proteinGapAfterPaneer = targetProtein - proteinFromCurd - proteinFromPaneer
   const tofuG = proteinGapAfterPaneer > 5
-    ? clamp(roundTo(proteinGapAfterPaneer / 0.081, 10), 0, 150)
+    ? clamp(roundTo(proteinGapAfterPaneer / 0.081, 10), 0, 200)
     : 0
 
-  const fatFromSources  = paneerG * 0.2478 + hungCurdG * 0.05 + tofuG * 0.049
-  const gheeNeeded      = clamp(roundTo((targetFat - fatFromSources) / 5, 0.5), 0.5, 4)
+  const fatFromSources  = paneerG * PANEER_FAT_PER_G + fatFromCurd + tofuG * 0.049
+  const gheeNeeded      = solveGhee(targetFat, fatFromSources)
 
   const ingredients: ComposedIngredient[] = [
     { foodId: "PANEER" as any, quantity: paneerG,
@@ -1229,8 +1290,10 @@ function buildProteinMeal(
   }
 
   const fatFromSource = qty * src.fatPerUnit
-  const fatNeeded = targetFat - fatFromSource
-  const ghee = clamp(roundTo(fatNeeded / 5, 0.5), 0.5, 4)
+  // Lean meats (chicken breast, fish, prawns) carry little fat, so a keto-level
+  // fat target can need a lot of cooking fat. Allow up to 8 tsp here (vs the
+  // default 5) so KETO/non-veg meals reach target instead of undershooting.
+  const ghee = solveGhee(targetFat, fatFromSource, 8)
   const fat = foodId === "FISH_ROHU" || foodId === "PRAWNS" ? "COCONUT_OIL" : "GHEE"
 
   const ingredients: ComposedIngredient[] = [
@@ -1342,22 +1405,40 @@ function buildThaliMeal(
   const extraRecipeIds: string[] = [slot.sabziRecipe]
 
   if (slot.proteinRecipe !== null && residualProtein > 5) {
-    // Build the protein dish using the appropriate diet branch.
-    // Pass reduced targets so the protein builder sizes correctly
-    // rather than trying to hit the full meal target after dal is already in.
-    const innerMeal = diet === "veg"
-      ? buildVegMeal(slot.proteinRecipe, mealSlot, residualProtein, residualFat, veg, time)
-      : buildEggetarianMeal(slot.proteinRecipe, mealSlot, residualProtein, residualFat, veg, time)
-    // Incorporate the protein dish's ingredients. Skip foods already present —
-    // including VEGETABLES (the pre-fix dedup set omitted veg, so the inner
-    // builder's rotation veg appeared as a second cauliflower line). We dedup
-    // on foodId across everything already added.
-    const alreadyPresent = new Set(ingredients.map(i => i.foodId as string))
-    for (const ing of innerMeal.ingredients) {
-      if (!alreadyPresent.has(ing.foodId as string)) {
-        ingredients.push(ing)
-        alreadyPresent.add(ing.foodId as string)
-      }
+    // Add the headline protein for the protein dish DIRECTLY, sized to the
+    // residual protein and capped by the residual fat budget. We intentionally
+    // do NOT call the standalone meal builders here: those add their own curd /
+    // tofu / vegetable fillers meant for a standalone plate, which double-stack
+    // on top of the thali's dal + grain + sabzi and caused the BALANCED
+    // protein/calorie overshoot in the audit (a "Paneer Bhurji" thali was
+    // landing >1000 kcal). The thali already supplies vegetables and dal; here
+    // we only need the protein centrepiece.
+    const recipeUsesEgg = RECIPES[slot.proteinRecipe]?.compatibleFoods.includes("EGG" as any)
+    // Helper: add a quantity to an existing ingredient line if present, else push.
+    const addOrMerge = (foodId: string, qty: number, prepNote?: { hi: string; en: string }) => {
+      const existing = ingredients.find(i => i.foodId as string === foodId)
+      if (existing) existing.quantity += qty
+      else ingredients.push({ foodId: foodId as any, quantity: qty, prepNote })
+    }
+    if (diet !== "veg" && recipeUsesEgg) {
+      // Eggetarian protein dish → whole eggs capped by fat, whites for the gap.
+      const eggsByProtein = Math.round(residualProtein / 6)
+      const eggsByFat     = Math.floor(residualFat / 5)
+      const eggs          = clamp(Math.min(eggsByProtein, eggsByFat), 1, 4)
+      addOrMerge("EGG", eggs, { hi: "भुर्जी / उबले", en: "scrambled / boiled" })
+      const gap = residualProtein - eggs * 6
+      const whites = gap > 4 ? clamp(Math.round(gap / 3.6), 0, 6) : 0
+      if (whites > 0) addOrMerge("EGG_WHITE", whites, { hi: "अतिरिक्त प्रोटीन", en: "added for lean protein" })
+    } else {
+      // Veg / paneer protein dish → paneer capped by fat, tofu for the gap.
+      const P_PROT = 0.1886, P_FAT = 0.2478
+      const paneerByProtein = residualProtein / P_PROT
+      const paneerByFat      = Math.max(residualFat, 0) / P_FAT
+      const paneerG          = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 30, 150)
+      addOrMerge("PANEER", paneerG, { hi: "क्यूब्स / क्रम्बल्ड", en: "cubes / crumbled" })
+      const gap = residualProtein - paneerG * P_PROT
+      const tofuG = gap > 5 ? clamp(roundTo(gap / 0.081, 10), 0, 150) : 0
+      if (tofuG > 0) addOrMerge("TOFU_FIRM", tofuG)
     }
     extraRecipeIds.push(slot.proteinRecipe)
   }
@@ -1383,8 +1464,18 @@ function buildThaliMeal(
 // non-aromatic compatibleFood at a default portion. Fats (GHEE, oils) and
 // aromatics (ONION, TOMATO) are intentionally excluded here — the thali adds
 // those once at the meal level so they aren't double-counted.
+// Foods the sabzi must NOT contribute to a thali: aromatics + fats (added once
+// at thali level) and PROTEIN sources. A sabzi's role in the thali is the
+// VEGETABLE; the protein centrepiece is the separate protein dish. Without this
+// exclusion, a paneer-based sabzi (e.g. PALAK_PANEER_VEG used as the sabzi)
+// contributed paneer AND the protein dish added paneer again — double paneer +
+// double ghee, the BALANCED/veg fat spike in the audit (one meal hit 68 g fat).
 const SABZI_AROMATICS_AND_FATS = new Set<string>([
   "GHEE", "MUSTARD_OIL", "COCONUT_OIL", "ONION", "TOMATO",
+  // protein sources — belong to the protein dish, not the sabzi
+  "PANEER", "EGG", "EGG_WHITE", "TOFU_FIRM", "HUNG_CURD", "DAHI",
+  "CHICKEN_BREAST", "CHICKEN_THIGH", "MUTTON_KEEMA", "MUTTON_CURRY_CUT",
+  "FISH_ROHU", "PRAWNS",
 ])
 const SABZI_DEFAULT_VEG_G = 150
 
@@ -1405,7 +1496,9 @@ function buildSabziFromRecipe(recipeId: string): ComposedIngredient[] {
     out.push({ foodId: foodId as any, quantity: midpoint })
   }
 
-  // No usable ranges — take the first vegetable from compatibleFoods.
+  // No usable VEGETABLE ranges (e.g. the recipe's only required food is paneer,
+  // like PALAK_PANEER_VEG) — take the first non-protein vegetable from
+  // compatibleFoods so the sabzi still has a vegetable.
   if (out.length === 0) {
     const veg = recipe.compatibleFoods.find(f => !SABZI_AROMATICS_AND_FATS.has(f as string))
     if (veg) out.push({ foodId: veg as any, quantity: SABZI_DEFAULT_VEG_G })
