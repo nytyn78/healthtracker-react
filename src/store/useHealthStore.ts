@@ -92,9 +92,15 @@ export type IFProtocol = {
   fastingEnabled: boolean
 }
 
+export type MealShapePref = "auto" | "two" | "three"
+
 export type AppSettings = {
   macroSplit: MacroSplit
   ifProtocol: IFProtocol
+  // Meal-count preference. "auto" (default) derives from fasting state and goal
+  // mode: non-fasting → 3 meals, fasting → 2 + shake, growing minors → 3 + snack.
+  // "two"/"three" are explicit user overrides (cannot force a minor into 2/fasting).
+  mealShape:  MealShapePref
 }
 
 export type ComputedMacros = {
@@ -172,6 +178,7 @@ const DEFAULT_IF: IFProtocol = {
 const DEFAULT_SETTINGS: AppSettings = {
   macroSplit: DEFAULT_MACRO_SPLIT,
   ifProtocol: DEFAULT_IF,
+  mealShape:  "auto",
 }
 
 // ── Store state ───────────────────────────────────────────────────────────────
@@ -193,6 +200,7 @@ type HealthState = {
   updateGoals: (patch: Partial<UserGoals>) => void
   updateMacroSplit: (patch: Partial<MacroSplit>) => void
   updateIFProtocol: (patch: Partial<IFProtocol>) => void
+  updateMealShape: (mealShape: MealShapePref) => void
 }
 
 // ── Persistence ───────────────────────────────────────────────────────────────
@@ -283,6 +291,7 @@ export const useHealthStore = create<HealthState>((set, get) => ({
   settings: {
     macroSplit: reconciledMacroSplit,
     ifProtocol: { ...DEFAULT_IF,          ...(saved.settings?.ifProtocol ?? {}) },
+    mealShape:  saved.settings?.mealShape ?? "auto",
   },
   init: async () => {},
   addFood: () => {},
@@ -312,6 +321,10 @@ export const useHealthStore = create<HealthState>((set, get) => ({
     const updated = { ...s.settings.ifProtocol, ...patch }
     if (patch.fastingHours !== undefined) updated.eatingHours = 24 - patch.fastingHours
     const n = { ...s, settings: { ...s.settings, ifProtocol: updated } }
+    persist(n); return n
+  }),
+  updateMealShape: (mealShape: MealShapePref) => set((s: HealthState) => {
+    const n = { ...s, settings: { ...s.settings, mealShape } }
     persist(n); return n
   }),
 }))
