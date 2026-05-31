@@ -747,6 +747,28 @@ export const RECIPES: Record<string, Recipe> = {
       en: ["Besan + water — thin batter — salt, turmeric, ajwain — rest 10 min", "Mix in chopped onion, tomato, capsicum", "Hot tawa — little ghee — spread batter", "Golden both sides — 2 min per side", "Serve with green chutney"],
     },
   },
+  PANEER_CHILLA: {
+    id: "PANEER_CHILLA",
+    name: { hi: "पनीर चीला", en: "Paneer Chilla" },
+    compatibleFoods: ["BESAN", "PANEER", "ONION", "TOMATO", "GHEE"],
+    requiredRanges: { BESAN: { min: 40, max: 80 }, PANEER: { min: 30, max: 100 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["बेसन + पानी — पतला घोल — नमक, हल्दी, अजवाइन — 10 मिनट", "तवा गरम — थोड़ा घी — घोल फैलाएं", "एक तरफ सिकने पर क्रम्बल किया पनीर + प्याज + टमाटर फैलाएं", "मोड़ें — दोनों तरफ सुनहरा — 2 मिनट", "हरी चटनी के साथ परोसें"],
+      en: ["Besan + water — thin batter — salt, turmeric, ajwain — rest 10 min", "Hot tawa — little ghee — spread batter", "When one side sets, spread crumbled paneer + onion + tomato over it", "Fold — golden both sides — 2 min", "Serve with green chutney"],
+    },
+  },
+  PANEER_BHURJI_BREAKFAST: {
+    id: "PANEER_BHURJI_BREAKFAST",
+    name: { hi: "पनीर भुर्जी", en: "Paneer Bhurji" },
+    compatibleFoods: ["PANEER", "ONION", "TOMATO", "GHEE"],
+    requiredRanges: { PANEER: { min: 60, max: 180 } },
+    dietTags: ["veg"],
+    steps: {
+      hi: ["घी गरम — जीरा — प्याज 2 मिनट", "टमाटर — हल्दी, मिर्च — 2 मिनट", "क्रम्बल किया पनीर — नमक — 3 मिनट चलाते हुए", "हरा धनिया — परोसें"],
+      en: ["Hot ghee — cumin — onion 2 min", "Tomato — turmeric, chilli — 2 min", "Crumbled paneer — salt — 3 min, stirring", "Coriander — serve"],
+    },
+  },
   POHA_BREAKFAST: {
     id: "POHA_BREAKFAST",
     name: { hi: "पोहा", en: "Poha" },

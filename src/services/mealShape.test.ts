@@ -16,7 +16,7 @@
 
 import { describe, it, expect } from "vitest"
 import {
-  generateWeekPlan, generateDayPlan, resolveMealShape, GeneratorTargets,
+  generateWeekPlan, generateDayPlan, resolveMealShape, GeneratorTargets, deriveMealSchedule,
 } from "./mealGenerator"
 import { computeMinorTopupNote } from "./mealPlanGeneration"
 import { toMealPlanEntry } from "./transformer"
@@ -217,5 +217,60 @@ describe("breakfast protein is not always dahi", () => {
     }
     // More than one distinct protein vehicle across the week (not dahi-only).
     expect(vehicles.size).toBeGreaterThan(1)
+  })
+})
+
+// ── Breakfast variety (fixes swap + monotony) ───────────────────────────────
+// A user reported the breakfast Swap sheet showed no alternatives. Cause: every
+// day's breakfast was identical (poha ×7), so getSwapCandidates — which gathers
+// other days' meals for the same slot and de-dupes by name — collapsed to a
+// single option (the current one) and showed an empty list. The breakfast
+// rotation gives distinct daily breakfasts, so the swap picker has real
+// candidates. This guards the variety invariant (independent of localStorage,
+// which the swap functions use and which isn't present in the test env).
+
+describe("breakfast variety enables swapping", () => {
+  function parseT(t: string): number {
+    const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i)
+    if (!m) return 0
+    let h = Number(m[1]) % 12
+    if (/PM/i.test(m[3])) h += 12
+    return h * 60 + Number(m[2])
+  }
+  function breakfastsAcrossWeek(mode: MacroMode, diet: DietType) {
+    const sched = deriveMealSchedule(
+      { fastingEnabled: false, fastingHours: 0, eatingHours: 24, fastStartHour: 0 } as any,
+      { mainMealCount: 3, includeShake: false })
+    const week = generateWeekPlan(
+      { proteinG: 90, fatG: 55, carbsG: 150, calories: 1600 }, diet, mode, sched, "three")
+    return week.map(r => {
+      const sorted = [...r.plan.meals].sort((a, b) => parseT(a.time) - parseT(b.time))
+      return sorted[0].name  // earliest meal = breakfast
+    })
+  }
+
+  it("a non-fasting week has multiple distinct breakfasts (not the same every day)", () => {
+    for (const [mode, diet] of [
+      ["BALANCED", "veg"], ["BALANCED", "eggetarian"], ["LOW_CARB", "veg"],
+      ["KETO", "veg"], ["HIGH_PROTEIN_CUT", "eggetarian"],
+    ] as Array<[MacroMode, DietType]>) {
+      const names = breakfastsAcrossWeek(mode, diet)
+      const distinct = new Set(names).size
+      // At least 3 distinct breakfasts across the 7-day week.
+      expect(distinct).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  it("breakfast is consistently the earliest meal (stable swap slot index)", () => {
+    const sched = deriveMealSchedule(
+      { fastingEnabled: false, fastingHours: 0, eatingHours: 24, fastStartHour: 0 } as any,
+      { mainMealCount: 3, includeShake: false })
+    const week = generateWeekPlan(
+      { proteinG: 77, fatG: 50, carbsG: 184, calories: 1492 }, "veg", "BALANCED", sched, "three")
+    for (const r of week) {
+      const breakfast = r.plan.meals.find(m => m.slot === "breakfast")
+      const sorted = [...r.plan.meals].sort((a, b) => parseT(a.time) - parseT(b.time))
+      expect(sorted[0]).toBe(breakfast)  // breakfast sorts first
+    }
   })
 })

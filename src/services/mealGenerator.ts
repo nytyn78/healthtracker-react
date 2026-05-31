@@ -1936,15 +1936,55 @@ export function resolveMealShape(
 // (poha/upma) for carb-anchored modes, egg/dahi for keto/HPC. Snack is the
 // growing-minor top-up (banana + peanut + curd). All ingredients are in the
 // food DB; all recipes are cited.
-type BreakfastKind = "poha" | "upma" | "chilla" | "egg" | "dahi"
+type BreakfastKind = "poha" | "upma" | "chilla" | "paneer_chilla" | "paneer_bhurji" | "egg" | "dahi"
 
-const BREAKFAST_BY_MODE_DIET: Record<string, Record<DietType, BreakfastKind>> = {
-  BALANCED:         { eggetarian: "poha",  veg: "poha",   "non-veg": "egg"  },
-  LOW_CARB:         { eggetarian: "egg",   veg: "chilla", "non-veg": "egg"  },
-  KETO:             { eggetarian: "egg",   veg: "dahi",   "non-veg": "egg"  },
-  VERY_LOW_CARB:    { eggetarian: "egg",   veg: "dahi",   "non-veg": "egg"  },
-  HIGH_PROTEIN_CUT: { eggetarian: "egg",   veg: "dahi",   "non-veg": "egg"  },
-  RECOMPOSITION:    { eggetarian: "poha",  veg: "poha",   "non-veg": "egg"  },
+// Weekly breakfast ROTATION per mode × diet (indexed by dayIndex % length).
+// Variety serves three goals at once: (1) breakfast isn't identical every day,
+// (2) the meal-swap picker has real alternatives to offer (it draws candidates
+// from OTHER days — with one fixed breakfast there was nothing to swap to),
+// (3) protein-forward options (paneer chilla / bhurji) are available.
+//
+// Carb-anchored modes (BALANCED/RECOMP) get the grain breakfasts (poha/upma/
+// chilla) plus protein options. Low/very-low-carb and keto/HPC deliberately
+// EXCLUDE grain breakfasts — a poha would blow their carb target — and rotate
+// among protein-dense ones (paneer chilla/bhurji, egg, dahi).
+const BREAKFAST_ROTATION: Record<string, Record<DietType, BreakfastKind[]>> = {
+  BALANCED: {
+    veg:          ["poha", "upma", "chilla", "paneer_chilla", "poha", "dahi", "upma"],
+    eggetarian:   ["poha", "egg", "upma", "paneer_chilla", "poha", "egg", "chilla"],
+    "non-veg":    ["egg", "poha", "egg", "upma", "paneer_chilla", "egg", "poha"],
+  },
+  RECOMPOSITION: {
+    veg:          ["poha", "upma", "paneer_chilla", "chilla", "poha", "paneer_chilla", "upma"],
+    eggetarian:   ["egg", "poha", "paneer_chilla", "upma", "egg", "poha", "paneer_chilla"],
+    "non-veg":    ["egg", "poha", "egg", "paneer_chilla", "upma", "egg", "poha"],
+  },
+  LOW_CARB: {
+    veg:          ["chilla", "paneer_chilla", "dahi", "chilla", "paneer_bhurji", "dahi", "paneer_chilla"],
+    eggetarian:   ["egg", "paneer_chilla", "egg", "paneer_bhurji", "egg", "chilla", "egg"],
+    "non-veg":    ["egg", "paneer_chilla", "egg", "paneer_bhurji", "egg", "chilla", "egg"],
+  },
+  VERY_LOW_CARB: {
+    veg:          ["paneer_bhurji", "dahi", "paneer_chilla", "paneer_bhurji", "dahi", "paneer_chilla", "dahi"],
+    eggetarian:   ["egg", "paneer_bhurji", "egg", "paneer_chilla", "egg", "paneer_bhurji", "egg"],
+    "non-veg":    ["egg", "paneer_bhurji", "egg", "paneer_chilla", "egg", "paneer_bhurji", "egg"],
+  },
+  KETO: {
+    veg:          ["paneer_bhurji", "dahi", "paneer_chilla", "paneer_bhurji", "dahi", "paneer_bhurji", "paneer_chilla"],
+    eggetarian:   ["egg", "paneer_bhurji", "egg", "paneer_chilla", "egg", "paneer_bhurji", "egg"],
+    "non-veg":    ["egg", "paneer_bhurji", "egg", "paneer_chilla", "egg", "paneer_bhurji", "egg"],
+  },
+  HIGH_PROTEIN_CUT: {
+    veg:          ["paneer_bhurji", "dahi", "paneer_chilla", "paneer_bhurji", "dahi", "paneer_bhurji", "paneer_chilla"],
+    eggetarian:   ["egg", "paneer_bhurji", "egg", "paneer_chilla", "egg", "paneer_bhurji", "egg"],
+    "non-veg":    ["egg", "paneer_bhurji", "egg", "paneer_chilla", "egg", "paneer_bhurji", "egg"],
+  },
+}
+
+function pickBreakfastKind(macroMode: MacroMode, diet: DietType, dayIndex: number): BreakfastKind {
+  const modeRot = BREAKFAST_ROTATION[macroMode] ?? BREAKFAST_ROTATION.BALANCED
+  const arr = modeRot[diet] ?? modeRot.veg
+  return arr[dayIndex % arr.length]
 }
 
 // Pick a protein "side" for a grain breakfast (poha/upma). Rotates by day so
@@ -2002,7 +2042,7 @@ function buildBreakfastMeal(
   veg: { primary: string; vitaminC: string }, time: string,
   grainScale: number, dayCalories: number,
 ): ComposedMeal {
-  const kind = (BREAKFAST_BY_MODE_DIET[macroMode] ?? BREAKFAST_BY_MODE_DIET.BALANCED)[diet]
+  const kind = pickBreakfastKind(macroMode, diet, dayIndex)
   const ingredients: ComposedIngredient[] = []
   let recipeId: string
 
@@ -2045,6 +2085,31 @@ function buildBreakfastMeal(
       ? clamp(roundTo((targetProtein - besanProtein) / 0.0353, 25), 0, 150) : 0
     if (dahiG > 0) ingredients.push({ foodId: "DAHI" as any, quantity: dahiG, prepNote: { hi: "साथ में", en: "on the side" } })
     ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, besanG * 0.0531 + dahiG * 0.0308) })
+  } else if (kind === "paneer_chilla") {
+    // Besan chilla with folded paneer — a high-protein veg breakfast (~20-25g).
+    // Besan batter carries protein + fibre; paneer folds in for the protein bump
+    // the user asked for. Paneer sized to the protein gap after besan, fat-capped.
+    recipeId = "PANEER_CHILLA"
+    const besanG = roundTo(50 * grainScale, 5)
+    ingredients.push({ foodId: "BESAN" as any, quantity: besanG, prepNote: { hi: "घोल", en: "batter" } })
+    ingredients.push({ foodId: "ONION" as any, quantity: 30 })
+    ingredients.push({ foodId: "TOMATO" as any, quantity: 30 })
+    const besanProtein = besanG * 0.2155
+    const paneerByProtein = Math.max(targetProtein - besanProtein, 0) / 0.1886
+    const paneerByFat     = Math.max(targetFat - besanG * 0.0531, 0) / 0.2478
+    const paneerG = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 30, 100)
+    ingredients.push({ foodId: "PANEER" as any, quantity: paneerG, prepNote: { hi: "क्रम्बल करके भरें", en: "crumbled, folded in" } })
+    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, besanG * 0.0531 + paneerG * 0.2478) })
+  } else if (kind === "paneer_bhurji") {
+    // Scrambled paneer — high protein, very low carb. The keto/HPC breakfast.
+    recipeId = "PANEER_BHURJI_BREAKFAST"
+    const paneerByProtein = targetProtein / 0.1886
+    const paneerByFat     = targetFat / 0.2478
+    const paneerG = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 60, 180)
+    ingredients.push({ foodId: "PANEER" as any, quantity: paneerG, prepNote: { hi: "भुर्जी", en: "crumbled / scrambled" } })
+    ingredients.push({ foodId: "ONION" as any, quantity: 30 })
+    ingredients.push({ foodId: "TOMATO" as any, quantity: 40 })
+    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, paneerG * 0.2478) })
   } else if (kind === "dahi") {
     recipeId = "DAHI_BOWL"
     const paneerByProtein = targetProtein / 0.1886
