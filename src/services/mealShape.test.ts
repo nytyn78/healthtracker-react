@@ -274,3 +274,35 @@ describe("breakfast variety enables swapping", () => {
     }
   })
 })
+
+// ── Additive protein shake (closes protein shortfall) ───────────────────────
+// User wanted the ability to make up a protein shortfall with a shake. Design:
+// additive (sits on top of meals, not substitutive — substitutive just relocates
+// protein and wouldn't close a gap), sized to the gap at 1-2 scoops of whey
+// (25g/scoop), capped at 2 (beyond ~50g the plan needs rework, not powder).
+
+import { shakeScoopsForGap } from "./mealPlanGeneration"
+
+describe("additive protein shake sizing", () => {
+  it("sizes to the gap, capped at 2 scoops, none for trivial gaps", () => {
+    expect(shakeScoopsForGap(5)).toBe(0)    // ≤8g: no shake
+    expect(shakeScoopsForGap(8)).toBe(0)
+    expect(shakeScoopsForGap(21)).toBe(1)   // RECOMP/veg case
+    expect(shakeScoopsForGap(25)).toBe(1)
+    expect(shakeScoopsForGap(40)).toBe(2)
+    expect(shakeScoopsForGap(80)).toBe(2)   // capped
+  })
+
+  it("an additive shake closes the RECOMP/veg protein gap", () => {
+    const t = { proteinG: 120, fatG: 55, carbsG: 180, calories: 1680 }
+    const week = generateWeekPlan(t, "veg", "RECOMPOSITION")
+    let withShake = 0
+    for (const r of week) {
+      const meals = r.validation.computed.protein
+      withShake += meals + shakeScoopsForGap(t.proteinG - meals) * 25
+    }
+    const avg = withShake / week.length
+    // Was ~99g (−17%) without; with the shake it should reach within 10% of 120.
+    expect(avg).toBeGreaterThanOrEqual(t.proteinG * 0.90)
+  })
+})
