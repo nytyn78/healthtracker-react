@@ -101,6 +101,9 @@ export type AppSettings = {
   // mode: non-fasting → 3 meals, fasting → 2 + shake, growing minors → 3 + snack.
   // "two"/"three" are explicit user overrides (cannot force a minor into 2/fasting).
   mealShape:  MealShapePref
+  // When true, a whey protein shake is added to the day to help close a protein
+  // shortfall. Additive (sits on top of the meals), sized to the gap (1-2 scoops).
+  proteinShake: boolean
 }
 
 export type ComputedMacros = {
@@ -179,6 +182,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   macroSplit: DEFAULT_MACRO_SPLIT,
   ifProtocol: DEFAULT_IF,
   mealShape:  "auto",
+  proteinShake: false,
 }
 
 // ── Store state ───────────────────────────────────────────────────────────────
@@ -201,6 +205,7 @@ type HealthState = {
   updateMacroSplit: (patch: Partial<MacroSplit>) => void
   updateIFProtocol: (patch: Partial<IFProtocol>) => void
   updateMealShape: (mealShape: MealShapePref) => void
+  updateProteinShake: (proteinShake: boolean) => void
 }
 
 // ── Persistence ───────────────────────────────────────────────────────────────
@@ -292,6 +297,7 @@ export const useHealthStore = create<HealthState>((set, get) => ({
     macroSplit: reconciledMacroSplit,
     ifProtocol: { ...DEFAULT_IF,          ...(saved.settings?.ifProtocol ?? {}) },
     mealShape:  saved.settings?.mealShape ?? "auto",
+    proteinShake: saved.settings?.proteinShake ?? false,
   },
   init: async () => {},
   addFood: () => {},
@@ -325,6 +331,10 @@ export const useHealthStore = create<HealthState>((set, get) => ({
   }),
   updateMealShape: (mealShape: MealShapePref) => set((s: HealthState) => {
     const n = { ...s, settings: { ...s.settings, mealShape } }
+    persist(n); return n
+  }),
+  updateProteinShake: (proteinShake: boolean) => set((s: HealthState) => {
+    const n = { ...s, settings: { ...s.settings, proteinShake } }
     persist(n); return n
   }),
 }))
