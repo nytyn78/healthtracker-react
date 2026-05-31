@@ -18,8 +18,16 @@ import type { MealPlanEntry } from "../store/useHealthStore"
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
-function getMealPlanTargetHash(targets: GeneratorTargets): string {
-  return `${targets.proteinG}-${targets.fatG}-${targets.carbsG}-${targets.calories}`
+function getMealPlanTargetHash(
+  targets: GeneratorTargets,
+  shakePref: boolean = false,
+  shapePref: string = "auto",
+): string {
+  // Include the prefs that change plan OUTPUT, so toggling them regenerates the
+  // plan (the hash drives MealPlanSync's out-of-sync detection). Macros alone
+  // weren't enough — flipping the protein-shake or meal-shape toggle left the
+  // hash unchanged and the plan stale.
+  return `${targets.proteinG}-${targets.fatG}-${targets.carbsG}-${targets.calories}-sk${shakePref ? 1 : 0}-sh${shapePref}`
 }
 
 function saveHash(hash: string) {
@@ -51,6 +59,17 @@ export function computeMinorTopupNote(
 // protein shake or curd. Only fires when the shortfall is LARGE (>15%) — small
 // undershoots are within normal variation and don't warrant a nag.
 const PROTEIN_SHORTFALL_THRESHOLD = 0.15
+// Size an additive protein shake to close a day's protein gap. Whey = 25g
+// protein/scoop. Capped at 2 scoops — beyond ~50g the plan itself needs rework,
+// not more powder. Returns 0 if there's no meaningful gap (≤8g). The shake is
+// ADDITIVE (sits on top of the meals), so it raises both protein and calories;
+// the caller surfaces the calorie effect transparently.
+const WHEY_PROTEIN_PER_SCOOP = 25
+export function shakeScoopsForGap(proteinGap: number): number {
+  if (proteinGap <= 8) return 0
+  return Math.min(2, Math.max(1, Math.round(proteinGap / WHEY_PROTEIN_PER_SCOOP)))
+}
+
 export function computeProteinShortfallNote(
   weekResults: { validation: { computed: { protein: number } } }[],
   targetProtein: number,
@@ -138,7 +157,28 @@ export function autoGenerateAndSaveMealPlan(dietTag: DietTag): boolean {
   try {
     const weekResults = generateWeekPlan(targets, diet, macroMode, schedule, shape)
 
-    // Flatten 7 days × 3 meals into a single MealPlanEntry[] with the day
+    // Additive protein shake (user toggle). If on, append a whey shake to each
+    // day sized to THAT day's protein gap (1-2 scoops), helping close the
+    // shortfall the meals couldn't. Additive: it sits on top of the meals, so
+    // it raises protein and calories — the UI surfaces the calorie effect.
+    // A day already at/over protein target gets no shake (gap ≤ 8g → 0 scoops).
+    if (settings.proteinShake) {
+      for (const result of weekResults) {
+        const dayProtein = result.validation.computed.protein
+        const scoops = shakeScoopsForGap(targets.proteinG - dayProtein)
+        if (scoops > 0) {
+          result.plan.meals.push({
+            name: "Protein Shake",
+            slot: "shake",
+            time: "4:00 PM",
+            recipeId: "WHEY_SHAKE",
+            ingredients: [{ foodId: "WHEY" as any, quantity: scoops }],
+          })
+        }
+      }
+    }
+
+    // Flatten 7 days × N meals into a single MealPlanEntry[] with the day
     // label on each entry. This matches MealPlanSync's pre-14 behavior.
     const allEntries: MealPlanEntry[] = weekResults.flatMap((result, i) =>
       toDayMealPlanEntries(result.plan, {
@@ -149,7 +189,7 @@ export function autoGenerateAndSaveMealPlan(dietTag: DietTag): boolean {
     )
 
     saveMealPlan(allEntries)
-    saveHash(getMealPlanTargetHash(targets))
+    saveHash(getMealPlanTargetHash(targets, settings.proteinShake, settings.mealShape))
 
     // ── Growing-minor calorie safety (meal-shape feature) ─────────────────────
     // A child/teen must never be silently under-fed. If the generated plan's
@@ -167,8 +207,20 @@ export function autoGenerateAndSaveMealPlan(dietTag: DietTag): boolean {
     // ── Protein-shortfall advisory (all users) ────────────────────────────────
     // When realistic plates can't fully reach the protein target (e.g. veg
     // recomp), suggest a shake/curd top-up rather than faking it with a
-    // double-protein plate. Only fires for a large (>15%) shortfall.
-    const proteinNote = computeProteinShortfallNote(weekResults, targets.proteinG, diet)
+    // double-protein plate. Only fires for a large (>15%) shortfall. If the
+    // user's protein-shake toggle is on, the shake protein is already in each
+    // day's plan (added above) and counted by validation, so the advisory
+    // naturally clears once the shake closes the gap; it still fires if the
+    // shake (capped at 2 scoops) wasn't enough.
+    const proteinResults = settings.proteinShake
+      ? weekResults.map(r => ({
+          validation: { computed: { protein:
+            r.plan.meals.reduce((sum, m) => sum +
+              (m.recipeId === "WHEY_SHAKE"
+                ? m.ingredients.reduce((s, i) => s + (i.foodId === "WHEY" ? Number(i.quantity) * 25 : 0), 0)
+                : 0), r.validation.computed.protein) } } }))
+      : weekResults
+    const proteinNote = computeProteinShortfallNote(proteinResults, targets.proteinG, diet)
     try {
       if (proteinNote) localStorage.setItem(KEYS.PROTEIN_ADVISORY, proteinNote)
       else localStorage.removeItem(KEYS.PROTEIN_ADVISORY)
