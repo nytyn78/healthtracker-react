@@ -41,8 +41,14 @@ function resolveMacroModeLabel(macroSplit: { fatPct: number; proteinPct: number;
   return "balanced"
 }
 
-function getMealPlanTargetHash(targets: GeneratorTargets): string {
-  return `${targets.proteinG}-${targets.fatG}-${targets.carbsG}-${targets.calories}`
+function getMealPlanTargetHash(
+  targets: GeneratorTargets,
+  shakePref: boolean = false,
+  shapePref: string = "auto",
+): string {
+  // Must match getMealPlanTargetHash in mealPlanGeneration.ts — includes the
+  // prefs that change plan output so toggling them is detected as out-of-sync.
+  return `${targets.proteinG}-${targets.fatG}-${targets.carbsG}-${targets.calories}-sk${shakePref ? 1 : 0}-sh${shapePref}`
 }
 
 function getSavedHash(): string {
@@ -87,7 +93,7 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
   const macroLabel = resolveMacroModeLabel(settings.macroSplit)
   const dietTagLabel = DIET_TAG_LABELS[dietTag].toLowerCase()
 
-  const currentHash = getMealPlanTargetHash(targets)
+  const currentHash = getMealPlanTargetHash(targets, settings.proteinShake, settings.mealShape)
   const savedHash   = getSavedHash()
   const isOutOfSync = savedHash !== currentHash && savedHash !== ""
   const neverGenerated = savedHash === ""
