@@ -166,3 +166,56 @@ describe("existing 2-meal path preserved", () => {
         expect(m.slot === "breakfast" || m.slot === "snack").toBe(false)
   })
 })
+
+// ── Named-dish / protein-identity guards (user-reported bugs) ────────────────
+// Two bugs from a user screenshot: (1) a "Kadhai Paneer" dish served as 240g
+// tofu with no paneer (name/content mismatch — the protein selector swapped to
+// tofu for fat budget but kept the paneer recipe name + steps); (2) dahi was
+// the only breakfast protein option, every morning.
+
+describe("named paneer dishes always contain paneer", () => {
+  const modes = ["BALANCED", "LOW_CARB", "HIGH_PROTEIN_CUT"] as const
+  const targetsList = [
+    { proteinG: 72, fatG: 47, carbsG: 172, calories: 1400 },
+    { proteinG: 90, fatG: 50, carbsG: 160, calories: 1450 },
+    { proteinG: 125, fatG: 50, carbsG: 90, calories: 1320 },
+  ]
+  it("a dish named '... Paneer ...' is never served as tofu-without-paneer", () => {
+    for (const mode of modes) {
+      for (const targets of targetsList) {
+        for (const shape of ["three", "two_plus_shake"] as const) {
+          const week = generateWeekPlan(targets, "veg", mode, undefined, shape)
+          for (const day of week) {
+            for (const meal of day.plan.meals) {
+              if (meal.name.toLowerCase().includes("paneer")) {
+                const ids = meal.ingredients.map(i => i.foodId as string)
+                // Must contain paneer; must not be a tofu-only substitution.
+                expect(ids.includes("PANEER")).toBe(true)
+                expect(ids.includes("TOFU_FIRM") && !ids.includes("PANEER")).toBe(false)
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+})
+
+describe("breakfast protein is not always dahi", () => {
+  it("a high-calorie week rotates the breakfast protein vehicle", () => {
+    // Teen has the calorie headroom to carry a breakfast protein side every day.
+    const week = generateWeekPlan(
+      { proteinG: 83, fatG: 100, carbsG: 320, calories: 2511 },
+      "veg", "BALANCED", undefined, "three_plus_snack")
+    const vehicles = new Set<string>()
+    for (const day of week) {
+      const bk = day.plan.meals.find(m => m.slot === "breakfast")
+      for (const ing of bk?.ingredients ?? []) {
+        const id = ing.foodId as string
+        if (id === "DAHI" || id === "PANEER" || id === "EGG") vehicles.add(id)
+      }
+    }
+    // More than one distinct protein vehicle across the week (not dahi-only).
+    expect(vehicles.size).toBeGreaterThan(1)
+  })
+})

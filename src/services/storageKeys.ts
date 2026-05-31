@@ -38,6 +38,7 @@ export const KEYS = {
   // UI surfaces it so a parent adds a snack rather than the child silently
   // under-eating. Empty string / absent = no shortfall.
   MINOR_TOPUP_NOTE:     K("minor_topup_note"),
+  PROTEIN_ADVISORY:     K("protein_advisory_note"),
 
   // Swap-as-substitution (commit 13): per-date, per-slot meal overrides.
   // Date-stamped (YYYY-MM-DD) so today's swaps auto-expire at midnight and

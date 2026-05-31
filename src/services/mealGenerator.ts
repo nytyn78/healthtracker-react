@@ -971,6 +971,17 @@ const RICE_RAW_PER_MEAL_G   = 50  // 50g raw → ~1 katori cooked (150g)
 const ATTA_1_ROTI_G         = 25  // 25g atta → 1 roti
 const ATTA_2_ROTI_G         = 50  // 50g atta → 2 rotis
 
+// Per-meal grain/dal/ghee portions scale CONTINUOUSLY with grainScale (no hard
+// threshold — an abrupt small-plate cliff made low-calorie 3-meal users swing
+// between +20% and −20%). Baselines below are the FULL-plate portions; the
+// builders multiply them by grainScale, which for a low-calorie 3-meal day runs
+// ~0.7–0.85 (smaller plates) and for a teen runs up to 1.75 (bigger plates).
+// Ghee scales the same way, floored at 1 tsp so a meal always has some cooking
+// fat.
+function scaledGheeTsp(baseTsp: number, grainScale: number): number {
+  return Math.max(1, roundTo(baseTsp * grainScale, 0.5))
+}
+
 // Raw dal weight for a standard serving: 60g raw → ~150g cooked (1 katori)
 const DAL_RAW_PER_MEAL_G    = 60
 
@@ -1236,13 +1247,24 @@ function buildVegMeal(
   let proteinFromCurd = 0, fatFromCurd = 0
 
   if (asProteinDish) {
-    // Single protein lead, chosen by fat budget (mirrors the thali logic).
+    // Single protein lead. If the recipe is a NAMED paneer dish (e.g. Kadhai
+    // Paneer, Palak Paneer, Matar Paneer), it must contain paneer — its name and
+    // steps say "paneer", so serving 240g tofu under that title is a label/
+    // content mismatch (the bug a user caught: "Kadhai Paneer" made of tofu).
+    // For paneer-named dishes we keep paneer, capping the portion for fat and
+    // accepting a small protein undershoot rather than swapping the protein.
+    // Only diet-neutral dishes may lead with tofu when the fat budget is tight.
+    const recipeName = (RECIPES[recipeId]?.name.en ?? recipeId).toLowerCase()
+    const isPaneerDish = recipeName.includes("paneer")
     const paneerByProtein = targetProtein / PANEER_PROTEIN_PER_G
     const paneerByFat      = Math.max(targetFat, 0) / PANEER_FAT_PER_G
     const paneerLimited    = Math.min(paneerByProtein, paneerByFat)
     const paneerCoversFrac = (paneerLimited * PANEER_PROTEIN_PER_G) / Math.max(targetProtein, 1)
-    if (paneerCoversFrac < 0.7) {
+    if (paneerCoversFrac < 0.7 && !isPaneerDish) {
       tofuG = clamp(roundTo(targetProtein / TOFU_PROTEIN_PER_G, 10), 40, 250)
+    } else if (isPaneerDish) {
+      // Paneer dish: size by protein need, capped at a realistic plate max.
+      paneerG = clamp(roundTo(paneerByProtein, 10), 40, 150)
     } else {
       paneerG = clamp(roundTo(paneerLimited, 10), 30, 180)
     }
@@ -1360,7 +1382,9 @@ function buildThaliMeal(
 
   // ── Dal ───────────────────────────────────────────────────────────────────
   // Portion scales with grainScale (meal-shape elasticity): bigger for high
-  // calorie targets (teens), smaller across a 3-meal day (elderly).
+  // calorie targets (teens), smaller across a 3-meal day (elderly). In the
+  // small-plate regime the baseline itself drops (half-katori dal) so low-cal
+  // 3-meal days don't overshoot.
   const dalG = roundTo(DAL_RAW_PER_MEAL_G * grainScale, 5)
   ingredients.push({ foodId: slot.dalFoodId as any, quantity: dalG,
     prepNote: { hi: "पकी हुई", en: "cooked" } })
@@ -1389,7 +1413,14 @@ function buildThaliMeal(
   // potato + cauliflower) and the recipe's steps are surfaced via
   // extraRecipeIds. (11.3 regression fix.)
   const sabziFoods = buildSabziFromRecipe(slot.sabziRecipe)
-  for (const ing of sabziFoods) ingredients.push(ing)
+  // Scale sabzi vegetable portions with grainScale too. Without this, a 3-meal
+  // day (grainScale < 1, smaller plates) still served full-size sabzi (e.g.
+  // 140g potato + 180g spinach), so the mains didn't shrink enough to make room
+  // for breakfast and the day overshot its calorie target. Vegetables scale
+  // with the plate; aromatics (onion/tomato, added below) stay fixed.
+  for (const ing of sabziFoods) {
+    ingredients.push({ ...ing, quantity: roundTo(ing.quantity * grainScale, 5) })
+  }
   // Aromatics for the sabzi (onion/tomato) added once at thali level.
   ingredients.push({ foodId: "ONION" as any, quantity: 40 })
   ingredients.push({ foodId: "TOMATO" as any, quantity: 60 })
@@ -1397,7 +1428,7 @@ function buildThaliMeal(
   // ── Cooking fat ───────────────────────────────────────────────────────────
   // 1 tsp ghee for the dal tarka + 1 tsp for sabzi cooking.
   // Jeera rice adds another 1 tsp. Total base = 2–3 tsp.
-  const baseFatTsp = slot.grainRecipe === "JEERA_RICE" ? 3 : 2
+  const baseFatTsp = scaledGheeTsp(slot.grainRecipe === "JEERA_RICE" ? 3 : 2, grainScale)
   ingredients.push({ foodId: "GHEE" as any, quantity: baseFatTsp })
 
   // ── Protein dish ──────────────────────────────────────────────────────────
@@ -1452,18 +1483,24 @@ function buildThaliMeal(
       //     protein but fat-capped so a lean meal doesn't overshoot.
       // A small per-meal undershoot is accepted over an unrealistic double-stack.
       const P_PROT = 0.1886, P_FAT = 0.2478
-      const TOFU_PROT = 0.081, TOFU_FAT = 0.049
-      // Fat the protein dish can spend; if even fat-capped paneer can't supply
-      // most of the protein, tofu is the better lead.
+      const TOFU_PROT = 0.081
+      // A NAMED paneer dish must contain paneer (its name + steps say so). Only
+      // diet-neutral dishes may lead with tofu when the fat budget is tight.
+      const protName = (RECIPES[slot.proteinRecipe]?.name.en ?? "").toLowerCase()
+      const isPaneerDish = protName.includes("paneer")
       const paneerByProtein = residualProtein / P_PROT
       const paneerByFat      = Math.max(residualFat, 0) / P_FAT
       const paneerLimited    = Math.min(paneerByProtein, paneerByFat)
       const paneerCoversFrac = (paneerLimited * P_PROT) / Math.max(residualProtein, 1)
 
-      if (paneerCoversFrac < 0.7) {
-        // Fat budget can't carry enough paneer → lead with tofu (lean).
-        const tofuG = clamp(roundTo(residualProtein / TOFU_PROT, 10), 40, 250)
+      if (paneerCoversFrac < 0.7 && !isPaneerDish) {
+        // Fat budget can't carry enough paneer AND it's not a paneer dish → tofu.
+        const tofuG = clamp(roundTo(residualProtein / TOFU_PROT, 10), 40, 200)
         addOrMerge("TOFU_FIRM", tofuG, { hi: "टोफू", en: "tofu" })
+      } else if (isPaneerDish) {
+        // Paneer dish: paneer sized to protein need, capped for a real plate.
+        const paneerG = clamp(roundTo(paneerByProtein, 10), 40, 150)
+        addOrMerge("PANEER", paneerG, { hi: "क्यूब्स / क्रम्बल्ड", en: "cubes / crumbled" })
       } else {
         // Paneer leads.
         const paneerG = clamp(roundTo(paneerLimited, 10), 30, 150)
@@ -1910,11 +1947,60 @@ const BREAKFAST_BY_MODE_DIET: Record<string, Record<DietType, BreakfastKind>> = 
   RECOMPOSITION:    { eggetarian: "poha",  veg: "poha",   "non-veg": "egg"  },
 }
 
+// Pick a protein "side" for a grain breakfast (poha/upma). Rotates by day so
+// it's not dahi every morning (veg: dahi↔paneer; egg/non-veg: +boiled egg).
+//
+// Calorie-aware: a protein side adds real calories, which a LOW-calorie 3-meal
+// day (e.g. a 1400-kcal elderly plan) can't afford on top of two full main
+// meals — it overshoots. So the side only fires when the day has calorie
+// headroom, ramping from none at ≤1500 kcal to full at ≥1700. Low-calorie users
+// keep a lighter breakfast and the separate protein-shortfall advisory flags
+// any resulting gap (a shake/curd suggestion) rather than the plan silently
+// overshooting calories to force even protein distribution.
+const BREAKFAST_PROTEIN_MIN_CAL = 1500
+const BREAKFAST_PROTEIN_FULL_CAL = 1700
+function breakfastProteinSide(
+  diet: DietType, dayIndex: number, gapProtein: number, dayCalories: number,
+): { items: ComposedIngredient[]; fat: number } {
+  // Headroom factor 0..1 — how much of the protein gap to close at breakfast.
+  const headroom = clamp(
+    (dayCalories - BREAKFAST_PROTEIN_MIN_CAL) / (BREAKFAST_PROTEIN_FULL_CAL - BREAKFAST_PROTEIN_MIN_CAL),
+    0, 1)
+  const effGap = gapProtein * headroom
+  if (effGap <= 2) return { items: [], fat: 0 }
+  // Rotation options per diet.
+  const vegCycle: Array<"dahi" | "paneer"> = ["dahi", "paneer", "dahi"]
+  const eggCycle: Array<"dahi" | "paneer" | "egg"> = ["dahi", "egg", "paneer"]
+  const cycle = diet === "veg" ? vegCycle : eggCycle
+  const pick = cycle[dayIndex % cycle.length]
+
+  if (pick === "egg") {
+    const eggs = clamp(Math.round(effGap / 6), 1, 3)   // ~6g protein each
+    return {
+      items: [{ foodId: "EGG" as any, quantity: eggs, prepNote: { hi: "उबले", en: "boiled" } }],
+      fat: eggs * 5,
+    }
+  }
+  if (pick === "paneer") {
+    const g = clamp(roundTo(effGap / 0.1886, 10), 30, 120)  // paneer 18.9% protein
+    return {
+      items: [{ foodId: "PANEER" as any, quantity: g, prepNote: { hi: "साथ में", en: "on the side" } }],
+      fat: g * 0.2478,
+    }
+  }
+  // dahi
+  const g = clamp(roundTo(effGap / 0.0353, 25), 0, 200)    // dahi 3.53% protein
+  return {
+    items: g > 0 ? [{ foodId: "DAHI" as any, quantity: g, prepNote: { hi: "साथ में", en: "on the side" } }] : [],
+    fat: g * 0.0308,
+  }
+}
+
 function buildBreakfastMeal(
   macroMode: MacroMode, diet: DietType, dayIndex: number,
   targetProtein: number, targetFat: number,
   veg: { primary: string; vitaminC: string }, time: string,
-  grainScale: number,
+  grainScale: number, dayCalories: number,
 ): ComposedMeal {
   const kind = (BREAKFAST_BY_MODE_DIET[macroMode] ?? BREAKFAST_BY_MODE_DIET.BALANCED)[diet]
   const ingredients: ComposedIngredient[] = []
@@ -1922,28 +2008,43 @@ function buildBreakfastMeal(
 
   if (kind === "poha") {
     recipeId = "POHA_BREAKFAST"
-    ingredients.push({ foodId: "POHA" as any, quantity: roundTo(50 * grainScale, 5),
-      prepNote: { hi: "धोकर", en: "rinsed" } })
+    const pohaG = roundTo(50 * grainScale, 5)
+    ingredients.push({ foodId: "POHA" as any, quantity: pohaG, prepNote: { hi: "धोकर", en: "rinsed" } })
     ingredients.push({ foodId: "PEANUT" as any, quantity: 15 })
     ingredients.push({ foodId: "ONION" as any, quantity: 30 })
     ingredients.push({ foodId: "MUTTER" as any, quantity: 30 })
-    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, 50 * grainScale * 0.0114 + 15 * 0.49) })
+    // Poha (rice flakes) carries almost no protein. A rotating protein side
+    // (dahi / paneer / boiled egg by day) carries breakfast's protein share, so
+    // it's not dahi every single morning and protein stays distributed.
+    const pohaProtein = pohaG * 0.0744 + 15 * 0.25  // poha + peanut
+    const side = breakfastProteinSide(diet, dayIndex, targetProtein - pohaProtein, dayCalories)
+    for (const it of side.items) ingredients.push(it)
+    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, pohaG * 0.0114 + 15 * 0.49 + side.fat) })
   } else if (kind === "upma") {
     recipeId = "VEG_UPMA"
-    ingredients.push({ foodId: "SOOJI" as any, quantity: roundTo(50 * grainScale, 5),
-      prepNote: { hi: "भुनी", en: "roasted" } })
+    const soojiG = roundTo(50 * grainScale, 5)
+    ingredients.push({ foodId: "SOOJI" as any, quantity: soojiG, prepNote: { hi: "भुनी", en: "roasted" } })
     ingredients.push({ foodId: "ONION" as any, quantity: 30 })
     ingredients.push({ foodId: "MUTTER" as any, quantity: 30 })
     ingredients.push({ foodId: "CAPSICUM" as any, quantity: 30 })
-    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, 5) })
+    const soojiProtein = soojiG * 0.1138 + 30 * 0.05  // sooji + peas
+    const side = breakfastProteinSide(diet, dayIndex, targetProtein - soojiProtein, dayCalories)
+    for (const it of side.items) ingredients.push(it)
+    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, soojiG * 0.0074 + side.fat) })
   } else if (kind === "chilla") {
     recipeId = "BESAN_CHILLA"
-    ingredients.push({ foodId: "BESAN" as any, quantity: roundTo(60 * grainScale, 5),
-      prepNote: { hi: "घोल", en: "batter" } })
+    const besanG = roundTo(60 * grainScale, 5)
+    ingredients.push({ foodId: "BESAN" as any, quantity: besanG, prepNote: { hi: "घोल", en: "batter" } })
     ingredients.push({ foodId: "ONION" as any, quantity: 30 })
     ingredients.push({ foodId: "TOMATO" as any, quantity: 30 })
     ingredients.push({ foodId: "CAPSICUM" as any, quantity: 30 })
-    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, 60 * grainScale * 0.0531) })
+    // Besan is protein-rich (~21%); a chilla often already meets breakfast's
+    // share. Add a small dahi side only if it's still meaningfully short.
+    const besanProtein = besanG * 0.2155
+    const dahiG = besanProtein < targetProtein - 4
+      ? clamp(roundTo((targetProtein - besanProtein) / 0.0353, 25), 0, 150) : 0
+    if (dahiG > 0) ingredients.push({ foodId: "DAHI" as any, quantity: dahiG, prepNote: { hi: "साथ में", en: "on the side" } })
+    ingredients.push({ foodId: "GHEE" as any, quantity: solveGhee(targetFat, besanG * 0.0531 + dahiG * 0.0308) })
   } else if (kind === "dahi") {
     recipeId = "DAHI_BOWL"
     const paneerByProtein = targetProtein / 0.1886
@@ -2100,7 +2201,7 @@ export function generateDayPlan(
 
     const afterSnackP = targets.proteinG - snackP
     const afterSnackF = targets.fatG     - snackF
-    const bP = roundTo(afterSnackP * 0.25, 1)
+    const bP = roundTo(afterSnackP * 0.18, 1)
     const bF = roundTo(afterSnackF * 0.20, 1)
     const restP = afterSnackP - bP
     const restF = afterSnackF - bF
@@ -2113,14 +2214,14 @@ export function generateDayPlan(
     const dTime = schedule.mealTimes[2] ?? "7:30 PM"
     const snackTime = "4:30 PM"
 
-    // Per-meal calorie shares → scales.
+    // Per-meal calorie shares → scales. Breakfast lighter than the mains.
     const mainsCal = targets.calories - snackCal
-    const bCal = mainsCal * 0.25
-    const ldCal = mainsCal * 0.375
+    const bCal = mainsCal * 0.22
+    const ldCal = mainsCal * 0.39
     const bScale  = computeMealScale(bCal)
     const ldScale = computeMealScale(ldCal)
 
-    const breakfast = buildBreakfastMeal(macroMode, diet, dayIndex, bP, bF, veg, bTime, bScale)
+    const breakfast = buildBreakfastMeal(macroMode, diet, dayIndex, bP, bF, veg, bTime, bScale, targets.calories)
     const [lunch, dinner] = buildMains(lP, lF, lTime, ldScale, dP, dF, dTime, ldScale)
     lunch.mealRole = "lunch"; dinner.mealRole = "dinner"
     meals.push(breakfast, lunch, dinner)

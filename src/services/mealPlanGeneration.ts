@@ -43,6 +43,31 @@ export function computeMinorTopupNote(
          `Add roughly ${gap} kcal as a snack — fruit, nuts, milk, curd, a paratha, or an egg. Don't skip it.`
 }
 
+// Build a protein-shortfall advisory (applies to ALL users, not just minors).
+// Some realistic single-protein veg plans (notably RECOMPOSITION veg, where the
+// target is high relative to what whole-food veg plates deliver) can't fully
+// reach the protein target without an unrealistic double-protein plate. Rather
+// than fake it with portion-stacking, we surface an honest suggestion to add a
+// protein shake or curd. Only fires when the shortfall is LARGE (>15%) — small
+// undershoots are within normal variation and don't warrant a nag.
+const PROTEIN_SHORTFALL_THRESHOLD = 0.15
+export function computeProteinShortfallNote(
+  weekResults: { validation: { computed: { protein: number } } }[],
+  targetProtein: number,
+  diet: "veg" | "eggetarian" | "non-veg",
+): string {
+  if (weekResults.length === 0) return ""
+  const avgProtein = weekResults.reduce((s, r) => s + r.validation.computed.protein, 0) / weekResults.length
+  const shortfall = targetProtein - avgProtein
+  if (shortfall <= targetProtein * PROTEIN_SHORTFALL_THRESHOLD) return ""
+  const gap = Math.round(shortfall / 5) * 5
+  const source = diet === "veg"
+    ? "a soy/whey protein shake, extra curd, or tofu"
+    : "a whey protein shake, an extra egg, or curd"
+  return `This plan reaches about ${Math.round(avgProtein)}g of your ${targetProtein}g daily protein target. ` +
+         `To close the remaining ~${gap}g, add ${source}.`
+}
+
 /**
  * Generate a 7-day meal plan from the user's CURRENT store state and save it.
  *
@@ -138,6 +163,16 @@ export function autoGenerateAndSaveMealPlan(dietTag: DietTag): boolean {
     } else {
       try { localStorage.removeItem(KEYS.MINOR_TOPUP_NOTE) } catch {}
     }
+
+    // ── Protein-shortfall advisory (all users) ────────────────────────────────
+    // When realistic plates can't fully reach the protein target (e.g. veg
+    // recomp), suggest a shake/curd top-up rather than faking it with a
+    // double-protein plate. Only fires for a large (>15%) shortfall.
+    const proteinNote = computeProteinShortfallNote(weekResults, targets.proteinG, diet)
+    try {
+      if (proteinNote) localStorage.setItem(KEYS.PROTEIN_ADVISORY, proteinNote)
+      else localStorage.removeItem(KEYS.PROTEIN_ADVISORY)
+    } catch {}
     return true
   } catch (e) {
     // Generator threw — log and let caller fall back to preset.
