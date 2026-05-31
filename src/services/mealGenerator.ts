@@ -1209,6 +1209,7 @@ function buildVegMeal(
   targetFat: number,
   veg: { primary: string; vitaminC: string },
   time: string,
+  asProteinDish: boolean = false,
 ): ComposedMeal {
   let effectiveVeg = veg
   if (recipeId === "PALAK_PANEER_VEG") {
@@ -1217,47 +1218,56 @@ function buildVegMeal(
     effectiveVeg = { primary: "CAPSICUM", vitaminC: "CAPSICUM" }
   }
 
-  // Hung curd adds texture + protein but also fat (0.05 g/g). For lean targets
-  // a flat 80 g curd contributed to the BALANCED/veg + HPC/veg fat overshoot,
-  // so we scale it: full 80 g when the fat budget is comfortable, down to 30 g
-  // when it's tight. Keeps the marinade/texture role without blowing fat.
-  const hungCurdG       = targetFat >= 35 ? 80 : targetFat >= 22 ? 50 : 30
-  const proteinFromCurd = hungCurdG * 0.097
-  const fatFromCurd     = hungCurdG * 0.05
-
-  // Macro-fidelity: size paneer by the LESSER of what protein needs and what
-  // the fat budget allows. Paneer carries ~0.2478 g fat/g, so for a lean meal
-  // (low targetFat) protein-sized paneer blows the fat target (the RECOMP/veg
-  // +98% and BALANCED/HPC overshoots in the audit). We cap paneer at the fat
-  // budget remaining after curd, then meet the protein gap with lean tofu
-  // (0.081 g protein/g, only 0.049 g fat/g) — protein without the fat load.
+  // ── Protein composition ──────────────────────────────────────────────────
+  // Two modes:
+  //   asProteinDish=true  — this veg dish is the protein component of a LARGER
+  //     meal (dal meal / rice bowl already supply grain + dal). Pick ONE bulk
+  //     protein by fat budget (paneer OR tofu, never both) and NO hung curd —
+  //     stacking paneer + tofu + dal produced unrealistic plates.
+  //   asProteinDish=false — this is a STANDALONE veg meal (e.g. veg keto, no
+  //     grain/dal). Paneer + curd + tofu can legitimately coexist to hit a
+  //     high protein target on a grainless plate.
   const PANEER_PROTEIN_PER_G = 0.1886
   const PANEER_FAT_PER_G     = 0.2478
-  const fatBudgetForPaneer   = Math.max(targetFat - fatFromCurd, 0)
-  const paneerByProtein      = (targetProtein - proteinFromCurd) / PANEER_PROTEIN_PER_G
-  const paneerByFat          = fatBudgetForPaneer / PANEER_FAT_PER_G
-  const paneerG              = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 40, 180)
-  const proteinFromPaneer    = paneerG * PANEER_PROTEIN_PER_G
+  const TOFU_PROTEIN_PER_G   = 0.081
+  const TOFU_FAT_PER_G       = 0.049
 
-  const proteinGapAfterPaneer = targetProtein - proteinFromCurd - proteinFromPaneer
-  const tofuG = proteinGapAfterPaneer > 5
-    ? clamp(roundTo(proteinGapAfterPaneer / 0.081, 10), 0, 200)
-    : 0
+  let paneerG = 0, tofuG = 0, hungCurdG = 0
+  let proteinFromCurd = 0, fatFromCurd = 0
 
-  const fatFromSources  = paneerG * PANEER_FAT_PER_G + fatFromCurd + tofuG * 0.049
-  const gheeNeeded      = solveGhee(targetFat, fatFromSources)
-
-  const ingredients: ComposedIngredient[] = [
-    { foodId: "PANEER" as any, quantity: paneerG,
-      prepNote: recipeId === "PANEER_BHURJI"
-        ? { hi: "क्रम्बल्ड", en: "crumbled" }
-        : { hi: "क्यूब्स", en: "cubes" } },
-    { foodId: "HUNG_CURD" as any, quantity: hungCurdG,
-      prepNote: { hi: "मैरिनेड के लिए", en: "for marinade / texture" } },
-  ]
-  if (tofuG > 0) {
-    ingredients.push({ foodId: "TOFU_FIRM" as any, quantity: tofuG })
+  if (asProteinDish) {
+    // Single protein lead, chosen by fat budget (mirrors the thali logic).
+    const paneerByProtein = targetProtein / PANEER_PROTEIN_PER_G
+    const paneerByFat      = Math.max(targetFat, 0) / PANEER_FAT_PER_G
+    const paneerLimited    = Math.min(paneerByProtein, paneerByFat)
+    const paneerCoversFrac = (paneerLimited * PANEER_PROTEIN_PER_G) / Math.max(targetProtein, 1)
+    if (paneerCoversFrac < 0.7) {
+      tofuG = clamp(roundTo(targetProtein / TOFU_PROTEIN_PER_G, 10), 40, 250)
+    } else {
+      paneerG = clamp(roundTo(paneerLimited, 10), 30, 180)
+    }
+  } else {
+    // Standalone: curd + fat-capped paneer + lean tofu for the gap.
+    hungCurdG       = targetFat >= 35 ? 80 : targetFat >= 22 ? 50 : 30
+    proteinFromCurd = hungCurdG * 0.097
+    fatFromCurd     = hungCurdG * 0.05
+    const fatBudgetForPaneer = Math.max(targetFat - fatFromCurd, 0)
+    const paneerByProtein    = (targetProtein - proteinFromCurd) / PANEER_PROTEIN_PER_G
+    const paneerByFat        = fatBudgetForPaneer / PANEER_FAT_PER_G
+    paneerG = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 40, 180)
+    const proteinGap = targetProtein - proteinFromCurd - paneerG * PANEER_PROTEIN_PER_G
+    tofuG = proteinGap > 8 ? clamp(roundTo(proteinGap / TOFU_PROTEIN_PER_G, 10), 0, 200) : 0
   }
+
+  const fatFromSources = paneerG * PANEER_FAT_PER_G + fatFromCurd + tofuG * TOFU_FAT_PER_G
+  const gheeNeeded     = solveGhee(targetFat, fatFromSources)
+
+  const ingredients: ComposedIngredient[] = []
+  if (paneerG > 0) ingredients.push({ foodId: "PANEER" as any, quantity: paneerG,
+    prepNote: recipeId === "PANEER_BHURJI" ? { hi: "क्रम्बल्ड", en: "crumbled" } : { hi: "क्यूब्स", en: "cubes" } })
+  if (hungCurdG > 0) ingredients.push({ foodId: "HUNG_CURD" as any, quantity: hungCurdG,
+    prepNote: { hi: "मैरिनेड के लिए", en: "for marinade / texture" } })
+  if (tofuG > 0) ingredients.push({ foodId: "TOFU_FIRM" as any, quantity: tofuG })
   ingredients.push({ foodId: "GHEE" as any, quantity: gheeNeeded })
   ingredients.push({ foodId: effectiveVeg.primary as any, quantity: 80 })
   if (effectiveVeg.vitaminC !== effectiveVeg.primary) {
@@ -1432,15 +1442,33 @@ function buildThaliMeal(
       const whites = gap > 4 ? clamp(Math.round(gap / 3.6), 0, 6) : 0
       if (whites > 0) addOrMerge("EGG_WHITE", whites, { hi: "अतिरिक्त प्रोटीन", en: "added for lean protein" })
     } else {
-      // Veg / paneer protein dish → paneer capped by fat, tofu for the gap.
+      // Veg protein dish — ONE bulk protein, chosen by the fat budget, never
+      // both stacked (that produced the dal+roti+aloo+paneer+tofu-brick plate).
+      //   - If the protein target is high relative to the fat budget (e.g.
+      //     HIGH_PROTEIN_CUT veg: 125g protein, low fat), lead with TOFU — lean
+      //     soy protein is the realistic centrepiece for a high-protein low-fat
+      //     veg meal, and paneer's fat would blow the budget.
+      //   - Otherwise lead with PANEER (the normal thali centrepiece), sized by
+      //     protein but fat-capped so a lean meal doesn't overshoot.
+      // A small per-meal undershoot is accepted over an unrealistic double-stack.
       const P_PROT = 0.1886, P_FAT = 0.2478
+      const TOFU_PROT = 0.081, TOFU_FAT = 0.049
+      // Fat the protein dish can spend; if even fat-capped paneer can't supply
+      // most of the protein, tofu is the better lead.
       const paneerByProtein = residualProtein / P_PROT
       const paneerByFat      = Math.max(residualFat, 0) / P_FAT
-      const paneerG          = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 30, 150)
-      addOrMerge("PANEER", paneerG, { hi: "क्यूब्स / क्रम्बल्ड", en: "cubes / crumbled" })
-      const gap = residualProtein - paneerG * P_PROT
-      const tofuG = gap > 5 ? clamp(roundTo(gap / 0.081, 10), 0, 150) : 0
-      if (tofuG > 0) addOrMerge("TOFU_FIRM", tofuG)
+      const paneerLimited    = Math.min(paneerByProtein, paneerByFat)
+      const paneerCoversFrac = (paneerLimited * P_PROT) / Math.max(residualProtein, 1)
+
+      if (paneerCoversFrac < 0.7) {
+        // Fat budget can't carry enough paneer → lead with tofu (lean).
+        const tofuG = clamp(roundTo(residualProtein / TOFU_PROT, 10), 40, 250)
+        addOrMerge("TOFU_FIRM", tofuG, { hi: "टोफू", en: "tofu" })
+      } else {
+        // Paneer leads.
+        const paneerG = clamp(roundTo(paneerLimited, 10), 30, 150)
+        addOrMerge("PANEER", paneerG, { hi: "क्यूब्स / क्रम्बल्ड", en: "cubes / crumbled" })
+      }
     }
     extraRecipeIds.push(slot.proteinRecipe)
   }
@@ -1615,7 +1643,7 @@ function buildDalMeal(
       innerMeal = buildProteinMeal(slot.meatRecipe, mealSlot, slot.meatFoodId, residualP, residualF, veg, time)
     }
   } else if (diet === "veg") {
-    innerMeal = buildVegMeal(slot.sabziRecipe, mealSlot, residualP, residualF, veg, time)
+    innerMeal = buildVegMeal(slot.sabziRecipe, mealSlot, residualP, residualF, veg, time, true)
   } else {
     innerMeal = buildEggetarianMeal(slot.sabziRecipe, mealSlot, residualP, residualF, veg, time)
   }
@@ -1658,9 +1686,13 @@ function buildRiceBowlMeal(
 ): ComposedMeal {
   const ingredients: ComposedIngredient[] = []
 
-  // Rice — cooked portion sized at standard 1 katori (50g raw → 150g cooked)
-  ingredients.push({ foodId: "RICE_WHITE_RAW" as any, quantity: roundTo(RICE_RAW_PER_MEAL_G * grainScale, 5),
-    prepNote: { hi: "पका हुआ — 1 कटोरी", en: "cooked — 1 katori" } })
+  // Rice — a rice BOWL is rice-anchored (no dal sharing the plate), so it
+  // carries a larger portion than a thali's rice: ~1.5 katori base. This is
+  // also what keeps carb-fuel modes (RECOMPOSITION) at their carb/calorie
+  // target — a single katori left them ~30% short.
+  const RICE_BOWL_BASE_G = 75
+  ingredients.push({ foodId: "RICE_WHITE_RAW" as any, quantity: roundTo(RICE_BOWL_BASE_G * grainScale, 5),
+    prepNote: { hi: "पका हुआ — 1.5 कटोरी", en: "cooked — 1.5 katori" } })
 
   // Add ghee for jeera rice
   if (slot.riceRecipe === "JEERA_RICE") {
@@ -1672,7 +1704,7 @@ function buildRiceBowlMeal(
   const residualF = Math.max(targetFat - baseFatG, 0)
 
   const mainMeal = diet === "veg"
-    ? buildVegMeal(slot.mainRecipe, mealSlot, targetProtein, residualF, veg, time)
+    ? buildVegMeal(slot.mainRecipe, mealSlot, targetProtein, residualF, veg, time, true)
     : buildEggetarianMeal(slot.mainRecipe, mealSlot, targetProtein, residualF, veg, time)
 
   const alreadyPresent = new Set(ingredients.map(i => i.foodId as string))
