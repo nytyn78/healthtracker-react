@@ -22,12 +22,13 @@ function getMealPlanTargetHash(
   targets: GeneratorTargets,
   shakePref: boolean = false,
   shapePref: string = "auto",
+  splitPref: boolean = false,
 ): string {
   // Include the prefs that change plan OUTPUT, so toggling them regenerates the
   // plan (the hash drives MealPlanSync's out-of-sync detection). Macros alone
   // weren't enough — flipping the protein-shake or meal-shape toggle left the
   // hash unchanged and the plan stale.
-  return `${targets.proteinG}-${targets.fatG}-${targets.carbsG}-${targets.calories}-sk${shakePref ? 1 : 0}-sh${shapePref}`
+  return `${targets.proteinG}-${targets.fatG}-${targets.carbsG}-${targets.calories}-sk${shakePref ? 1 : 0}-sh${shapePref}-sp${splitPref ? 1 : 0}`
 }
 
 function saveHash(hash: string) {
@@ -60,14 +61,14 @@ export function computeMinorTopupNote(
 // undershoots are within normal variation and don't warrant a nag.
 const PROTEIN_SHORTFALL_THRESHOLD = 0.15
 // Size an additive protein shake to close a day's protein gap. Whey = 25g
-// protein/scoop. Capped at 2 scoops — beyond ~50g the plan itself needs rework,
-// not more powder. Returns 0 if there's no meaningful gap (≤8g). The shake is
-// ADDITIVE (sits on top of the meals), so it raises both protein and calories;
-// the caller surfaces the calorie effect transparently.
+// protein/scoop, in 0.5-scoop steps (so small gaps aren't over-shot and the
+// total can split into two half-scoops). Capped at 2 scoops. Returns 0 for a
+// trivial gap (≤8g).
 const WHEY_PROTEIN_PER_SCOOP = 25
 export function shakeScoopsForGap(proteinGap: number): number {
   if (proteinGap <= 8) return 0
-  return Math.min(2, Math.max(1, Math.round(proteinGap / WHEY_PROTEIN_PER_SCOOP)))
+  const raw = Math.round((proteinGap / WHEY_PROTEIN_PER_SCOOP) * 2) / 2  // nearest 0.5
+  return Math.min(2, Math.max(0.5, raw))
 }
 
 export function computeProteinShortfallNote(
@@ -166,14 +167,17 @@ export function autoGenerateAndSaveMealPlan(dietTag: DietTag): boolean {
       for (const result of weekResults) {
         const dayProtein = result.validation.computed.protein
         const scoops = shakeScoopsForGap(targets.proteinG - dayProtein)
-        if (scoops > 0) {
-          result.plan.meals.push({
-            name: "Protein Shake",
-            slot: "shake",
-            time: "4:00 PM",
-            recipeId: "WHEY_SHAKE",
-            ingredients: [{ foodId: "WHEY" as any, quantity: scoops }],
-          })
+        if (scoops <= 0) continue
+        if (settings.proteinShakeSplit && scoops >= 1) {
+          // Two shakes (AM/PM), each half the total. Halves rounded to 0.5.
+          const each = Math.round((scoops / 2) * 2) / 2
+          result.plan.meals.push({ name: "Protein Shake (AM)", slot: "shake", time: "8:00 AM",
+            recipeId: "WHEY_SHAKE", ingredients: [{ foodId: "WHEY" as any, quantity: each }] })
+          result.plan.meals.push({ name: "Protein Shake (PM)", slot: "shake", time: "6:00 PM",
+            recipeId: "WHEY_SHAKE", ingredients: [{ foodId: "WHEY" as any, quantity: scoops - each }] })
+        } else {
+          result.plan.meals.push({ name: "Protein Shake", slot: "shake", time: "4:00 PM",
+            recipeId: "WHEY_SHAKE", ingredients: [{ foodId: "WHEY" as any, quantity: scoops }] })
         }
       }
     }
@@ -189,7 +193,7 @@ export function autoGenerateAndSaveMealPlan(dietTag: DietTag): boolean {
     )
 
     saveMealPlan(allEntries)
-    saveHash(getMealPlanTargetHash(targets, settings.proteinShake, settings.mealShape))
+    saveHash(getMealPlanTargetHash(targets, settings.proteinShake, settings.mealShape, settings.proteinShakeSplit))
 
     // ── Growing-minor calorie safety (meal-shape feature) ─────────────────────
     // A child/teen must never be silently under-fed. If the generated plan's

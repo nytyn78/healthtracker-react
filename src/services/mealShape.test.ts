@@ -284,13 +284,13 @@ describe("breakfast variety enables swapping", () => {
 import { shakeScoopsForGap } from "./mealPlanGeneration"
 
 describe("additive protein shake sizing", () => {
-  it("sizes to the gap, capped at 2 scoops, none for trivial gaps", () => {
-    expect(shakeScoopsForGap(5)).toBe(0)    // ≤8g: no shake
+  it("sizes to the gap in half-scoop steps, capped at 2, none for trivial gaps", () => {
+    expect(shakeScoopsForGap(5)).toBe(0)     // ≤8g: no shake
     expect(shakeScoopsForGap(8)).toBe(0)
-    expect(shakeScoopsForGap(21)).toBe(1)   // RECOMP/veg case
+    expect(shakeScoopsForGap(21)).toBe(1)    // RECOMP/veg case
     expect(shakeScoopsForGap(25)).toBe(1)
-    expect(shakeScoopsForGap(40)).toBe(2)
-    expect(shakeScoopsForGap(80)).toBe(2)   // capped
+    expect(shakeScoopsForGap(40)).toBe(1.5)  // half-scoop step
+    expect(shakeScoopsForGap(80)).toBe(2)    // capped
   })
 
   it("an additive shake closes the RECOMP/veg protein gap", () => {
