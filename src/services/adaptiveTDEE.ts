@@ -9,7 +9,7 @@
 
 import type { UserProfile, UserGoals, AppSettings, ComputedMacros } from "../store/useHealthStore"
 import { ACTIVITY_MULTIPLIERS } from "../store/useHealthStore"
-import { type GoalMode, GOAL_MODE_FLAGS, getFlags } from "./goalModeConfig"
+import { type GoalMode, getFlags } from "./goalModeConfig"
 
 // ── MacroMode ─────────────────────────────────────────────────────────────────
 // Derived from macroSplit percentages — used by components and meal generator

@@ -15,21 +15,8 @@
 // Run: npm test
 // View results: cat src/services/__tests__/engineMatrix.report.md
 //
-// ── SKIP LIST ────────────────────────────────────────────────────────────────
-// The following scenarios require goal-mode-aware calcTargetCalories() and
-// computeMacros() (i.e. engineMatrix.ts + macroWarnings.ts Commit 7a work).
-// They are skipped until that work is merged.
-//
-//   pregnancy-t2-balanced         — needs +300 kcal T2 adjustment
-//   pregnancy-t3-balanced         — needs +450 kcal T3 adjustment
-//   breastfeeding-balanced        — needs +450 kcal BF adjustment
-//   breastfeeding-aggressive-loss — needs weeklyLossKg cap to 0.3
-//   diabetes-breastfeeding        — same cap + warning
-//   maintenance-male              — needs weeklyLossKg=0 enforcement
-//   teen-older-cautious-cut       — needs weeklyLossKg cap to 0.5
-//   stale-deficit-child-regression — needs weeklyLossKg=0 enforcement for child
-//
-// Universal "no maternal mode deficit" test is also skipped for the same reason.
+// All 41 scenarios pass as of Commit 7a (goal-mode-aware calorie engine
+// implemented in adaptiveTDEE.ts). No skips required.
 
 import { describe, it, expect } from "vitest"
 import { writeFileSync, mkdirSync } from "fs"
@@ -42,18 +29,7 @@ import { getMacroWarnings, type MacroWarning } from "./macroWarnings"
 import type { UserProfile, UserGoals, AppSettings, MedicalContext } from "../store/useHealthStore"
 import type { GoalMode } from "./goalModeConfig"
 
-// ── Scenario IDs pending Commit 7a (goal-mode-aware engine) ─────────────────
 
-const PENDING_COMMIT_7A = new Set([
-  "pregnancy-t2-balanced",
-  "pregnancy-t3-balanced",
-  "breastfeeding-balanced",
-  "breastfeeding-aggressive-loss",
-  "diabetes-breastfeeding",
-  "maintenance-male",
-  "teen-older-cautious-cut",
-  "stale-deficit-child-regression",
-])
 
 // ── Scenario types ───────────────────────────────────────────────────────────
 
@@ -674,11 +650,10 @@ describe("Engine Matrix", () => {
     expect(results.length).toBeGreaterThan(20)
   })
 
-  // One Vitest test per scenario — skips those pending Commit 7a
+  // One Vitest test per scenario
   SCENARIOS.forEach((scenario, idx) => {
     const result = results[idx]
-    const testFn = PENDING_COMMIT_7A.has(scenario.id) ? it.skip : it
-    testFn(`scenario ${idx + 1}: ${scenario.label}`, () => {
+    it(`scenario ${idx + 1}: ${scenario.label}`, () => {
       result.assertions.forEach(a => {
         expect(a.passed, `${a.name}${a.detail ? `: ${a.detail}` : ""}`).toBe(true)
       })
@@ -703,8 +678,7 @@ describe("Engine Matrix", () => {
     })
   })
 
-  // Skipped until Commit 7a (goal-mode-aware calorie adjustments for T2/T3/breastfeeding)
-  it.skip("no maternal mode produces a deficit relative to TDEE + adjustment", () => {
+  it("no maternal mode produces a deficit relative to TDEE + adjustment", () => {
     results
       .filter(r => r.inputs.goalMode === "pregnancy_t2"
                 || r.inputs.goalMode === "pregnancy_t3"
