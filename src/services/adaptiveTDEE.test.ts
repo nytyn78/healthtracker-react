@@ -396,10 +396,14 @@ describe("computeAdaptiveTDEE", () => {
 
   it("TDEE estimate is higher than intake when losing weight", () => {
     // Losing weight at 1400 cal → TDEE must be above 1400
+    // Weight must DECREASE from oldest to newest:
+    //   oldest (i=29, date 2025-01-01) → 80kg
+    //   newest (i=0,  date 2025-01-30) → 78.55kg
+    // slope ≈ -0.05 kg/day → TDEE = 1400 + 385 = 1785
     const history = Array.from({ length: 30 }, (_, i) => ({
       date: `2025-01-${String(30 - i).padStart(2, "0")}`,
       cal: 1400,
-      weight: 80 - i * 0.05,  // losing ~0.35kg/week
+      weight: 80 - (29 - i) * 0.05,  // oldest = 80kg (heaviest), newest = 78.55kg (lightest)
     }))
     const result = computeAdaptiveTDEE(history)
     expect(result.tdee).not.toBeNull()
