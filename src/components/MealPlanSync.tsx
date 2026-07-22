@@ -4,61 +4,57 @@
  * and lets the user regenerate it with one tap.
  *
  * Displayed at the top of MealPlanBuilder and on the Today tab meal section.
+ *
+ * Fix: description text now reads actual diet tag and macro split label
+ * instead of hardcoded "eggetarian keto".
  */
 
 import { useState } from "react"
 import { computeMacros } from "../services/adaptiveTDEE"
-import { useHealthStore, DietTag, DIET_TAG_LABELS } from "../store/useHealthStore"
-import { GeneratorTargets } from "../services/mealGenerator"
+import { useHealthStore, saveMealPlan, MealPlanEntry } from "../store/useHealthStore"
+import { generateWeekPlan, GeneratorTargets } from "../services/mealGenerator"
+import { toDayMealPlanEntries } from "../services/transformer"
 import { loadGoalMode } from "../services/goalModeConfig"
-import { autoGenerateAndSaveMealPlan } from "../services/mealPlanGeneration"
 import { KEYS } from "../services/storageKeys"
 
-// ── Diet tag resolution ──────────────────────────────────────────────────────
-// Reads the user's chosen dietary tag from storage. Defaults to "veg" (was
-// previously "eggetarian" — that default caused the long-running "eggetarian
-// keto" label bug for vegetarian users who never explicitly picked a tag).
-function getDietTag(): DietTag {
+const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+
+function getDietTag() {
   try {
     const cfg = JSON.parse(localStorage.getItem(KEYS.DIET_CONFIG) || "{}")
-    // Reject empty / falsy / unknown values; fall back to safe default
-    if (cfg.tag === "veg" || cfg.tag === "eggetarian" || cfg.tag === "non_veg") return cfg.tag
-    return "veg"
-  } catch { return "veg" }
+    return cfg.tag || "eggetarian"
+  } catch { return "eggetarian" }
 }
 
-// ── Macro mode label resolution ──────────────────────────────────────────────
-// Mirrors the resolveMacroMode logic in adaptiveTDEE.ts. We re-derive the mode
-// from the user's actual settings.macroSplit so the label NEVER contradicts the
-// engine output. This is what fixes the "balanced selected, label says keto" bug.
-function resolveMacroModeLabel(macroSplit: { fatPct: number; proteinPct: number; carbsPct: number }): string {
-  const { carbsPct, proteinPct } = macroSplit
-  if (carbsPct <= 10)                                        return "keto"
-  if (carbsPct <= 20)                                        return "very low-carb"
-  if (proteinPct >= 40)                                      return "high-protein"
-  if (proteinPct >= 30 && carbsPct >= 20 && carbsPct <= 40)  return "recomposition"
-  if (carbsPct <= 35)                                        return "low-carb"
+// Human-readable diet label from stored tag
+function getDietLabel(tag: string): string {
+  switch (tag) {
+    case "veg":        return "vegetarian"
+    case "eggetarian": return "eggetarian"
+    case "non_veg":    return "non-veg"
+    default:           return "eggetarian"
+  }
+}
+
+// Derive macro split label from stored percentages
+function getMacroSplitLabel(macroSplit: { fatPct: number; proteinPct: number; carbsPct: number }): string {
+  if (macroSplit.carbsPct <= 10) return "keto"
+  if (macroSplit.carbsPct <= 25) return "low-carb"
+  if (macroSplit.proteinPct >= 35) return "high-protein"
   return "balanced"
 }
 
-function getMealPlanTargetHash(
-  targets: GeneratorTargets,
-  shakePref: boolean = false,
-  shapePref: string = "auto",
-  splitPref: boolean = false,
-): string {
-  // Must match getMealPlanTargetHash in mealPlanGeneration.ts — includes the
-  // prefs that change plan output so toggling them is detected as out-of-sync.
-  return `${targets.proteinG}-${targets.fatG}-${targets.carbsG}-${targets.calories}-sk${shakePref ? 1 : 0}-sh${shapePref}-sp${splitPref ? 1 : 0}`
+function getMealPlanTargetHash(targets: GeneratorTargets): string {
+  return `${targets.proteinG}-${targets.fatG}-${targets.carbsG}-${targets.calories}`
 }
 
 function getSavedHash(): string {
   try { return localStorage.getItem(KEYS.MEAL_PLAN + "_target_hash") || "" } catch { return "" }
 }
 
-// saveHash() moved into autoGenerateAndSaveMealPlan in commit 14 — both
-// generation paths (MealPlanSync button + Onboarding auto-gen) now write
-// the hash via the shared helper.
+function saveHash(hash: string) {
+  try { localStorage.setItem(KEYS.MEAL_PLAN + "_target_hash", hash) } catch {}
+}
 
 interface Props {
   onRegenerated?: () => void
@@ -70,13 +66,7 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
   const [generating, setGenerating] = useState(false)
   const [justDone, setJustDone]     = useState(false)
 
-  // ── Goal-mode aware macro computation ─────────────────────────────────────
-  // Reads the user's goal mode (fat_loss, breastfeeding, pregnancy_t2, etc.)
-  // so that maternal calorie surplus and other mode-specific adjustments
-  // are applied correctly. Previously this call omitted goalMode, silently
-  // under-prescribing calories for breastfeeding and pregnant users.
-  const goalMode = loadGoalMode()
-  const computed = computeMacros(profile, goals, settings, goalMode)
+  const computed = computeMacros(profile, goals, settings)
   if (!computed) return null
 
   const targets: GeneratorTargets = {
@@ -86,32 +76,38 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
     calories:  computed.targetCalories,
   }
 
-  // ── Dynamic label assembly ─────────────────────────────────────────────────
-  // Both the diet tag (veg/eggetarian/non_veg) and macro mode label are derived
-  // from the user's actual current state — NOT hardcoded. This ensures the
-  // header text always matches the macros being prescribed below it.
-  const dietTag    = getDietTag()
-  const macroLabel = resolveMacroModeLabel(settings.macroSplit)
-  const dietTagLabel = DIET_TAG_LABELS[dietTag].toLowerCase()
-
-  const currentHash = getMealPlanTargetHash(targets, settings.proteinShake, settings.mealShape, settings.proteinShakeSplit)
+  const currentHash = getMealPlanTargetHash(targets)
   const savedHash   = getSavedHash()
   const isOutOfSync = savedHash !== currentHash && savedHash !== ""
   const neverGenerated = savedHash === ""
 
+  // Derive labels for description text
+  const dietTag    = getDietTag()
+  const dietLabel  = getDietLabel(dietTag)
+  const macroLabel = getMacroSplitLabel(settings.macroSplit)
+
   function regenerate() {
     setGenerating(true)
     try {
-      // Delegates to the shared autoGenerateAndSaveMealPlan helper (commit
-      // 14). Same logic is used by Onboarding's complete() handler so new
-      // users get a real generated plan from day one instead of static
-      // presets that ignored their actual macro targets.
-      const success = autoGenerateAndSaveMealPlan(dietTag)
-      if (success) {
-        setJustDone(true)
-        setTimeout(() => setJustDone(false), 3000)
-        onRegenerated?.()
-      }
+      // Map stored diet tag to generator diet type
+      // non_veg → "non-veg", everything else → "eggetarian" (eggs+dairy allowed)
+      const diet = (dietTag === "non_veg" ? "non-veg" : "eggetarian") as any
+      const weekResults = generateWeekPlan(targets, diet)
+
+      // Convert each day to MealPlanEntry[] and flatten
+      const allEntries: MealPlanEntry[] = weekResults.flatMap((result, i) =>
+        toDayMealPlanEntries(result.plan, {
+          lang:    "en",
+          dietTag: dietTag as any,
+          day:     DAYS[i],
+        })
+      )
+
+      saveMealPlan(allEntries)
+      saveHash(currentHash)
+      setJustDone(true)
+      setTimeout(() => setJustDone(false), 3000)
+      onRegenerated?.()
     } catch (e) {
       console.error("Meal plan generation failed:", e)
     }
@@ -134,8 +130,8 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
       <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 mb-3">
         <div className="text-xs font-bold text-teal-800 mb-1">🍽 Generate your meal plan</div>
         <p className="text-xs text-teal-700 mb-2 leading-snug">
-          Generate a 7-day {dietTagLabel} {macroLabel} meal plan matched to your targets —
-          {' '}{targets.proteinG}g protein · {targets.fatG}g fat · {targets.carbsG}g carbs · {targets.calories} kcal/day
+          Generate a 7-day {dietLabel} {macroLabel} meal plan matched to your targets —{" "}
+          {targets.proteinG}g protein · {targets.fatG}g fat · {targets.carbsG}g carbs · {targets.calories} kcal/day
         </p>
         <button onClick={regenerate} disabled={generating}
           className="w-full py-2.5 bg-teal-600 text-white rounded-xl text-sm font-bold disabled:opacity-50">
@@ -169,11 +165,11 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
         </p>
         <button onClick={regenerate} disabled={generating}
           className="w-full py-2.5 bg-amber-600 text-white rounded-xl text-sm font-bold disabled:opacity-50">
-          {generating ? "Regenerating…" : "Update meal plan to match targets"}
+          {generating ? "Updating…" : "Update meal plan"}
         </button>
       </div>
     )
   }
 
-  return null  // In sync — show nothing
+  return null
 }
