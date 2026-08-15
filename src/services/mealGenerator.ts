@@ -984,6 +984,21 @@ function scaledGheeTsp(baseTsp: number, grainScale: number): number {
 
 // Raw dal weight for a standard serving: 60g raw → ~150g cooked (1 katori)
 const DAL_RAW_PER_MEAL_G    = 60
+const DAL_MAX_RAW_G         = 70
+
+// Dal is a SECONDARY protein source in a thali (the protein dish carries the
+// rest) — it shouldn't scale 1:1 with grainScale the way rice/roti does. Below
+// 1x (smaller plates — elderly, 3-meal low-cal days) it scales fully, so those
+// plates still shrink correctly. Above 1x (bigger-calorie targets) it's
+// dampened to half effect and capped at a realistic single-serving max —
+// a bigger appetite should get more grain or more of the protein dish, not
+// a proportionally bigger dal bowl (uncapped, a 124kg user's 1.5x scale was
+// producing 90g raw dal in one dish — closer to a family bowl than one
+// person's katori).
+function scaleDalG(baseG: number, grainScale: number): number {
+  const dampedScale = grainScale <= 1 ? grainScale : 1 + (grainScale - 1) * 0.5
+  return roundTo(clamp(baseG * dampedScale, 20, DAL_MAX_RAW_G), 5)
+}
 
 function clamp(n: number, min: number, max: number) { return Math.min(max, Math.max(min, n)) }
 function roundTo(n: number, step: number) { return Math.round(n / step) * step }
@@ -1151,16 +1166,25 @@ function buildPaneerOnlyMeal(
     effectiveVeg = { primary: "CAPSICUM", vitaminC: "CAPSICUM" }
   }
 
-  // Macro-fidelity: cap paneer by the fat budget, not just protein, then fill
-  // any protein gap with lean tofu (see buildVegMeal for rationale). Prevents
-  // the fat overshoot on lean targets while still hitting protein.
+  // Macro-fidelity: cap paneer by the fat budget, not just protein. Paneer is
+  // tried first and alone in every mode EXCEPT here — this function backs
+  // HIGH_PROTEIN_CUT's paneer-named dishes (Kadhai Paneer, Paneer Bhurji,
+  // etc.), which combine a high protein target with a tight fat budget.
+  // Paneer's fat density (0.2478 g fat/g) makes that combination genuinely
+  // unreachable without a lean source — confirmed by the calorie-fidelity
+  // test suite: removing tofu here dropped HIGH_PROTEIN_CUT/eggetarian's
+  // whole-day average from ~1340 kcal target to 1094 kcal, a real 18%
+  // shortfall, not a cosmetic one. Tofu stays here ONLY as a last-resort gap
+  // filler — tried after paneer, not instead of it — everywhere else in the
+  // generator (BALANCED thali, LOW_CARB, RECOMPOSITION) paneer alone is
+  // sufficient and tofu has been removed.
   const P_PROT = 0.1886, P_FAT = 0.2478
   const paneerByProtein = targetProtein / P_PROT
   const paneerByFat     = targetFat / P_FAT
   const paneerG          = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 40, 200)
   const proteinFromPaneer = paneerG * P_PROT
   const proteinGap        = targetProtein - proteinFromPaneer
-  const tofuG = proteinGap > 5 ? clamp(roundTo(proteinGap / 0.081, 10), 0, 200) : 0
+  const tofuG = proteinGap > 5 ? clamp(roundTo(proteinGap / 0.106, 10), 0, 200) : 0
   const fatFromPaneer    = paneerG * P_FAT + tofuG * 0.049
   const gheeNeeded       = solveGhee(targetFat, fatFromPaneer)
 
@@ -1232,38 +1256,40 @@ function buildVegMeal(
   // ── Protein composition ──────────────────────────────────────────────────
   // Two modes:
   //   asProteinDish=true  — this veg dish is the protein component of a LARGER
-  //     meal (dal meal / rice bowl already supply grain + dal). Pick ONE bulk
-  //     protein by fat budget (paneer OR tofu, never both) and NO hung curd —
-  //     stacking paneer + tofu + dal produced unrealistic plates.
-  //   asProteinDish=false — this is a STANDALONE veg meal (e.g. veg keto, no
-  //     grain/dal). Paneer + curd + tofu can legitimately coexist to hit a
-  //     high protein target on a grainless plate.
+  //     meal (dal meal / rice bowl already supply grain + dal). Paneer alone
+  //     carries the protein (no tofu filler), never stacked with dal in a way
+  //     that produced unrealistic plates. Confirmed sufficient by the test
+  //     suite (LOW_CARB, RECOMPOSITION targets are reachable this way).
+  //   asProteinDish=false — this is a STANDALONE veg meal, and it's what
+  //     backs HIGH_PROTEIN_CUT's veg rotation (Kadhai Paneer, Palak Paneer,
+  //     etc. — all HPC_VEG_WEEK dishes go through this branch). HPC combines
+  //     a high protein target with a tight fat budget; paneer's fat density
+  //     (0.2478 g fat/g) makes that combination genuinely unreachable alone —
+  //     confirmed by the calorie-fidelity tests: removing tofu here dropped
+  //     HIGH_PROTEIN_CUT/veg's whole-day average to 845 kcal against a 1320
+  //     kcal target, a 36% shortfall. Tofu stays here as a last-resort filler
+  //     (tried after paneer, not instead of it) specifically because this
+  //     branch has no other lever — no dal, no grain, nothing else to lean on.
   const PANEER_PROTEIN_PER_G = 0.1886
   const PANEER_FAT_PER_G     = 0.2478
-  const TOFU_PROTEIN_PER_G   = 0.081
-  const TOFU_FAT_PER_G       = 0.049
+  const TOFU_PROTEIN_PER_G   = 0.106
 
   let paneerG = 0, tofuG = 0, hungCurdG = 0
   let proteinFromCurd = 0, fatFromCurd = 0
 
   if (asProteinDish) {
-    // Single protein lead. If the recipe is a NAMED paneer dish (e.g. Kadhai
-    // Paneer, Palak Paneer, Matar Paneer), it must contain paneer — its name and
-    // steps say "paneer", so serving 240g tofu under that title is a label/
-    // content mismatch (the bug a user caught: "Kadhai Paneer" made of tofu).
-    // For paneer-named dishes we keep paneer, capping the portion for fat and
-    // accepting a small protein undershoot rather than swapping the protein.
-    // Only diet-neutral dishes may lead with tofu when the fat budget is tight.
+    // Single protein lead — paneer. If the recipe is a NAMED paneer dish
+    // (e.g. Kadhai Paneer, Palak Paneer, Matar Paneer), its name and steps
+    // say "paneer", so it keeps a realistic single-dish portion (≤150g) even
+    // if that undershoots the protein target. Diet-neutral dishes (not
+    // paneer-named) get slightly more headroom (≤180g) since they aren't
+    // visually tied to a specific serving convention.
     const recipeName = (RECIPES[recipeId]?.name.en ?? recipeId).toLowerCase()
     const isPaneerDish = recipeName.includes("paneer")
     const paneerByProtein = targetProtein / PANEER_PROTEIN_PER_G
     const paneerByFat      = Math.max(targetFat, 0) / PANEER_FAT_PER_G
     const paneerLimited    = Math.min(paneerByProtein, paneerByFat)
-    const paneerCoversFrac = (paneerLimited * PANEER_PROTEIN_PER_G) / Math.max(targetProtein, 1)
-    if (paneerCoversFrac < 0.7 && !isPaneerDish) {
-      tofuG = clamp(roundTo(targetProtein / TOFU_PROTEIN_PER_G, 10), 40, 250)
-    } else if (isPaneerDish) {
-      // Paneer dish: size by protein need, capped at a realistic plate max.
+    if (isPaneerDish) {
       paneerG = clamp(roundTo(paneerByProtein, 10), 40, 150)
     } else {
       paneerG = clamp(roundTo(paneerLimited, 10), 30, 180)
@@ -1281,7 +1307,7 @@ function buildVegMeal(
     tofuG = proteinGap > 8 ? clamp(roundTo(proteinGap / TOFU_PROTEIN_PER_G, 10), 0, 200) : 0
   }
 
-  const fatFromSources = paneerG * PANEER_FAT_PER_G + fatFromCurd + tofuG * TOFU_FAT_PER_G
+  const fatFromSources = paneerG * PANEER_FAT_PER_G + fatFromCurd + tofuG * 0.049
   const gheeNeeded     = solveGhee(targetFat, fatFromSources)
 
   const ingredients: ComposedIngredient[] = []
@@ -1385,7 +1411,7 @@ function buildThaliMeal(
   // calorie targets (teens), smaller across a 3-meal day (elderly). In the
   // small-plate regime the baseline itself drops (half-katori dal) so low-cal
   // 3-meal days don't overshoot.
-  const dalG = roundTo(DAL_RAW_PER_MEAL_G * grainScale, 5)
+  const dalG = scaleDalG(DAL_RAW_PER_MEAL_G, grainScale)
   ingredients.push({ foodId: slot.dalFoodId as any, quantity: dalG,
     prepNote: { hi: "पकी हुई", en: "cooked" } })
 
@@ -1432,10 +1458,15 @@ function buildThaliMeal(
   ingredients.push({ foodId: "GHEE" as any, quantity: baseFatTsp })
 
   // ── Protein dish ──────────────────────────────────────────────────────────
-  // Protein remaining after dal's contribution. Dal protein ≈ 13–15g per
-  // 60g raw serving (varies by dal type; we use 13g as a conservative anchor
-  // so we don't under-prescribe the protein dish).
-  const DAL_PROTEIN_ESTIMATE_G = 13 * grainScale
+  // Protein remaining after dal's contribution. Derived from the ACTUAL dalG
+  // computed above (post-dampening/cap), using dal's real ~0.217 g protein/g
+  // raw anchor (toor dal's density — a reasonable cross-dal conservative
+  // estimate). Previously this was `13 * grainScale`, uncapped and linear —
+  // once dalG itself was capped (scaleDalG), that formula started
+  // overstating dal's real protein contribution at high grainScale, which
+  // under-sized the protein dish and produced a day-level calorie/protein
+  // shortfall (caught by the HIGH_PROTEIN_CUT calorie-fidelity tests).
+  const DAL_PROTEIN_ESTIMATE_G = dalG * 0.217
   const residualProtein = Math.max(targetProtein - DAL_PROTEIN_ESTIMATE_G, 0)
 
   // Fat remaining after base ghee.
@@ -1502,32 +1533,25 @@ function buildThaliMeal(
       const whites = gap > 4 ? clamp(Math.round(gap / 3.6), 0, 6) : 0
       if (whites > 0) addOrMerge("EGG_WHITE", whites, { hi: "अतिरिक्त प्रोटीन", en: "added for lean protein" })
     } else {
-      // Veg protein dish — ONE bulk protein, chosen by the fat budget, never
-      // both stacked (that produced the dal+roti+aloo+paneer+tofu-brick plate).
-      //   - If the protein target is high relative to the fat budget (e.g.
-      //     HIGH_PROTEIN_CUT veg: 125g protein, low fat), lead with TOFU — lean
-      //     soy protein is the realistic centrepiece for a high-protein low-fat
-      //     veg meal, and paneer's fat would blow the budget.
-      //   - Otherwise lead with PANEER (the normal thali centrepiece), sized by
-      //     protein but fat-capped so a lean meal doesn't overshoot.
-      // A small per-meal undershoot is accepted over an unrealistic double-stack.
+      // Veg protein dish — paneer, sized by protein but fat-capped so a lean
+      // meal doesn't overshoot. Tofu is intentionally not used here (or
+      // anywhere in the generator) — paneer alone carries the protein,
+      // accepting a small undershoot rather than substituting an unfamiliar
+      // ingredient. This is the site that previously produced a 200g tofu
+      // block delivering only ~16g protein against a 40g need — paneer at
+      // its cap covers a much larger share of the same gap.
       const P_PROT = 0.1886, P_FAT = 0.2478
-      const TOFU_PROT = 0.081
-      // A NAMED paneer dish must contain paneer (its name + steps say so). Only
-      // diet-neutral dishes may lead with tofu when the fat budget is tight.
+      // Both named-paneer and diet-neutral dishes cap at a normal
+      // single-dish serving (≤150g) — this thali already has dal + grain +
+      // sabzi contributing calories, so the protein dish doesn't need (or
+      // get) extra headroom the way a standalone dish does.
       const protName = (RECIPES[slot.proteinRecipe]?.name.en ?? "").toLowerCase()
       const isPaneerDish = protName.includes("paneer")
       const paneerByProtein = residualProtein / P_PROT
       const paneerByFat      = Math.max(residualFat, 0) / P_FAT
       const paneerLimited    = Math.min(paneerByProtein, paneerByFat)
-      const paneerCoversFrac = (paneerLimited * P_PROT) / Math.max(residualProtein, 1)
 
-      if (paneerCoversFrac < 0.7 && !isPaneerDish) {
-        // Fat budget can't carry enough paneer AND it's not a paneer dish → tofu.
-        const tofuG = clamp(roundTo(residualProtein / TOFU_PROT, 10), 40, 200)
-        addOrMerge("TOFU_FIRM", tofuG, { hi: "टोफू", en: "tofu" })
-      } else if (isPaneerDish) {
-        // Paneer dish: paneer sized to protein need, capped for a real plate.
+      if (isPaneerDish) {
         const paneerG = clamp(roundTo(paneerByProtein, 10), 40, 150)
         addOrMerge("PANEER", paneerG, { hi: "क्यूब्स / क्रम्बल्ड", en: "cubes / crumbled" })
       } else {
@@ -1618,9 +1642,13 @@ function buildNonVegThaliMeal(
   const ingredients: ComposedIngredient[] = []
 
   // ── Dal (optional) ────────────────────────────────────────────────────────
-  const DAL_PROTEIN_ESTIMATE_G = slot.dalFoodId ? 13 * grainScale : 0
+  // Estimate derived from the actual (capped) dal quantity — see buildThaliMeal
+  // for why this must match scaleDalG's output rather than a separate uncapped
+  // linear formula.
+  const nonVegDalG = slot.dalFoodId ? scaleDalG(DAL_RAW_PER_MEAL_G, grainScale) : 0
+  const DAL_PROTEIN_ESTIMATE_G = nonVegDalG * 0.217
   if (slot.dalFoodId) {
-    ingredients.push({ foodId: slot.dalFoodId as any, quantity: roundTo(DAL_RAW_PER_MEAL_G * grainScale, 5),
+    ingredients.push({ foodId: slot.dalFoodId as any, quantity: nonVegDalG,
       prepNote: { hi: "पकी हुई — 1 कटोरी", en: "cooked — 1 katori" } })
   }
 
@@ -1683,7 +1711,8 @@ function buildDalMeal(
   const ingredients: ComposedIngredient[] = []
 
   // Dal — fixed standard portion
-  ingredients.push({ foodId: slot.dalFoodId as any, quantity: roundTo(DAL_RAW_PER_MEAL_G * grainScale, 5),
+  const dalMealDalG = scaleDalG(DAL_RAW_PER_MEAL_G, grainScale)
+  ingredients.push({ foodId: slot.dalFoodId as any, quantity: dalMealDalG,
     prepNote: { hi: "पकी हुई — 1 कटोरी", en: "cooked — 1 katori" } })
 
   // Optional 1 roti (some LC meals have a small grain, others don't)
@@ -1695,7 +1724,9 @@ function buildDalMeal(
 
   // Sabzi / protein dish — this IS the protein vehicle in LC meals.
   // The sabziRecipe field doubles as protein recipe in the LC rotation.
-  const DAL_PROTEIN_ESTIMATE_G = 13 * grainScale
+  // Estimate derived from the actual (capped) dal quantity — see
+  // buildThaliMeal for why this must track scaleDalG's output.
+  const DAL_PROTEIN_ESTIMATE_G = dalMealDalG * 0.217
   const residualP = Math.max(targetProtein - DAL_PROTEIN_ESTIMATE_G, 0)
   const baseFatG  = 10  // 2 tsp ghee for dal + roti cooking base
   const residualF = Math.max(targetFat - baseFatG, 0)

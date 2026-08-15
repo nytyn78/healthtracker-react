@@ -544,11 +544,18 @@ export const FOODS = {
     displayName: { hi: "हंग दही", en: "Hung Curd" },
   },
 
-  // Per 1g raw — full fat paneer alternative lower carb
+  // Per 1g raw — full fat paneer alternative, lower carb.
+  // Protein corrected from 0.081 (8.1g/100g — soft/silken tofu territory)
+  // to 0.106 (10.6g/100g), matching USDA FoodData Central for "tofu, firm,
+  // prepared with calcium sulfate." The old undervalued figure meant a
+  // single-serving protein target could require 200g+ of tofu to hit —
+  // unrealistic. Not used by the meal generator (which now leads with
+  // paneer instead), but food search and manual logging still read this
+  // entry, so the correction matters there.
   TOFU_FIRM: {
     id: "TOFU_FIRM", name: "Firm Tofu",
     unitType: "grams",
-    macros: { protein: 0.081, carbs: 0.019, fat: 0.049, calories: 0.76, fiber: 0.003 },
+    macros: { protein: 0.106, carbs: 0.019, fat: 0.049, calories: 0.941, fiber: 0.003 },
     tags: ["veg", "eggetarian", "keto"],
     quantization: { step: 10, min: 80, max: 250 },
     displayName: { hi: "टोफू", en: "Firm Tofu" },
