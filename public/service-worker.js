@@ -1,3 +1,9 @@
+// ⚠️ This string must match the version check in src/main.tsx exactly
+// (searches for event.data.version !== "..."). No shared import connects
+// them — bump both together on every real release, or the version-mismatch
+// check in main.tsx silently breaks (either stuck comparing against a
+// stale value forever, or never matching and forcing a full unregister +
+// reload on every single load).
 const CACHE = "healthtracker-v1.0.0"
 const BASE  = "/healthtracker-react"
 const ASSETS = [
