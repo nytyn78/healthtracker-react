@@ -18,7 +18,7 @@ import type { MealPlanEntry } from "../store/useHealthStore"
 
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
-function getMealPlanTargetHash(
+export function getMealPlanTargetHash(
   targets: GeneratorTargets,
   shakePref: boolean = false,
   shapePref: string = "auto",

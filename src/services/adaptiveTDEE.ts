@@ -15,15 +15,28 @@ import { type GoalMode, getFlags } from "./goalModeConfig"
 // Derived from macroSplit percentages — used by components and meal generator
 // to label the current eating style without storing a separate field.
 
-export type MacroMode = "keto" | "low_carb" | "balanced" | "high_protein"
+export type MacroMode =
+  | "KETO"
+  | "VERY_LOW_CARB"
+  | "LOW_CARB"
+  | "BALANCED"
+  | "HIGH_PROTEIN_CUT"
+  | "RECOMPOSITION"
 
 export function resolveMacroMode(
-  macroSplit: { fatPct: number; proteinPct: number; carbsPct: number }
+  macroSplit: { fatPct: number; proteinPct: number; carbsPct: number },
+  goalMode?: GoalMode
 ): MacroMode {
-  if (macroSplit.carbsPct <= 10) return "keto"
-  if (macroSplit.carbsPct <= 25) return "low_carb"
-  if (macroSplit.proteinPct >= 35) return "high_protein"
-  return "balanced"
+  // Recomposition is goal-driven, not split-driven
+  if (goalMode === "recomposition") return "RECOMPOSITION"
+
+  const { carbsPct, proteinPct } = macroSplit
+
+  if (carbsPct <= 5)  return "KETO"
+  if (carbsPct <= 12) return "VERY_LOW_CARB"
+  if (carbsPct <= 25) return "LOW_CARB"
+  if (proteinPct >= 35) return "HIGH_PROTEIN_CUT"
+  return "BALANCED"
 }
 
 // ── BMR ───────────────────────────────────────────────────────────────────────
@@ -142,9 +155,12 @@ export function computeMacros(
   )
 
   // ── Fat & Carbs: from macroSplit percentages ──────────────────────────────
+  // Branch boundaries match resolveMacroMode() above so the mode label and the
+  // macro allocation never disagree.
 
-  if (carbsPct <= 10) {
-    // Keto / very low-carb: hard cap at 25g net carbs
+  if (carbsPct <= 5) {
+    // KETO: hard cap at 25g, fat fills remainder
+    // (MODE_RULES.KETO allows 30g net; 25g total is the conservative equivalent)
     const carbsFromPct = Math.round((targetCalories * carbsPct) / 100 / 4)
     const carbsG = Math.min(carbsFromPct, 25)
     const fatG = Math.round((targetCalories - proteinG * 4 - carbsG * 4) / 9)
@@ -152,13 +168,14 @@ export function computeMacros(
   }
 
   if (carbsPct <= 25) {
-    // Low-carb: percentage-based carbs, fat fills remainder
+    // VERY_LOW_CARB / LOW_CARB: percentage-based carbs, fat fills remainder
     const carbsG = Math.round((targetCalories * carbsPct) / 100 / 4)
     const fatG = Math.round((targetCalories - proteinG * 4 - carbsG * 4) / 9)
     return { bmr, tdee, targetCalories, proteinG, carbsG, fatG }
   }
 
-  // Balanced / High-protein: fat from split percentage, carbs fill remainder
+  // BALANCED / HIGH_PROTEIN_CUT / RECOMPOSITION:
+  // fat from split percentage, carbs fill remainder
   const fatG = Math.round((targetCalories * fatPct) / 100 / 9)
   const carbsG = Math.max(75, Math.round((targetCalories - proteinG * 4 - fatG * 9) / 4))
 

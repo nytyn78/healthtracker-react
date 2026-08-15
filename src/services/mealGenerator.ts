@@ -1456,14 +1456,43 @@ function buildThaliMeal(
     // protein/calorie overshoot in the audit (a "Paneer Bhurji" thali was
     // landing >1000 kcal). The thali already supplies vegetables and dal; here
     // we only need the protein centrepiece.
-    const recipeUsesEgg = RECIPES[slot.proteinRecipe]?.compatibleFoods.includes("EGG" as any)
+    const recipe = RECIPES[slot.proteinRecipe]
+    const recipeUsesEgg = recipe?.compatibleFoods.includes("EGG" as any)
+    // requiredRanges (not compatibleFoods) is the authoritative "this food is
+    // structural to the dish" signal — compatibleFoods also lists optional
+    // items like CAPSICUM. A dish like PANEER_EGG_BHURJI has requiredRanges
+    // for BOTH EGG and PANEER, meaning it needs both, not just egg.
+    const recipeRequiresPaneer = !!recipe?.requiredRanges?.PANEER
     // Helper: add a quantity to an existing ingredient line if present, else push.
     const addOrMerge = (foodId: string, qty: number, prepNote?: { hi: string; en: string }) => {
       const existing = ingredients.find(i => i.foodId as string === foodId)
       if (existing) existing.quantity += qty
       else ingredients.push({ foodId: foodId as any, quantity: qty, prepNote })
     }
-    if (diet !== "veg" && recipeUsesEgg) {
+    if (diet !== "veg" && recipeUsesEgg && recipeRequiresPaneer) {
+      // Combo dish (e.g. "Paneer Egg Bhurji", "Anda Paneer Masala") — the
+      // recipe requires BOTH eggs and paneer. The plain recipeUsesEgg branch
+      // below would add eggs only, silently dropping paneer even though the
+      // dish's name and steps ("crumble paneer — serve") depend on it — this
+      // is exactly what produced a "Paneer Egg Bhurji" with no paneer in its
+      // ingredient list. Eggs are anchored at the recipe's own minimum (keeps
+      // the egg component real without eating the whole protein budget);
+      // paneer absorbs the rest of the residual protein within the recipe's
+      // own paneer range, fat-capped the same way the veg paneer branch is.
+      const eggRange    = recipe!.requiredRanges!.EGG!
+      const paneerRange = recipe!.requiredRanges!.PANEER!
+      const eggs = eggRange.min
+      addOrMerge("EGG", eggs, { hi: "भुर्जी", en: "scrambled" })
+      const eggProteinG = eggs * 6
+      const eggFatG     = eggs * 5
+      const P_PROT = 0.1886, P_FAT = 0.2478
+      const paneerProteinNeeded = Math.max(residualProtein - eggProteinG, 0)
+      const paneerFatBudget     = Math.max(residualFat - eggFatG, 0)
+      const paneerByProtein = paneerProteinNeeded / P_PROT
+      const paneerByFat     = paneerFatBudget / P_FAT
+      const paneerG = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), paneerRange.min, paneerRange.max)
+      addOrMerge("PANEER", paneerG, { hi: "क्यूब्स / क्रम्बल्ड", en: "cubes / crumbled" })
+    } else if (diet !== "veg" && recipeUsesEgg) {
       // Eggetarian protein dish → whole eggs capped by fat, whites for the gap.
       const eggsByProtein = Math.round(residualProtein / 6)
       const eggsByFat     = Math.floor(residualFat / 5)

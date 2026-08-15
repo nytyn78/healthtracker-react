@@ -27,20 +27,38 @@ export function toMealPlanEntry(
   const lang    = opts.lang
 
   // Build ingredient strings: "3 पूरे अंडे — उबले और छिले"
-  const ingredients = meal.ingredients.map(ing => {
-    const food = FOODS[ing.foodId]
-    if (!food) return `${ing.quantity} ${ing.foodId}`
-    return formatIngredientDisplay(ing.foodId, ing.quantity, ing.prepNote, lang)
-  })
+  // Zero-quantity ingredients are filtered out — a solver (e.g. solveGhee)
+  // can legitimately land on 0 when the fat budget is already met by other
+  // sources, and a "0 tsp Ghee" line is noise, not information.
+  const ingredients = meal.ingredients
+    .filter(ing => ing.quantity > 0)
+    .map(ing => {
+      const food = FOODS[ing.foodId]
+      if (!food) return `${ing.quantity} ${ing.foodId}`
+      return formatIngredientDisplay(ing.foodId, ing.quantity, ing.prepNote, lang)
+    })
 
   // Steps from recipe registry. For composite meals (thali = dal + sabzi +
   // protein), concatenate each sub-recipe's steps under its own dish header so
   // the cook gets instructions for every component, not just the main dish.
   // Single-recipe meals (extraRecipeIds absent) keep a flat step list with no
   // header, exactly as before.
+  //
+  // meal.recipeId is set upstream to the protein dish's id when one exists
+  // (mealGenerator's buildThaliMeal etc. return recipeId = proteinRecipe ??
+  // grainRecipe), and that SAME id is also pushed into extraRecipeIds so its
+  // steps get a dish header. Without deduping, [recipeId, ...extraRecipeIds]
+  // contains the protein recipe twice and its whole step block printed twice.
+  // De-dupe by id, keeping first occurrence — recipeId's position first so
+  // the protein dish's steps still lead.
   let steps: string[]
   if (meal.extraRecipeIds && meal.extraRecipeIds.length > 0) {
-    const allRecipeIds = [meal.recipeId, ...meal.extraRecipeIds]
+    const seen = new Set<string>()
+    const allRecipeIds = [meal.recipeId, ...meal.extraRecipeIds].filter(rid => {
+      if (seen.has(rid)) return false
+      seen.add(rid)
+      return true
+    })
     steps = []
     for (const rid of allRecipeIds) {
       const r = getRecipe(rid)
