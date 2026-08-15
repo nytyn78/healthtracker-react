@@ -118,8 +118,19 @@ const DAY_NAMES = [
 ]
 
 /**
+ * True for any protein-shake entry, across the several naming variants used
+ * across the codebase (fixed 2-meal-shape shake, additive per-gap shake,
+ * split AM/PM additive shake).
+ */
+function isShakeEntry(meal: MealPlanEntry): boolean {
+  const n = meal.name.toLowerCase()
+  return n.startsWith("protein shake") || n.startsWith("whey")
+}
+
+/**
  * Candidate meals offered in the swap picker for a given slot: every OTHER
- * day's meal occupying the same slot index, filtered to the user's diet tag.
+ * day's meal occupying the same ROLE (not raw position) as slotIndex on
+ * currentDayName, filtered to the user's diet tag.
  *
  * Matches the old app's "other days' meals in the same slot" pool (~6 options
  * for a 7-day plan). Pulls only from the canonical plan — no recipe-registry
@@ -129,17 +140,47 @@ const DAY_NAMES = [
  * dietTag filter is defensive: a generated plan is already single-diet, but if
  * the plan was regenerated after a diet change, stale entries are excluded so a
  * veg user is never offered chicken.
+ *
+ * MATCHING BY ROLE, NOT RAW INDEX (fix): the additive protein-shake feature
+ * (settings.proteinShake) inserts 0, 1, or 2 shake entries per day, sized to
+ * that DAY'S actual protein gap — so shake presence and count vary day to
+ * day. A shake's fixed clock time (e.g. the AM half at 8:00 AM) can sort
+ * BEFORE that day's breakfast, shifting every later meal's raw index by one.
+ * Matching by raw `dayMeals[slotIndex]` across days then mixes shakes into
+ * the breakfast/lunch/dinner picker (and vice versa) — the reported bug
+ * ("swap only shows protein shake and egg meal"). Instead: if the target
+ * slot is a shake, match against ANY shake on the other day; otherwise, rank
+ * the target among that day's NON-shake meals and match the same rank on
+ * each other day's non-shake meals, so breakfast always lines up with
+ * breakfast regardless of where a shake landed in the sort order.
  */
 export function getSwapCandidates(
   currentDayName: string,
   slotIndex: number,
   dietTag: DietTag,
 ): MealPlanEntry[] {
+  const currentDayMeals = getCanonicalDayMeals(currentDayName)
+  const target = currentDayMeals[slotIndex]
+  if (!target) return []
+
+  const targetIsShake = isShakeEntry(target)
+  // Rank of the target among non-shake meals that day (e.g. 0=breakfast,
+  // 1=lunch, 2=dinner) — unused when the target itself is a shake.
+  const nonShakeRank = currentDayMeals
+    .slice(0, slotIndex + 1)
+    .filter(m => !isShakeEntry(m)).length - 1
+
   const candidates: MealPlanEntry[] = []
   for (const dayName of DAY_NAMES) {
     if (dayName.toLowerCase() === currentDayName.toLowerCase()) continue
     const dayMeals = getCanonicalDayMeals(dayName)
-    const meal = dayMeals[slotIndex]
+
+    let meal: MealPlanEntry | undefined
+    if (targetIsShake) {
+      meal = dayMeals.find(isShakeEntry)
+    } else {
+      meal = dayMeals.filter(m => !isShakeEntry(m))[nonShakeRank]
+    }
     if (!meal) continue
     if (meal.tag !== dietTag) continue
     candidates.push(meal)
