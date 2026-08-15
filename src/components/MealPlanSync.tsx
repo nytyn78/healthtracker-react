@@ -5,24 +5,39 @@
  *
  * Displayed at the top of MealPlanBuilder and on the Today tab meal section.
  *
- * Fix: description text now reads actual diet tag and macro split label
- * instead of hardcoded "eggetarian keto".
+ * Fix (this pass): regenerate() now delegates to autoGenerateAndSaveMealPlan()
+ * — the shared orchestration in mealPlanGeneration.ts — instead of calling
+ * generateWeekPlan(targets, diet) directly with only 2 arguments. The direct
+ * call silently used the function's defaults for every other parameter
+ * (macroMode="KETO", schedule=LEGACY_IF_SCHEDULE 2-meal times, shape=
+ * "two_plus_shake"), so EVERY user got a keto-shaped 2-meal+shake plan
+ * regardless of their actual diet/macro-split/IF settings. This is what
+ * produced mismatched meal times and diet-mode-mismatched dishes in
+ * practice. autoGenerateAndSaveMealPlan derives macroMode from the user's
+ * real macroSplit, the schedule from their real IF protocol, and the shape
+ * from fasting/minor status — and already includes its own additive
+ * protein-shake mechanism (settings.proteinShake), so this component no
+ * longer needs (or should have) any shake logic of its own.
+ *
+ * computeMacros() here now also passes goalMode — previously omitted, which
+ * meant maintenance/pregnancy/child users saw a deficit-shaped calorie
+ * target in this card even though their actual targets (used for meal
+ * generation) were correctly zero-deficit / surplus via mealPlanGeneration.
  */
 
 import { useState } from "react"
 import { computeMacros } from "../services/adaptiveTDEE"
-import { useHealthStore, saveMealPlan, MealPlanEntry } from "../store/useHealthStore"
-import { generateWeekPlan, GeneratorTargets } from "../services/mealGenerator"
-import { toDayMealPlanEntries } from "../services/transformer"
+import { useHealthStore } from "../store/useHealthStore"
+import { GeneratorTargets } from "../services/mealGenerator"
+import { autoGenerateAndSaveMealPlan, getMealPlanTargetHash } from "../services/mealPlanGeneration"
 import { loadGoalMode } from "../services/goalModeConfig"
 import { KEYS } from "../services/storageKeys"
+import type { DietTag } from "../store/useHealthStore"
 
-const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
-
-function getDietTag() {
+function getDietTag(): DietTag {
   try {
     const cfg = JSON.parse(localStorage.getItem(KEYS.DIET_CONFIG) || "{}")
-    return cfg.tag || "eggetarian"
+    return (cfg.tag as DietTag) || "eggetarian"
   } catch { return "eggetarian" }
 }
 
@@ -38,22 +53,14 @@ function getDietLabel(tag: string): string {
 
 // Derive macro split label from stored percentages
 function getMacroSplitLabel(macroSplit: { fatPct: number; proteinPct: number; carbsPct: number }): string {
-  if (macroSplit.carbsPct <= 10) return "keto"
+  if (macroSplit.carbsPct <= 5)  return "keto"
   if (macroSplit.carbsPct <= 25) return "low-carb"
   if (macroSplit.proteinPct >= 35) return "high-protein"
   return "balanced"
 }
 
-function getMealPlanTargetHash(targets: GeneratorTargets): string {
-  return `${targets.proteinG}-${targets.fatG}-${targets.carbsG}-${targets.calories}`
-}
-
 function getSavedHash(): string {
   try { return localStorage.getItem(KEYS.MEAL_PLAN + "_target_hash") || "" } catch { return "" }
-}
-
-function saveHash(hash: string) {
-  try { localStorage.setItem(KEYS.MEAL_PLAN + "_target_hash", hash) } catch {}
 }
 
 interface Props {
@@ -65,8 +72,10 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
   const { profile, goals, settings } = useHealthStore()
   const [generating, setGenerating] = useState(false)
   const [justDone, setJustDone]     = useState(false)
+  const [failed, setFailed]         = useState(false)
 
-  const computed = computeMacros(profile, goals, settings)
+  const goalMode = loadGoalMode()
+  const computed = computeMacros(profile, goals, settings, goalMode)
   if (!computed) return null
 
   const targets: GeneratorTargets = {
@@ -76,7 +85,9 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
     calories:  computed.targetCalories,
   }
 
-  const currentHash = getMealPlanTargetHash(targets)
+  const currentHash = getMealPlanTargetHash(
+    targets, settings.proteinShake, settings.mealShape, settings.proteinShakeSplit
+  )
   const savedHash   = getSavedHash()
   const isOutOfSync = savedHash !== currentHash && savedHash !== ""
   const neverGenerated = savedHash === ""
@@ -88,28 +99,14 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
 
   function regenerate() {
     setGenerating(true)
-    try {
-      // Map stored diet tag to generator diet type
-      // non_veg → "non-veg", everything else → "eggetarian" (eggs+dairy allowed)
-      const diet = (dietTag === "non_veg" ? "non-veg" : "eggetarian") as any
-      const weekResults = generateWeekPlan(targets, diet)
-
-      // Convert each day to MealPlanEntry[] and flatten
-      const allEntries: MealPlanEntry[] = weekResults.flatMap((result, i) =>
-        toDayMealPlanEntries(result.plan, {
-          lang:    "en",
-          dietTag: dietTag as any,
-          day:     DAYS[i],
-        })
-      )
-
-      saveMealPlan(allEntries)
-      saveHash(currentHash)
+    setFailed(false)
+    const ok = autoGenerateAndSaveMealPlan(dietTag)
+    if (ok) {
       setJustDone(true)
       setTimeout(() => setJustDone(false), 3000)
       onRegenerated?.()
-    } catch (e) {
-      console.error("Meal plan generation failed:", e)
+    } else {
+      setFailed(true)
     }
     setGenerating(false)
   }
@@ -137,6 +134,11 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
           className="w-full py-2.5 bg-teal-600 text-white rounded-xl text-sm font-bold disabled:opacity-50">
           {generating ? "Generating…" : "Generate meal plan"}
         </button>
+        {failed && (
+          <p className="text-[11px] text-red-500 mt-2">
+            Couldn't generate a plan — check your profile is complete (age, height, weight) in Settings.
+          </p>
+        )}
       </div>
     )
   }
@@ -167,6 +169,11 @@ export default function MealPlanSync({ onRegenerated, compact = false }: Props) 
           className="w-full py-2.5 bg-amber-600 text-white rounded-xl text-sm font-bold disabled:opacity-50">
           {generating ? "Updating…" : "Update meal plan"}
         </button>
+        {failed && (
+          <p className="text-[11px] text-red-500 mt-2">
+            Couldn't update the plan — check your profile is complete in Settings.
+          </p>
+        )}
       </div>
     )
   }
