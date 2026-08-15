@@ -1555,9 +1555,14 @@ function buildThaliMeal(
         const paneerG = clamp(roundTo(paneerByProtein, 10), 40, 150)
         addOrMerge("PANEER", paneerG, { hi: "क्यूब्स / क्रम्बल्ड", en: "cubes / crumbled" })
       } else {
-        // Paneer leads.
+        // Paneer leads, but slot.proteinRecipe (e.g. Dal Makhani) has no idea
+        // paneer exists — its own steps never mention it. Give the paneer a
+        // real instruction via PANEER_TOPPER rather than letting it appear
+        // in the ingredient list with nothing telling the cook what to do
+        // with it.
         const paneerG = clamp(roundTo(paneerLimited, 10), 30, 150)
         addOrMerge("PANEER", paneerG, { hi: "क्यूब्स / क्रम्बल्ड", en: "cubes / crumbled" })
+        extraRecipeIds.push("PANEER_TOPPER")
       }
     }
     extraRecipeIds.push(slot.proteinRecipe)
@@ -2105,6 +2110,7 @@ function buildBreakfastMeal(
   const kind = pickBreakfastKind(macroMode, diet, dayIndex)
   const ingredients: ComposedIngredient[] = []
   let recipeId: string
+  let dahiHasPaneer = false
 
   if (kind === "poha") {
     recipeId = "POHA_BREAKFAST"
@@ -2177,6 +2183,11 @@ function buildBreakfastMeal(
     const paneerG = clamp(roundTo(Math.min(paneerByProtein, paneerByFat), 10), 30, 150)
     ingredients.push({ foodId: "PANEER" as any, quantity: paneerG, prepNote: { hi: "क्यूब्स", en: "cubes" } })
     ingredients.push({ foodId: "DAHI" as any, quantity: 150, prepNote: { hi: "फेंटा", en: "whisked" } })
+    // DAHI_BOWL's own recipe steps only cover curd (whisk, salt, serve) — they
+    // have no idea paneer is being added alongside it. Flag it so the paneer
+    // gets a real instruction via PANEER_TOPPER instead of appearing with
+    // nothing telling the cook what to do with it.
+    dahiHasPaneer = true
   } else {
     recipeId = "EGG_BREAKFAST"
     const eggsByProtein = Math.round(targetProtein / 6)
@@ -2191,7 +2202,11 @@ function buildBreakfastMeal(
     ingredients.push({ foodId: "TOMATO" as any, quantity: 30 })
   }
 
-  return { name: RECIPES[recipeId]?.name.en ?? recipeId, slot: "breakfast", time, recipeId, mealRole: "breakfast", ingredients }
+  return {
+    name: RECIPES[recipeId]?.name.en ?? recipeId, slot: "breakfast", time, recipeId,
+    mealRole: "breakfast", ingredients,
+    ...(dahiHasPaneer ? { extraRecipeIds: ["PANEER_TOPPER"] } : {}),
+  }
 }
 
 // Growing-minor snack: banana + peanut + curd. Sized to its (small) calorie share.

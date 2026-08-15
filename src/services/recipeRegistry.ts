@@ -713,14 +713,35 @@ export const RECIPES: Record<string, Recipe> = {
 
   // ── Shake ─────────────────────────────────────────────────────────────────────
 
+  // Lightweight step-note for paneer added as a generic protein topper — not
+  // through a dish that structurally contains it (a named paneer dish, or
+  // PANEER_EGG_BHURJI's own requiredRanges). mealGenerator.ts pushes this id
+  // into extraRecipeIds whenever it adds a bare PANEER ingredient this way
+  // (e.g. Dal Makhani + Aloo Mutter getting a paneer top-up, or the Curd Bowl
+  // breakfast's paneer side), so the ingredient always has an accompanying
+  // instruction instead of appearing with no explanation of what to do with it.
+  PANEER_TOPPER: {
+    id: "PANEER_TOPPER",
+    name: { hi: "अतिरिक्त पनीर", en: "Added Paneer" },
+    compatibleFoods: ["PANEER"],
+    dietTags: ["veg", "eggetarian"],
+    steps: {
+      hi: ["पनीर क्यूब्स — आखिरी 2-3 मिनट में डालें — हल्के हाथों मिलाएं"],
+      en: ["Add the paneer cubes in the last 2-3 minutes of cooking — fold in gently"],
+    },
+  },
+
   WHEY_SHAKE: {
     id: "WHEY_SHAKE",
     name: { hi: "व्हे प्रोटीन शेक", en: "Whey Protein Shake" },
     compatibleFoods: ["WHEY"],
     dietTags: ["eggetarian", "non-veg", "veg"],
     steps: {
-      hi: ["300ml ठंडा पानी या बादाम दूध", "1 स्कूप व्हे प्रोटीन — शेक करें — ठंडा परोसें"],
-      en: ["300ml cold water or almond milk", "1 scoop whey — shake well — serve cold"],
+      // Quantity-neutral — the ingredient line itself already shows the
+      // actual scoop count (0.5 / 1 / 1.5 / 2), which can differ from the
+      // static "1 scoop" this used to say regardless of how much was added.
+      hi: ["300ml ठंडा पानी या बादाम दूध", "मापा हुआ व्हे डालें — शेक करें — ठंडा परोसें"],
+      en: ["300ml cold water or almond milk", "Add the measured whey — shake well — serve cold"],
     },
   },
 
