@@ -914,7 +914,7 @@ function MacroWarningsDisplay({ warnings }: { warnings: MacroWarning[] }) {
 }
 
 export default function Settings({ onGoalModeChange }: { onGoalModeChange?: (mode: import("../services/goalModeConfig").GoalMode) => void }) {
-  const { profile, goals, settings, updateProfile, updateGoals, updateMacroSplit, updateIFProtocol } = useHealthStore()
+  const { profile, goals, settings, updateProfile, updateGoals, updateMacroSplit, updateIFProtocol, updateProteinShake, updateProteinShakeSplit } = useHealthStore()
   const goalMode = loadGoalMode()
   const macros = computeMacros(profile, goals, settings, goalMode)
   const warnings = getMacroWarnings(profile, settings, goalMode, macros, goals)
@@ -1040,6 +1040,51 @@ export default function Settings({ onGoalModeChange }: { onGoalModeChange?: (mod
           <p className="mt-1">🚫 Fasting: <span className="font-semibold">{formatHour(ifProtocol.fastStartHour)} → {formatHour(eatStart)}</span></p>
         </div>
         </>
+        )}
+      </Section>
+
+      {/* ── Meal Plan Options ── */}
+      {/* Toggling proteinShake or proteinShakeSplit changes the meal plan's
+          target hash (see getMealPlanTargetHash in mealPlanGeneration.ts),
+          so MealPlanSync automatically detects the plan is out of sync and
+          shows its "Update meal plan" banner — no extra wiring needed here
+          to trigger a recalculation. */}
+      <Section title="Meal Plan Options">
+        <Field label="Add a protein shake to close daily gaps">
+          <button
+            role="switch"
+            aria-checked={settings.proteinShake}
+            onClick={() => updateProteinShake(!settings.proteinShake)}
+            className={`w-11 h-6 rounded-full transition-colors relative ${
+              settings.proteinShake ? "bg-teal-600" : "bg-gray-300"
+            }`}
+          >
+            <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all ${
+              settings.proteinShake ? "left-[22px]" : "left-0.5"
+            }`} />
+          </button>
+        </Field>
+        <p className="text-[11px] text-gray-400 -mt-2 mb-1 leading-snug">
+          When a day's meals fall short of your protein target, a whey shake (sized
+          to that day's actual gap, up to 2 scoops) is added on top — it doesn't
+          replace or shrink any meal. Off by default; meals alone carry the target,
+          with a small accepted shortfall on the hardest combos.
+        </p>
+        {settings.proteinShake && (
+          <Field label="Split into two half-shakes (AM / PM)">
+            <button
+              role="switch"
+              aria-checked={settings.proteinShakeSplit}
+              onClick={() => updateProteinShakeSplit(!settings.proteinShakeSplit)}
+              className={`w-11 h-6 rounded-full transition-colors relative ${
+                settings.proteinShakeSplit ? "bg-teal-600" : "bg-gray-300"
+              }`}
+            >
+              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all ${
+                settings.proteinShakeSplit ? "left-[22px]" : "left-0.5"
+              }`} />
+            </button>
+          </Field>
         )}
       </Section>
 
